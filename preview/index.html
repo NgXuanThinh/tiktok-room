@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Cyber Slime 3D - Live Bar Effects & Scalability Benchmark</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #0c0b16;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      color: #f0f0ff;
+    }
+    #canvas-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+    /* Floating Glassmorphic Inspector HUD */
+    .inspector-panel {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 330px;
+      max-height: calc(100vh - 32px);
+      overflow-y: auto;
+      background: rgba(13, 14, 26, 0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.7), 0 0 24px rgba(0, 242, 254, 0.12);
+      z-index: 10;
+    }
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .panel-header h1 {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      background: linear-gradient(135deg, #00f2fe 0%, #ff0874 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .fps-badge {
+      font-size: 13px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-family: monospace;
+      letter-spacing: 0.5px;
+    }
+    /* Benchmark Live Readout Card */
+    .benchmark-card {
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid rgba(0, 242, 254, 0.25);
+      border-radius: 10px;
+      padding: 10px 6px;
+      margin-bottom: 12px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px;
+      text-align: center;
+    }
+    .metric-val {
+      font-size: 13px;
+      font-weight: 800;
+      color: #00f2fe;
+      font-family: monospace;
+    }
+    .metric-lbl {
+      font-size: 9px;
+      color: #8c90b0;
+      text-transform: uppercase;
+      margin-top: 2px;
+      font-weight: 600;
+    }
+    .section-title {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #00f2fe;
+      margin: 10px 0 6px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    /* Spawner Buttons */
+    .spawner-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 5px;
+      margin-bottom: 5px;
+    }
+    .spawner-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 5px;
+      margin-bottom: 8px;
+    }
+    .spawn-btn {
+      background: rgba(0, 242, 254, 0.12);
+      border: 1px solid rgba(0, 242, 254, 0.35);
+      color: #00f2fe;
+      padding: 6px 4px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-align: center;
+    }
+    .spawn-btn:hover {
+      background: rgba(0, 242, 254, 0.28);
+      border-color: #00f2fe;
+    }
+    .remove-btn {
+      background: rgba(255, 8, 116, 0.12);
+      border: 1px solid rgba(255, 8, 116, 0.35);
+      color: #ff0874;
+    }
+    .remove-btn:hover {
+      background: rgba(255, 8, 116, 0.28);
+    }
+    .reset-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+    }
+    /* EPIC LION CELEBRATION BUTTON (NEW) */
+    .lion-btn {
+      width: 100%;
+      padding: 11px;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #ffd700 0%, #ff8800 50%, #ff0055 100%);
+      color: #050510;
+      font-weight: 900;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      border: none;
+      border-radius: 9px;
+      cursor: pointer;
+      box-shadow: 0 4px 18px rgba(255, 215, 0, 0.45), 0 0 10px rgba(255, 136, 0, 0.35);
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+    }
+    .lion-btn:hover {
+      transform: scale(1.02);
+      box-shadow: 0 6px 24px rgba(255, 215, 0, 0.75), 0 0 14px rgba(255, 0, 85, 0.55);
+    }
+    /* 5-TIER SHOWCASE BUTTON (NEW) */
+    .showcase-btn {
+      width: 100%;
+      padding: 11px;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #00f2fe 0%, #7928ca 50%, #ff0874 100%);
+      color: #ffffff;
+      font-weight: 900;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      border: none;
+      border-radius: 9px;
+      cursor: pointer;
+      box-shadow: 0 4px 18px rgba(121, 40, 202, 0.45), 0 0 12px rgba(0, 242, 254, 0.3);
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+    }
+    .showcase-btn:hover {
+      transform: scale(1.02);
+      box-shadow: 0 6px 24px rgba(121, 40, 202, 0.75), 0 0 16px rgba(255, 8, 116, 0.5);
+    }
+    /* DEVIL SLIME (2 SỪNG + ĐUÔI) TOGGLE BUTTON */
+    .devil-btn {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #7928ca 0%, #ff0055 100%);
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      border: 1px solid rgba(255, 0, 85, 0.4);
+      border-radius: 9px;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(255, 0, 85, 0.35);
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+    }
+    .devil-btn:hover {
+      transform: scale(1.02);
+      box-shadow: 0 6px 22px rgba(255, 0, 85, 0.6);
+    }
+    .devil-btn.active {
+      background: linear-gradient(135deg, #00ff88 0%, #00b4d8 100%);
+      color: #050b14;
+      border-color: #00ff88;
+    }
+    /* Freeze / Pause Button */
+    .freeze-btn {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, #ff007f 0%, #7928ca 100%);
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 11px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(255, 0, 127, 0.35);
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .freeze-btn:hover {
+      transform: scale(1.02);
+    }
+    .freeze-btn.paused {
+      background: linear-gradient(135deg, #00ff88 0%, #00b4d8 100%);
+      color: #050b14;
+    }
+    /* Buttons standard */
+    .btn-group {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+    .btn-group-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 5px;
+    }
+    .btn-group-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+    .btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #d8dbf0;
+      padding: 6px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+    .btn:hover {
+      background: rgba(255, 255, 255, 0.14);
+      color: #fff;
+    }
+    .btn.active {
+      background: linear-gradient(135deg, rgba(0, 242, 254, 0.25), rgba(255, 8, 116, 0.25));
+      border-color: #00f2fe;
+      color: #fff;
+      box-shadow: 0 0 10px rgba(0, 242, 254, 0.35);
+    }
+    .palette-btn {
+      font-size: 10px;
+    }
+    .color-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.6);
+    }
+    .slider-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 5px 0;
+    }
+    .slider-row label {
+      font-size: 11px;
+      color: #b0b4d4;
+    }
+    .slider-row input[type="range"] {
+      flex: 1;
+      accent-color: #00f2fe;
+      cursor: pointer;
+    }
+    .slider-value {
+      font-size: 11px;
+      font-weight: 700;
+      color: #00f2fe;
+      min-width: 36px;
+      text-align: right;
+    }
+    .action-btn {
+      width: 100%;
+      padding: 7px;
+      margin-top: 5px;
+      background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+      color: #050b14;
+      font-weight: 700;
+      font-size: 11px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 242, 254, 0.3);
+    }
+    /* Gift Category Tabs */
+    .gift-cat-tabs {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 3px;
+      margin-bottom: 6px;
+    }
+    .gift-cat-tab {
+      padding: 5px 2px;
+      font-size: 9.5px;
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 6px;
+      color: #8c90b0;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s ease;
+    }
+    .gift-cat-tab:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+    }
+    .gift-cat-tab.active {
+      background: linear-gradient(135deg, rgba(0, 242, 254, 0.3), rgba(255, 8, 116, 0.3));
+      border-color: #00f2fe;
+      color: #fff;
+    }
+    .gift-grid-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+      margin-bottom: 6px;
+    }
+    .brand-tag {
+      position: absolute;
+      bottom: 16px;
+      left: 16px;
+      z-index: 10;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.7);
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(8px);
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      pointer-events: none;
+    }
+    /* Celebration HUD Banner */
+    #lion-banner {
+      display: none;
+      position: absolute;
+      top: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, rgba(255, 215, 0, 0.95), rgba(255, 0, 85, 0.95));
+      color: #050510;
+      padding: 12px 30px;
+      border-radius: 30px;
+      font-weight: 900;
+      font-size: 16px;
+      letter-spacing: 1.5px;
+      box-shadow: 0 0 30px rgba(255, 215, 0, 0.8), 0 0 50px rgba(255, 0, 85, 0.5);
+      z-index: 20;
+      pointer-events: none;
+      animation: bannerPulse 0.8s ease-in-out infinite alternate;
+    }
+    @keyframes bannerPulse {
+      from { transform: translateX(-50%) scale(1.0); }
+      to { transform: translateX(-50%) scale(1.06); }
+    }
+
+    /* TikTok Gift Notification Toast Card */
+    #gift-toast {
+      display: none;
+      position: absolute;
+      top: 75px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      pointer-events: none;
+      min-width: 290px;
+      max-width: 90vw;
+      background: rgba(10, 10, 26, 0.88);
+      backdrop-filter: blur(14px);
+      border: 2px solid #ffd700;
+      border-radius: 16px;
+      padding: 10px 18px;
+      box-shadow: 0 0 35px rgba(255, 215, 0, 0.45), 0 8px 30px rgba(0, 0, 0, 0.8);
+      text-align: center;
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      animation: slideDownToast 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes slideDownToast {
+      from { opacity: 0; transform: translate(-50%, -20px) scale(0.92); }
+      to { opacity: 1; transform: translate(-50%, 0) scale(1.0); }
+    }
+    .donate-btn {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 7px 10px;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .donate-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 14px rgba(0, 242, 254, 0.4);
+    }
+  </style>
+</head>
+<body>
+  <div id="canvas-container"></div>
+
+  <!-- LION CELEBRATION FLOATING BANNER -->
+  <div id="lion-banner">🦁 VINH DANH LION - CORONATION 👑</div>
+
+  <!-- TIKTOK LIVE GIFT TOAST CARD -->
+  <div id="gift-toast">
+    <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1.2px; color: #ffd700; font-weight: 800;" id="toast-title">🎁 TIKTOK LIVE GIFT</div>
+    <div style="font-size: 15px; font-weight: 700; margin: 4px 0; color: #ffffff;" id="toast-msg">@Viewer sent Gift!</div>
+    <div style="font-size: 12px; color: #00f2fe; font-weight: 600;" id="toast-tier">✨ Thăng cấp lên Tier 3!</div>
+  </div>
+
+  <div class="brand-tag">
+    🎵 TikTok LIVE Bar &bull; Lion Coronation Fly/Flip Sequence & Live Effects
+  </div>
+
+  <div class="inspector-panel">
+    <div class="panel-header">
+      <h1>Avatar Scalability</h1>
+      <span class="fps-badge" id="fps-badge" style="background: rgba(0, 255, 136, 0.2); color: #00ff88; border: 1px solid rgba(0, 255, 136, 0.4);">60 FPS</span>
+    </div>
+
+    <!-- Real-time Benchmark Metrics -->
+    <div class="benchmark-card">
+      <div>
+        <div class="metric-val" id="metric-avatars">1</div>
+        <div class="metric-lbl">Avatars</div>
+      </div>
+      <div>
+        <div class="metric-val" id="metric-latency">16.6ms</div>
+        <div class="metric-lbl">Latency</div>
+      </div>
+      <div>
+        <div class="metric-val" id="metric-drawcalls">2</div>
+        <div class="metric-lbl">Draw Calls</div>
+      </div>
+      <div>
+        <div class="metric-val" id="metric-verts">432</div>
+        <div class="metric-lbl">Vertices</div>
+      </div>
+    </div>
+
+    <!-- EPIC LION CORONATION BUTTON -->
+    <button class="lion-btn" id="lion-celebration-btn">
+      🦁 VINH DANH LION (BAY LỘN VÒNG)
+    </button>
+
+    <!-- 5-TIER SHOWCASE BUTTON -->
+    <button class="showcase-btn" id="btn-showcase-all">
+      🎪 XEM TẤT CẢ 5 TIERS (HÀNG NGANG)
+    </button>
+
+    <!-- FREEZE / PAUSE BUTTON -->
+    <button class="freeze-btn" id="freeze-btn">
+      ⏸️ ĐỨNG YÊN (FREEZE ALL)
+    </button>
+
+    <!-- AVATAR SPAWNER CONTROLS -->
+    <div class="section-title">
+      <span>Add / Remove Avatars</span>
+      <span style="font-size: 9px; color: #8c90b0;">Dance Grid</span>
+    </div>
+    <div class="spawner-grid">
+      <button class="spawn-btn" id="btn-add-1">+1</button>
+      <button class="spawn-btn" id="btn-add-10">+10</button>
+      <button class="spawn-btn" id="btn-add-50">+50</button>
+      <button class="spawn-btn" id="btn-add-100">+100</button>
+    </div>
+    <div class="spawner-grid-3">
+      <button class="spawn-btn remove-btn" id="btn-rem-10">-10</button>
+      <button class="spawn-btn remove-btn" id="btn-rem-50">-50</button>
+      <button class="spawn-btn reset-btn" id="btn-reset-1">Reset (1)</button>
+    </div>
+
+    <div class="slider-row">
+      <label>Avatars</label>
+      <input type="range" id="avatar-slider" min="1" max="300" value="1">
+      <span class="slider-value" id="avatar-slider-val">1</span>
+    </div>
+
+    <!-- BILLBOARD LABEL TOGGLE (Tham chiếu luồng chính src/avatar-manager.js) -->
+    <div class="slider-row" style="margin-top: 6px; margin-bottom: 8px; padding: 6px 10px; background: rgba(0, 242, 254, 0.08); border-radius: 8px; border: 1px solid rgba(0, 242, 254, 0.25);">
+      <label style="color: #00f2fe; font-weight: 700; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+        🏷️ Bật / Tắt Billboard Label
+      </label>
+      <input type="checkbox" id="toggle-labels" checked style="accent-color: #00f2fe; width: 16px; height: 16px; cursor: pointer;">
+    </div>
+
+    <!-- TEST BILLBOARD LABELS & DONATE RANKS (TIKTOK LEVEL & SCALABILITY TEST) -->
+    <div class="section-title">
+      <span>🏷️ Test Level TikTok & Rank Donate</span>
+      <span style="font-size: 9px; color: #00f2fe;">Live Testing</span>
+    </div>
+
+    <!-- Hero Avatar TikTok Level & Rank Controls -->
+    <div style="background: rgba(16, 18, 35, 0.7); border: 1px solid rgba(0, 242, 254, 0.25); border-radius: 8px; padding: 8px; margin-bottom: 8px;">
+      <div style="font-size: 11px; color: #8c90b0; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center;">
+        <span>Cấp TikTok (Avatar Chính):</span>
+        <span id="hero-lvl-val" style="color: #00f2fe; font-weight: 700; font-size: 12px;">Lv.45</span>
+      </div>
+      <div class="slider-row" style="margin-bottom: 6px;">
+        <input type="range" id="hero-lvl-slider" min="1" max="60" value="45" style="width: 100%;">
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-bottom: 8px;">
+        <button class="btn quick-lvl-btn" data-lvl="1" style="font-size: 10px; padding: 4px; justify-content: center;">Lv.1</button>
+        <button class="btn quick-lvl-btn" data-lvl="15" style="font-size: 10px; padding: 4px; justify-content: center;">Lv.15</button>
+        <button class="btn quick-lvl-btn" data-lvl="30" style="font-size: 10px; padding: 4px; justify-content: center;">Lv.30</button>
+        <button class="btn quick-lvl-btn" data-lvl="60" style="font-size: 10px; padding: 4px; justify-content: center;">Lv.60</button>
+      </div>
+
+      <div style="font-size: 11px; color: #8c90b0; margin-bottom: 4px;">
+        <span>Rank Donate (Avatar Chính):</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-bottom: 4px;">
+        <button class="btn rank-test-btn active" data-rank="TOP 1" style="background: rgba(255, 215, 0, 0.15); border-color: #ffd700; color: #ffd700; font-size: 10px; padding: 5px 2px; justify-content: center;">👑 TOP 1</button>
+        <button class="btn rank-test-btn" data-rank="TOP 2" style="background: rgba(224, 224, 235, 0.15); border-color: #e0e0e8; color: #f0f0f5; font-size: 10px; padding: 5px 2px; justify-content: center;">🥈 TOP 2</button>
+        <button class="btn rank-test-btn" data-rank="TOP 3" style="background: rgba(205, 127, 50, 0.15); border-color: #cd7f32; color: #f5a65b; font-size: 10px; padding: 5px 2px; justify-content: center;">🥉 TOP 3</button>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
+        <button class="btn rank-test-btn" data-rank="VIP" style="background: rgba(199, 125, 255, 0.15); border-color: #c77dff; color: #e0aaff; font-size: 10px; padding: 5px 2px; justify-content: center;">💎 VIP</button>
+        <button class="btn rank-test-btn" data-rank="" style="background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.25); color: #fff; font-size: 10px; padding: 5px 2px; justify-content: center;">⚪ Không Rank (Chỉ Lv)</button>
+      </div>
+    </div>
+
+    <!-- Crowd Scalability Actions -->
+    <div style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px;">
+      <button class="btn" id="btn-crowd-rank-sim" style="background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(0, 242, 254, 0.2)); border-color: #ffd700; color: #fff; font-weight: 700; padding: 6px 10px; font-size: 11px; justify-content: center;">
+        🏆 Gán Rank Top 1-3 & VIP Cho Đám Đông
+      </button>
+      <button class="btn" id="btn-crowd-clear-rank" style="background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.2); color: #8c90b0; padding: 5px 10px; font-size: 10px; justify-content: center;">
+        ⚪ Xóa Hết Rank Đám Đông (Chỉ Giữ Level TikTok)
+      </button>
+    </div>
+
+    <!-- DONATE MODES (TIKTOK LIVE GIFTS) -->
+    <div class="section-title">
+      <span>🎁 Donate Modes (Live Gifts)</span>
+      <span style="font-size: 9px; color: #ffd700;">TikTok Simulation</span>
+    </div>
+
+    <!-- Category Tabs -->
+    <div class="gift-cat-tabs">
+      <div class="gift-cat-tab active" data-cat="small">Quà Nhỏ (1-10🪙)</div>
+      <div class="gift-cat-tab" data-cat="medium">Quà Trung (20-199🪙)</div>
+      <div class="gift-cat-tab" data-cat="high">Cao Cấp (500-5k🪙)</div>
+      <div class="gift-cat-tab" data-cat="ultra">Siêu Xa Xỉ 👑</div>
+    </div>
+
+    <!-- Container 1: Quà Nhỏ (1 - 10 xu) -->
+    <div class="gift-grid-container" data-cat="small">
+      <button class="btn donate-btn" data-gift="rose">🌹 Hoa hồng (1🪙)</button>
+      <button class="btn donate-btn" data-gift="gg">⚡ GG Game (1🪙)</button>
+      <button class="btn donate-btn" data-gift="ice_cream">🍦 Kem ốc quế (1🪙)</button>
+      <button class="btn donate-btn" data-gift="finger_heart">💖 Bắn tim (5🪙)</button>
+      <button class="btn donate-btn" data-gift="panda">🐼 Gấu trúc (5🪙)</button>
+      <button class="btn donate-btn" data-gift="wave_hand">👋 Sóng tay (9🪙)</button>
+      <button class="btn donate-btn" data-gift="conical_hat" style="grid-column: span 2;">👒 Nón lá (10🪙)</button>
+    </div>
+
+    <!-- Container 2: Quà Trung (20 - 199 xu) -->
+    <div class="gift-grid-container" data-cat="medium" style="display: none;">
+      <button class="btn donate-btn" data-gift="perfume">🧴 Nước hoa (20🪙)</button>
+      <button class="btn donate-btn" data-gift="sunscreen">🧴 Kem c.nắng (50🪙)</button>
+      <button class="btn donate-btn" data-gift="confetti">🎊 Pháo giấy (100🪙)</button>
+      <button class="btn donate-btn" data-gift="rainbow">🌈 Cầu vồng (100🪙)</button>
+      <button class="btn donate-btn" data-gift="sunglasses" style="grid-column: span 2;">🕶️ Kính râm Cyber (199🪙)</button>
+    </div>
+
+    <!-- Container 3: Quà Cao Cấp (500 - 5.000 xu) -->
+    <div class="gift-grid-container" data-cat="high" style="display: none;">
+      <button class="btn donate-btn" data-gift="money_rain">💸 Mưa tiền (500🪙)</button>
+      <button class="btn donate-btn" data-gift="concert">🎸 Hòa nhạc (500🪙)</button>
+      <button class="btn donate-btn" data-gift="love_balloon">🎈 Bóng bay tình (699🪙)</button>
+      <button class="btn donate-btn" data-gift="disco_ball">🪩 Cầu Disco (1.000🪙)</button>
+      <button class="btn donate-btn" data-gift="legend">⚔️ Huyền thoại (1.000🪙)</button>
+      <button class="btn donate-btn" data-gift="drama_queen">👑 Drama Queen (5.000🪙)</button>
+    </div>
+
+    <!-- Container 4: Quà Siêu Xa Xỉ (6.000 - 44.999 xu) -->
+    <div class="gift-grid-container" data-cat="ultra" style="display: none;">
+      <button class="btn donate-btn" data-gift="jet">✈️ Máy bay (6.000🪙)</button>
+      <button class="btn donate-btn" data-gift="panther">🐆 Báo đen (15.000🪙)</button>
+      <button class="btn donate-btn" data-gift="tiger">🐅 Hổ lửa (19.999🪙)</button>
+      <button class="btn donate-btn" data-gift="phoenix">🦅 Phượng hoàng (25.999🪙)</button>
+      <button class="btn donate-btn" data-gift="lion">🦁 Sư tử (29.999🪙)</button>
+      <button class="btn donate-btn" data-gift="pegasus">🦄 Ngựa thần (42.999🪙)</button>
+      <button class="btn donate-btn" data-gift="universe" style="grid-column: span 2; background: linear-gradient(135deg, rgba(0, 242, 254, 0.3), rgba(121, 40, 202, 0.4)); border-color: #00f2fe; color: #fff; font-weight: 800;">
+        🪐 Vũ trụ TikTok (44.999🪙 ~15.7Tr)
+      </button>
+    </div>
+
+    <button class="btn" id="btn-donate-storm" style="width: 100%; justify-content: center; background: linear-gradient(135deg, rgba(0, 242, 254, 0.2), rgba(255, 8, 116, 0.2)); border-color: #00f2fe; color: #fff; font-weight: 700; margin-bottom: 10px;">
+      🌧️ Bão Donate Liên Tục: OFF
+    </button>
+
+    <!-- Gender Toggle -->
+    <div class="section-title"><span>TikTok Gender (Má hồng)</span></div>
+    <div class="btn-group">
+      <button class="btn gender-btn active" data-gender="male">
+        🚹 Nam / Ẩn (Không má)
+      </button>
+      <button class="btn gender-btn" data-gender="female">
+        🚺 Nữ (Má hồng Chibi)
+      </button>
+    </div>
+
+    <!-- VIP Tiers Hierarchy (Tie 1 - 5) -->
+    <div class="section-title">
+      <span>VIP Tiers Hierarchy</span>
+      <span style="font-size: 9px; color: #8c90b0;">Tie 1 - 5</span>
+    </div>
+    <div class="btn-group-5" style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px;">
+      <button class="btn tier-btn active" data-tier="1" style="justify-content: flex-start; padding: 6px 10px;">
+        ⚪ Tie 1: Bán Cầu (Free Tier luồng chính)
+      </button>
+      <button class="btn tier-btn" data-tier="2" style="justify-content: flex-start; padding: 6px 10px;">
+        ✨ Tie 2: Chubby Dáng Đẹp
+      </button>
+      <button class="btn tier-btn" data-tier="3" style="justify-content: flex-start; padding: 6px 10px;">
+        🍡 Tie 3: Chubby + 2 Tai Mochi (K mặt, dính 2 bên)
+      </button>
+      <button class="btn tier-btn" data-tier="4" style="justify-content: flex-start; padding: 6px 10px;">
+        😈 Tie 4: Chubby + 2 Tai Mochi + Sừng + Đuôi
+      </button>
+      <button class="btn tier-btn" data-tier="5" style="justify-content: flex-start; padding: 6px 10px;">
+        👑 Tie 5: Chubby + 2 Tai Mochi + Sừng + Đuôi + Halo + Vòng Chân (VIP Max)
+      </button>
+    </div>
+
+    <!-- Theme Palettes -->
+    <div class="section-title"><span>Theme Palette</span></div>
+    <div class="btn-group">
+      <button class="btn palette-btn active" data-palette="cyan">
+        <span class="color-dot" style="background: #00f2fe;"></span> Electric Cyan
+      </button>
+      <button class="btn palette-btn" data-palette="magenta">
+        <span class="color-dot" style="background: #ff0874;"></span> Synthwave Pink
+      </button>
+      <button class="btn palette-btn" data-palette="lime">
+        <span class="color-dot" style="background: #00ff88;"></span> Toxic Lime
+      </button>
+      <button class="btn palette-btn" data-palette="gold">
+        <span class="color-dot" style="background: #ffbe1a;"></span> Gold Champagne
+      </button>
+    </div>
+
+    <!-- Dynamics & Beat -->
+    <div class="section-title"><span>Music Dynamics & Effects</span></div>
+    <div class="slider-row">
+      <label>BPM</label>
+      <input type="range" id="bpm-slider" min="80" max="175" value="128">
+      <span class="slider-value" id="bpm-val">128</span>
+    </div>
+
+    <button class="action-btn" id="bass-kick-btn">
+      💥 Punch Bass Kick (Gift Hit)
+    </button>
+
+    <!-- Camera Presets -->
+    <div class="section-title"><span>Camera Views</span></div>
+    <div class="btn-group-3" style="margin-bottom: 5px;">
+      <button class="btn cam-btn active" data-cam="turntable">3/4 Turntable</button>
+      <button class="btn cam-btn" data-cam="front">Front View</button>
+      <button class="btn cam-btn" data-cam="king" style="background: rgba(255, 215, 0, 0.15); border-color: #ffd700; color: #ffd700;">👑 King Cam</button>
+    </div>
+    <div class="btn-group">
+      <button class="btn cam-btn" data-cam="closeup">Close-up Face</button>
+      <button class="btn cam-btn" data-cam="top">Top-Down</button>
+    </div>
+
+    <div class="slider-row" style="margin-top: 8px;">
+      <label>Auto-Rotate</label>
+      <input type="checkbox" id="auto-rotate" checked style="accent-color: #00f2fe; width: 15px; height: 15px; cursor: pointer;">
+    </div>
+  </div>
+
+  <script type="module" src="./slime-preview.js?v=20261106_1645"></script>
+</body>
+</html>
