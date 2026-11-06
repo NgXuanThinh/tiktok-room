@@ -161,9 +161,10 @@ wss.on('connection', (ws) => {
     try {
       const data = JSON.parse(message.toString());
       if (data.type === 'mock_trigger') {
-        if (data.action === 'likes') mockSimulator.simulateLikes(data.count || 10);
-        else if (data.action === 'chat') mockSimulator.simulateChat(data.comment);
-        else if (data.action === 'gift') mockSimulator.simulateGift(data.tier || 1, data.giftName, data.coins);
+        if (data.action === 'likes') mockSimulator.simulateLikes(data.count || 10, data.user);
+        else if (data.action === 'chat') mockSimulator.simulateChat(data.comment, data.user);
+        else if (data.action === 'gift') mockSimulator.simulateGift(data.tier || 1, data.giftName, data.coins, data.user);
+        else if (data.action === 'spawn') mockSimulator.simulateSpawn(data.user);
       } else if (data.type === 'tiktok_connect') {
         tiktokService.connect(data.username).catch(() => {});
       } else if (data.type === 'tiktok_disconnect') {

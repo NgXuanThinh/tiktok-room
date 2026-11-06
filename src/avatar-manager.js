@@ -283,6 +283,7 @@ const sharedSlimeGeometry = createSlimeGeometry();
 const crownGeom = new THREE.ConeGeometry(0.2, 0.25, 5);
 
 export function createSlimeFaceTexture(isSmiling = true) {
+  if (typeof document === 'undefined') return null;
   const canvas = document.createElement('canvas');
   canvas.width = 128;
   canvas.height = 128;
@@ -321,14 +322,21 @@ export function createSlimeFaceTexture(isSmiling = true) {
 /**
  * Creates 3D Slime mesh with organic jelly material, glossy eyes, and TikTok billboard.
  */
-export function createAvatarMesh(userData) {
+export function createAvatarMesh(userData, forcedColor = null) {
+  const user = typeof userData === 'string'
+    ? { id: userData, username: userData }
+    : (userData || { id: 'anon', username: 'User' });
+
   const group = new THREE.Group();
 
-  // Deterministically assign one of the 4 canonical colors
-  let hash = 0;
-  const name = userData.username || 'User';
-  for (let i = 0; i < name.length; i++) hash = (hash << 5) - hash + name.charCodeAt(i);
-  const colorKey = COLOR_KEYS[Math.abs(hash) % COLOR_KEYS.length];
+  // Deterministically assign one of the 4 canonical colors (or use forced color)
+  let colorKey = forcedColor || user.slimeColor || user.color;
+  if (!colorKey || !SLIME_COLORS[colorKey]) {
+    let hash = 0;
+    const name = user.username || 'User';
+    for (let i = 0; i < name.length; i++) hash = (hash << 5) - hash + name.charCodeAt(i);
+    colorKey = COLOR_KEYS[Math.abs(hash) % COLOR_KEYS.length];
+  }
   const colorSpec = SLIME_COLORS[colorKey];
 
   // Slime Jelly Material
@@ -346,39 +354,88 @@ export function createAvatarMesh(userData) {
   slimeBody.position.y = 0.35;
   group.add(slimeBody);
 
-  // Facial features: glossy black eyes + white specular highlight
+  // Facial features: glossy black eyes + white specular highlight (PARENTED DIRECTLY TO SLIMEBODY)
   const eyeGeom = new THREE.SphereGeometry(0.06, 16, 16);
   const eyeMat = new THREE.MeshBasicMaterial({ color: 0x0a0a0f });
 
   const eyeL = new THREE.Mesh(eyeGeom, eyeMat);
-  eyeL.position.set(-0.16, 0.45, 0.46);
-  group.add(eyeL);
+  eyeL.position.set(-0.16, 0.12, 0.46);
+  slimeBody.add(eyeL);
 
   const eyeR = new THREE.Mesh(eyeGeom, eyeMat);
-  eyeR.position.set(0.16, 0.45, 0.46);
-  group.add(eyeR);
+  eyeR.position.set(0.16, 0.12, 0.46);
+  slimeBody.add(eyeR);
 
-  // Specular dots
+  // Specular dots parented directly to eyes
   const specGeom = new THREE.SphereGeometry(0.02, 8, 8);
   const specMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
   const specL = new THREE.Mesh(specGeom, specMat);
-  specL.position.set(-0.14, 0.47, 0.51);
-  group.add(specL);
+  specL.position.set(0.02, 0.02, 0.05);
+  eyeL.add(specL);
   const specR = new THREE.Mesh(specGeom, specMat);
-  specR.position.set(0.18, 0.47, 0.51);
-  group.add(specR);
+  specR.position.set(0.02, 0.02, 0.05);
+  eyeR.add(specR);
 
-  // 3D Golden Crown for VIPs (Tier 3+)
+  // 3D Golden Crown with Gem Studs for VIPs (Tier 3+)
+  const crownGroup = new THREE.Group();
   const crownMat = new THREE.MeshStandardMaterial({
     color: 0xffd700,
     metalness: 0.9,
     roughness: 0.1,
     emissive: 0x443300
   });
-  const crown = new THREE.Mesh(crownGeom, crownMat);
-  crown.position.set(0, 0.88, 0);
-  crown.visible = !!userData.isPinned;
-  group.add(crown);
+  const crownCone = new THREE.Mesh(crownGeom, crownMat);
+  crownGroup.add(crownCone);
+
+  // Ruby & Emerald Jewel Studs
+  const rubyMat = new THREE.MeshBasicMaterial({ color: 0xff0055 });
+  const emeraldMat = new THREE.MeshBasicMaterial({ color: 0x00ff88 });
+  const gemGeom = new THREE.SphereGeometry(0.03, 8, 8);
+  const gem1 = new THREE.Mesh(gemGeom, rubyMat);
+  gem1.position.set(-0.08, 0.1, 0.12);
+  crownGroup.add(gem1);
+  const gem2 = new THREE.Mesh(gemGeom, emeraldMat);
+  gem2.position.set(0.08, 0.1, 0.12);
+  crownGroup.add(gem2);
+
+  crownGroup.position.set(0, 0.88, 0);
+  crownGroup.visible = !!user.isPinned;
+  group.add(crownGroup);
+
+  // Ground-projected rotating golden aura disc for whales
+  const auraGeom = new THREE.RingGeometry(0.7, 0.9, 32);
+  const auraMat = new THREE.MeshBasicMaterial({
+    color: 0xffd700,
+    side: THREE.DoubleSide,
+    transparent: true,
+    opacity: 0.6
+  });
+  const auraRing = new THREE.Mesh(auraGeom, auraMat);
+  auraRing.rotation.x = Math.PI / 2;
+  auraRing.position.y = 0.02;
+  auraRing.visible = false;
+  group.add(auraRing);
+
+  // Localized floating sparkle star trail
+  const sparkleGeom = new THREE.BufferGeometry();
+  const sparkleCount = 16;
+  const sparklePositions = new Float32Array(sparkleCount * 3);
+  for (let i = 0; i < sparkleCount; i++) {
+    sparklePositions[i * 3] = (Math.random() - 0.5) * 0.8;
+    sparklePositions[i * 3 + 1] = Math.random() * 0.8;
+    sparklePositions[i * 3 + 2] = (Math.random() - 0.5) * 0.8;
+  }
+  sparkleGeom.setAttribute('position', new THREE.BufferAttribute(sparklePositions, 3));
+  const sparkleMat = new THREE.PointsMaterial({
+    color: 0xffd700,
+    size: 0.1,
+    transparent: true,
+    opacity: 0.8,
+    blending: THREE.AdditiveBlending
+  });
+  const sparkles = new THREE.Points(sparkleGeom, sparkleMat);
+  sparkles.visible = false;
+  group.add(sparkles);
 
   // Cyberpunk Sunglasses for Tier 2 VIP
   const shadesGroup = new THREE.Group();
@@ -410,13 +467,14 @@ export function createAvatarMesh(userData) {
   group.add(wingsGroup);
 
   // Overhead 2D Canvas Billboard for profile picture and username
-  const billboard = createBillboardSprite(userData);
+  const billboard = createBillboardSprite(user);
   billboard.position.set(0, 1.3, 0);
   group.add(billboard);
 
   group.userData = {
-    ...userData,
+    ...user,
     isSlime: true,
+    isWhale: false,
     slimeBody,
     slimeMat,
     colorKey,
@@ -424,7 +482,9 @@ export function createAvatarMesh(userData) {
     eyeR,
     specL,
     specR,
-    crown,
+    crown: crownGroup,
+    auraRing,
+    sparkles,
     shadesGroup,
     wingsGroup,
     billboard,
@@ -443,6 +503,43 @@ export function createAvatarMesh(userData) {
   };
 
   return group;
+}
+
+/**
+ * Applies distinct Whale visual hierarchy to high-tier gifters (Tier 3+).
+ */
+export function applyWhaleSlimeAesthetics(group, tier = 3) {
+  if (!group || !group.userData) return;
+  const data = group.userData;
+  data.isWhale = true;
+
+  // 1. Golden Holographic Jelly Material
+  if (data.slimeMat) {
+    if (data.slimeMat.color?.setHex) data.slimeMat.color.setHex(0xFFD700);
+    if (data.slimeMat.emissive?.setHex) data.slimeMat.emissive.setHex(0x553300);
+    data.slimeMat.emissiveIntensity = 0.4;
+    data.slimeMat.metalness = 0.6;
+    data.slimeMat.roughness = 0.15;
+    data.colorKey = 'yellow';
+  }
+
+  // 2. Jeweled Crown
+  if (data.crown) {
+    data.crown.visible = true;
+  }
+
+  // 3. Ground Aura Disc
+  if (data.auraRing) {
+    data.auraRing.visible = true;
+  }
+
+  // 4. Sparkle Trail
+  if (data.sparkles) {
+    data.sparkles.visible = true;
+  }
+
+  // 5. Tier Scaling
+  data.targetScale = tier >= 4 ? 1.6 : 1.4;
 }
 
 /**
@@ -465,6 +562,12 @@ export function setSlimeColor(slimeGroup, colorKey) {
  * Creates 2D Canvas Sprite Billboard with avatar photo and username.
  */
 export function createBillboardSprite(userData) {
+  if (typeof document === 'undefined') {
+    const dummySprite = new THREE.Object3D();
+    dummySprite.scale.set(1.8, 0.9, 1.0);
+    dummySprite.userData = {};
+    return dummySprite;
+  }
   const canvas = document.createElement('canvas');
   canvas.width = 256;
   canvas.height = 128;

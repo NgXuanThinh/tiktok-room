@@ -10,18 +10,114 @@ import {
   createAvatarMesh,
   parseColorCommand,
   setSlimeColor,
+  applyWhaleSlimeAesthetics,
   SLIME_COLORS,
   DANCE_STYLES
 } from './avatar-manager.js';
 import { unlockAudio } from './audio-system.js';
 import { UiOverlay } from './ui-overlay.js';
 
-// --- System Initialization ---
-const container = document.getElementById('canvas-container');
-const sceneManager = new SceneManager(container);
-const clubEnvironment = new ClubEnvironment(sceneManager.scene);
-const audioSystem = new AudioSystem();
-const occupancyManager = new AvatarOccupancyManager({ maxCapacity: 100, idleTimeoutMs: 120000 });
+/**
+ * Sequential VIP stage scheduler ensuring single whale occupancy for 15s with FIFO queuing.
+ */
+export class VipPodiumScheduler {
+  constructor({ duration = 15.0, podiumPos = { x: 0, y: 0.82, z: -3.5 } } = {}) {
+    this.duration = duration;
+    this.podiumPos = podiumPos;
+    this.activeWhale = null; // { user, mesh, tier, returnSlot, remainingTime }
+    this.queue = [];
+  }
+
+  enqueue(user, mesh, tier, returnSlot) {
+    // Same whale: extend current tenure by duration
+    if (this.activeWhale && this.activeWhale.user.id === user.id) {
+      this.activeWhale.remainingTime += this.duration;
+      this.activeWhale.tier = Math.max(this.activeWhale.tier, tier);
+      return;
+    }
+
+    const slotCopy = typeof returnSlot?.clone === 'function'
+      ? returnSlot.clone()
+      : { x: returnSlot?.x || 0, y: returnSlot?.y || 0, z: returnSlot?.z || 0 };
+
+    const item = {
+      user,
+      mesh,
+      tier,
+      returnSlot: slotCopy,
+      remainingTime: this.duration
+    };
+
+    if (!this.activeWhale) {
+      this.promote(item);
+    } else {
+      this.queue.push(item);
+    }
+  }
+
+  promote(item) {
+    this.activeWhale = item;
+    item.mesh.userData.isOnPodium = true;
+
+    if (typeof item.mesh.position?.copy === 'function') {
+      item.mesh.position.copy(this.podiumPos);
+    } else if (item.mesh.position) {
+      item.mesh.position.x = this.podiumPos.x;
+      item.mesh.position.y = this.podiumPos.y;
+      item.mesh.position.z = this.podiumPos.z;
+    }
+
+    if (item.tier >= 4) {
+      item.mesh.userData.levitateY = 3.2;
+      if (item.mesh.position) item.mesh.position.y = 3.2;
+    } else {
+      const targetY = this.podiumPos.y !== undefined ? this.podiumPos.y : 0.82;
+      item.mesh.userData.levitateY = targetY;
+      if (item.mesh.position) item.mesh.position.y = targetY;
+    }
+  }
+
+  update(delta, onPromote = null, onVacate = null) {
+    if (!this.activeWhale) return;
+
+    this.activeWhale.remainingTime -= delta;
+    if (this.activeWhale.remainingTime <= 0) {
+      const demoted = this.activeWhale;
+      demoted.mesh.userData.isOnPodium = false;
+      demoted.mesh.userData.levitateY = 0;
+
+      if (typeof demoted.mesh.position?.copy === 'function') {
+        demoted.mesh.position.copy(demoted.returnSlot);
+      } else if (demoted.mesh.position) {
+        demoted.mesh.position.x = demoted.returnSlot.x;
+        demoted.mesh.position.y = demoted.returnSlot.y || 0;
+        demoted.mesh.position.z = demoted.returnSlot.z;
+      }
+
+      if (this.queue.length > 0) {
+        const next = this.queue.shift();
+        this.promote(next);
+        if (typeof onPromote === 'function') onPromote(next);
+      } else {
+        this.activeWhale = null;
+        if (typeof onVacate === 'function') onVacate(demoted);
+      }
+    }
+  }
+}
+
+// Only run WebGL client and WebSocket connection in browser environments
+if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+  initClientApp();
+}
+
+function initClientApp() {
+  const container = document.getElementById('canvas-container');
+  const sceneManager = new SceneManager(container);
+  const clubEnvironment = new ClubEnvironment(sceneManager.scene);
+  const audioSystem = new AudioSystem();
+  const occupancyManager = new AvatarOccupancyManager({ maxCapacity: 100, idleTimeoutMs: 120000 });
+  const vipScheduler = new VipPodiumScheduler({ duration: 15.0 });
 
 // Active avatar 3D meshes map: userId -> THREE.Group
 const avatarMeshes = new Map();
@@ -143,30 +239,17 @@ function handleLiveEvent(evt) {
       const origin = mesh.position.clone();
       clubEnvironment.triggerFireworks(tier, origin);
 
-      // Slime VIP Promotion & Tier Scaling
-      if (tier >= 4) {
-        // Tier 4: King Slime (1.6x scale, Angel Wings, Levitation Y=3.2, Frenzy)
-        mesh.userData.isPinned = true;
-        mesh.userData.isVipSolo = true;
-        mesh.userData.targetScale = 1.6;
-        mesh.userData.isSuperBounce = true;
-        mesh.userData.levitateY = 3.2;
-        if (mesh.userData.crown) mesh.userData.crown.visible = true;
-        if (mesh.userData.wingsGroup) mesh.userData.wingsGroup.visible = true;
-        if (mesh.userData.shadesGroup) mesh.userData.shadesGroup.visible = true;
-        mesh.position.set(0, 3.2, -3.5);
-        sceneManager.setCameraPreset('vip');
-        uiOverlay.triggerFrenzy(15);
-      } else if (tier === 3) {
-        // Tier 3: VIP Podium (1.4x scale, Crown, Super Bounce)
-        mesh.userData.isPinned = true;
-        mesh.userData.isVipSolo = true;
-        mesh.userData.targetScale = 1.4;
-        mesh.userData.isSuperBounce = true;
-        mesh.userData.levitateY = 0.82;
-        mesh.position.set(0, 0.82, -3.5);
-        if (mesh.userData.crown) mesh.userData.crown.visible = true;
-        sceneManager.setCameraPreset('vip');
+      // Slime VIP Promotion & Tier Scaling via VipPodiumScheduler
+      if (tier >= 3) {
+        applyWhaleSlimeAesthetics(mesh, tier);
+        if (tier >= 4) {
+          if (mesh.userData.wingsGroup) mesh.userData.wingsGroup.visible = true;
+          if (mesh.userData.shadesGroup) mesh.userData.shadesGroup.visible = true;
+          uiOverlay.triggerFrenzy(15);
+        }
+        const returnSlot = mesh.userData.assignedSlot || mesh.position.clone();
+        vipScheduler.enqueue(user, mesh, tier, returnSlot);
+        sceneManager.setCameraPreset('vip', 5.0);
       } else if (tier === 2) {
         // Tier 2: Cyber Slime (1.2x scale, Sunglasses)
         mesh.userData.targetScale = 1.2;
@@ -208,6 +291,7 @@ function getOrCreateAvatarMesh(userData, coins = 0) {
     const slot = floorSlots[nextSlotIdx % floorSlots.length];
     nextSlotIdx++;
     mesh.position.set(slot.x + (Math.random() - 0.5) * 0.4, 0, slot.z + (Math.random() - 0.5) * 0.4);
+    mesh.userData.assignedSlot = mesh.position.clone();
 
     sceneManager.scene.add(mesh);
     avatarMeshes.set(userId, mesh);
@@ -233,7 +317,19 @@ function animate() {
   // 2. Update Club Environment Visuals (Floor pulse, vinyls, lights, lasers, particles)
   clubEnvironment.update(delta, bands);
 
-  // 3. Update Avatars Procedural Kinematics
+  // 3. Update VIP Podium Scheduler
+  vipScheduler.update(
+    delta,
+    (promoted) => {
+      sceneManager.setCameraPreset('vip', 5.0);
+      clubEnvironment.triggerFireworks(promoted.tier, promoted.mesh.position);
+    },
+    (vacated) => {
+      // Podium vacated
+    }
+  );
+
+  // 4. Update Avatars Procedural Kinematics
   const bpmSpeed = 2.0 * Math.PI * (128 / 60); // 128 BPM
   const frenzyMultiplier = uiOverlay.isFrenzy ? 1.8 : 1.0;
 
@@ -276,6 +372,9 @@ function animate() {
       if (data.wingsGroup && data.wingsGroup.visible) {
         data.wingsGroup.position.y = (k.scaleY - 1.0) * 0.2 + k.jumpY;
         data.wingsGroup.rotation.y = Math.sin(time * 6) * 0.25; // Gentle flutter
+      }
+      if (data.auraRing && data.auraRing.visible) {
+        data.auraRing.rotation.z += 1.5 * delta;
       }
     } else {
       // Humanoid fallback kinematics
@@ -320,7 +419,7 @@ function animate() {
     }
   }
 
-  // 4. Inactivity Culling Loop (Checks every 5 seconds)
+  // 5. Inactivity Culling Loop (Checks every 5 seconds)
   cullingTimer += delta;
   if (cullingTimer > 5.0) {
     cullingTimer = 0;
@@ -334,9 +433,10 @@ function animate() {
     }
   }
 
-  // 5. Update Camera with smooth exponential lerp and subtle bass punch
+  // 6. Update Camera with smooth exponential lerp and subtle bass punch
   sceneManager.update(delta, bands.bassFlux);
 }
 
 // Start render loop
 animate();
+}

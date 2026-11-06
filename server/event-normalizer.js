@@ -88,12 +88,15 @@ export function sanitizeComment(text) {
  */
 function extractUser(raw) {
   const userObj = raw.user || {};
-  return {
-    id: String(raw.userId || userObj.id || raw.uniqueId || '0'),
-    username: String(raw.uniqueId || userObj.username || raw.nickname || 'anonymous'),
-    nickname: String(raw.nickname || userObj.nickname || raw.uniqueId || 'Viewer'),
+  const res = {
+    id: String(raw.userId || userObj.id || raw.uniqueId || raw.id || '0'),
+    username: String(raw.username || userObj.username || raw.uniqueId || raw.nickname || 'anonymous'),
+    nickname: String(raw.nickname || userObj.nickname || raw.username || raw.uniqueId || 'Viewer'),
     avatarUrl: String(raw.profilePictureUrl || userObj.avatarUrl || userObj.profilePictureUrl || '')
   };
+  if (raw.level || userObj.level) res.level = raw.level || userObj.level;
+  if (raw.slimeColor || userObj.slimeColor) res.slimeColor = raw.slimeColor || userObj.slimeColor;
+  return res;
 }
 
 /**

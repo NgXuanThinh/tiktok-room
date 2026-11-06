@@ -10,6 +10,19 @@ export const ORBIT_CONFIG = {
   target: { x: 0, y: 1.2, z: 0 }
 };
 
+export const FULL_VENUE_ORBIT_CONFIG = {
+  radius: 10.0,
+  target: { x: 0, y: 1.4, z: -2.5 },
+  elevationY: 5.0,
+  fov: 68
+};
+
+export const VIP_ZOOM_CONFIG = {
+  durationSeconds: 5.0,
+  target: { x: 0, y: 2.0, z: -3.5 },
+  fov: 35
+};
+
 /**
  * Calculates orbit camera spherical coordinates clamped within room boundaries.
  */
@@ -28,9 +41,9 @@ export const calculateOrbitPosition = getOrbitCameraPosition;
 export const CAMERA_PRESETS = {
   orbit: {
     name: 'Cinematic Orbit',
-    pos: new THREE.Vector3(0, 5.5, 8.5),
-    target: new THREE.Vector3(0, 1.2, 0),
-    fov: 50,
+    pos: new THREE.Vector3(0, 5.0, 7.5),
+    target: new THREE.Vector3(0, 1.4, -2.5),
+    fov: 68,
     isOrbit: true
   },
   dj: {
@@ -64,6 +77,8 @@ export class SceneManager {
     this.renderer = null;
 
     this.currentPresetKey = 'orbit';
+    this.previousPresetKey = 'orbit';
+    this.vipTimer = 0;
     this.currentPreset = CAMERA_PRESETS.orbit;
     this.camTargetPos = new THREE.Vector3().copy(this.currentPreset.pos);
     this.camLookTarget = new THREE.Vector3().copy(this.currentPreset.target);
@@ -151,8 +166,18 @@ export class SceneManager {
     });
   }
 
-  setCameraPreset(key) {
+  setCameraPreset(key, duration = null) {
     if (!CAMERA_PRESETS[key]) return;
+
+    if (key === 'vip') {
+      if (this.currentPresetKey !== 'vip') {
+        this.previousPresetKey = this.currentPresetKey;
+      }
+      this.vipTimer = duration !== null ? duration : VIP_ZOOM_CONFIG.durationSeconds;
+    } else {
+      this.vipTimer = 0;
+    }
+
     this.currentPresetKey = key;
     this.currentPreset = CAMERA_PRESETS[key];
     this.camTargetPos.copy(this.currentPreset.pos);
@@ -161,6 +186,11 @@ export class SceneManager {
     // Smooth FOV transition
     this.camera.fov = this.currentPreset.fov;
     this.camera.updateProjectionMatrix();
+  }
+
+  revertVipCamera() {
+    const returnKey = this.previousPresetKey || 'orbit';
+    this.setCameraPreset(returnKey);
   }
 
   toggleChromaKey() {
@@ -196,16 +226,29 @@ export class SceneManager {
   }
 
   update(deltaTime = 0.016, bassPunch = 0) {
-    // Cinematic orbit rotation calculation with spherical clamping & floor focus lock
+    // VIP zoom auto-revert countdown timer
+    if (this.currentPresetKey === 'vip' && this.vipTimer > 0) {
+      this.vipTimer -= deltaTime;
+      if (this.vipTimer <= 0) {
+        this.vipTimer = 0;
+        this.revertVipCamera();
+      }
+    }
+
+    // Full-venue orbit rotation centered at venue midpoint (0, 1.4, -2.5)
     if (this.currentPreset.isOrbit) {
       this.orbitTheta += 0.10 * deltaTime;
-      const pos = getOrbitCameraPosition(this.orbitTheta, this.orbitPhi, this.orbitRadius);
+      const target = FULL_VENUE_ORBIT_CONFIG.target;
+      const r = FULL_VENUE_ORBIT_CONFIG.radius;
+      const x = target.x + r * Math.sin(this.orbitTheta);
+      const z = target.z + r * Math.cos(this.orbitTheta);
+      const y = FULL_VENUE_ORBIT_CONFIG.elevationY;
       this.camTargetPos.set(
-        pos.x,
-        pos.y + (bassPunch > 50 ? Math.sin(this.orbitTheta * 4) * 0.15 : 0),
-        pos.z
+        x,
+        y + (bassPunch > 50 ? Math.sin(this.orbitTheta * 4) * 0.15 : 0),
+        z
       );
-      this.camLookTarget.set(ORBIT_CONFIG.target.x, ORBIT_CONFIG.target.y, ORBIT_CONFIG.target.z);
+      this.camLookTarget.set(target.x, target.y, target.z);
     }
 
     // Exponential Dual-Vector Lerp: P_t = P_{t-1} + (P_target - P_{t-1}) * (1 - e^{-lambda * dt})

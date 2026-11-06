@@ -107,6 +107,38 @@
       <button id="btn-mute-sfx" class="btn btn-secondary">Mute SFX</button>
     </div>
 
+    <!-- Custom Mock Person Generator -->
+    <div class="admin-section" id="custom-mock-person-section">
+      <div class="admin-label">Custom Mock Person Generator</div>
+      <div class="admin-input-group" style="margin-bottom: 8px;">
+        <input id="mock-custom-username" class="admin-input" type="text" placeholder="Username" value="DaiGiaBinhDuong" />
+      </div>
+      <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+        <select id="mock-custom-level" class="admin-input" style="flex: 1; background: rgba(20, 20, 35, 0.85); color: #fff;">
+          <option value="Lv.1">Lv.1</option>
+          <option value="Lv.10">Lv.10</option>
+          <option value="Lv.25">Lv.25</option>
+          <option value="Lv.50">Lv.50</option>
+          <option value="VIP">VIP</option>
+          <option value="TOP 1" selected>TOP 1</option>
+        </select>
+        <select id="mock-custom-color" class="admin-input" style="flex: 1; background: rgba(20, 20, 35, 0.85); color: #fff;">
+          <option value="green">Green</option>
+          <option value="red">Red</option>
+          <option value="blue">Blue</option>
+          <option value="yellow" selected>Yellow</option>
+        </select>
+      </div>
+      <div class="btn-grid">
+        <button id="btn-mock-spawn" class="btn btn-secondary">Spawn Slime</button>
+        <button id="btn-mock-rose" class="btn btn-secondary">Rose (T1)</button>
+        <button id="btn-mock-perfume" class="btn btn-secondary">Perfume (T2)</button>
+        <button id="btn-mock-lion" class="btn btn-danger">Lion (T3 Whale)</button>
+        <button id="btn-mock-chat" class="btn btn-secondary">Send Chat</button>
+        <button id="btn-mock-likes" class="btn btn-secondary">+10 Likes</button>
+      </div>
+    </div>
+
     <!-- Mock Simulator Triggers -->
     <div class="admin-section">
       <div class="admin-label">Instant Mock Test Buttons</div>
