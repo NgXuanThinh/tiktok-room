@@ -1,0 +1,678 @@
+{
+  "scannerEnv": "docker:tiktok-live-bar",
+  "lastScanned": "2026-11-06T04:53:19.335Z",
+  "functions": [
+    {
+      "file": "server/avatar-proxy.js",
+      "name": "extractInitials",
+      "params": "name = ''",
+      "startLine": 24,
+      "endLine": 34,
+      "duty": "Extracts a 1-to-2 uppercase character monogram from a user name, returning '?' for empty or non-string inputs."
+    },
+    {
+      "file": "server/avatar-proxy.js",
+      "name": "generateSvgAvatar",
+      "params": "username = 'User', userId = '0'",
+      "startLine": 39,
+      "endLine": 61,
+      "duty": "Generates a deterministic, gradient-filled circular SVG avatar containing the user's initials when their TikTok profile photo is missing or blocked."
+    },
+    {
+      "file": "server/avatar-proxy.js",
+      "name": "fetchAvatarWithCache",
+      "params": "targetUrl, username = 'Viewer', userId = '0'",
+      "startLine": 66,
+      "endLine": 116,
+      "duty": "Fetches an avatar from TikTok CDN with a 5-second abort timeout and LRU caching, falling back to a generated SVG avatar on HTTP errors or network timeouts."
+    },
+    {
+      "file": "server/avatar-proxy.js",
+      "name": "avatarProxyRouter",
+      "params": "req, res, next",
+      "startLine": 121,
+      "endLine": 148,
+      "duty": "Express route handler serving avatar images with permissive CORS headers and a 24-hour cache-control header for browser WebGL textures."
+    },
+    {
+      "file": "server/event-normalizer.js",
+      "name": "parseColorCommand",
+      "params": "comment",
+      "startLine": 38,
+      "endLine": 55,
+      "duty": "Parses !color chat commands, strictly resolving to one of 4 canonical Slime colors (green, red, blue, yellow) or Vietnamese aliases, and explicitly rejecting hex codes."
+    },
+    {
+      "file": "server/event-normalizer.js",
+      "name": "sanitizeComment",
+      "params": "text",
+      "startLine": 81,
+      "endLine": 84,
+      "duty": "Masks profane or sensitive words in chat messages by replacing matched characters with asterisks."
+    },
+    {
+      "file": "server/event-normalizer.js",
+      "name": "extractUser",
+      "params": "raw",
+      "startLine": 89,
+      "endLine": 97,
+      "duty": "Standardizes raw TikTok user attributes into a normalized identity object containing user ID, username, nickname, and avatar URL."
+    },
+    {
+      "file": "server/event-normalizer.js",
+      "name": "normalizeChat",
+      "params": "raw",
+      "startLine": 102,
+      "endLine": 113,
+      "duty": "Transforms raw chat payloads into normalized comment events, automatically extracting and attaching valid !color commands."
+    },
+    {
+      "file": "server/event-normalizer.js",
+      "name": "normalizeGift",
+      "params": "raw",
+      "startLine": 122,
+      "endLine": 148,
+      "duty": "Normalizes incoming gift payloads by calculating total coin value and categorizing gifts into one of 4 hierarchical tiers."
+    },
+    {
+      "file": "server/event-normalizer.js",
+      "name": "normalizeLike",
+      "params": "raw",
+      "startLine": 153,
+      "endLine": 160,
+      "duty": "Sanitizes like event counts and preserves cumulative total likes across the live session."
+    },
+    {
+      "file": "server/event-normalizer.js",
+      "name": "normalizeSocial",
+      "params": "type, raw",
+      "startLine": 165,
+      "endLine": 170,
+      "duty": "Normalizes social stream interactions such as follows, shares, and member joins."
+    },
+    {
+      "file": "server/event-normalizer.js",
+      "name": "normalizeTikTokEvent",
+      "params": "type, raw = {}",
+      "startLine": 178,
+      "endLine": 178,
+      "duty": "Central dispatcher that converts any incoming raw TikTok event into a unified, timestamped event schema."
+    },
+    {
+      "file": "server/mock-simulator.js",
+      "name": "getRandomViewer",
+      "params": "",
+      "startLine": 52,
+      "endLine": 54,
+      "duty": "Selects and returns a randomized mock viewer profile from the default mock viewer pool."
+    },
+    {
+      "file": "server/mock-simulator.js",
+      "name": "simulateLikes",
+      "params": "count = 10, user = null",
+      "startLine": 56,
+      "endLine": 65,
+      "duty": "Generates and emits a synthetic like event for testing without an active stream."
+    },
+    {
+      "file": "server/mock-simulator.js",
+      "name": "simulateChat",
+      "params": "customText = null, user = null",
+      "startLine": 67,
+      "endLine": 76,
+      "duty": "Generates and emits a synthetic chat event with predefined or custom text."
+    },
+    {
+      "file": "server/mock-simulator.js",
+      "name": "simulateGift",
+      "params": "tier = 1, customGiftName = null, customCoins = null, user = null",
+      "startLine": 78,
+      "endLine": 95,
+      "duty": "Generates and emits a synthetic gift event matching a specified gift tier."
+    },
+    {
+      "file": "server/mock-simulator.js",
+      "name": "startAutoSimulation",
+      "params": "intervalMs = 1500",
+      "startLine": 97,
+      "endLine": 112,
+      "duty": "Starts an automated periodic timer randomly generating likes, chats, and tiered gifts."
+    },
+    {
+      "file": "server/mock-simulator.js",
+      "name": "stopAutoSimulation",
+      "params": "",
+      "startLine": 114,
+      "endLine": 120,
+      "duty": "Clears the periodic simulation timer and halts automatic event generation."
+    },
+    {
+      "file": "server/rate-limiter.js",
+      "name": "enqueue",
+      "params": "event",
+      "startLine": 32,
+      "endLine": 65,
+      "duty": "Enqueues incoming live events, immediately bypassing Tier 2-4 VIP gifts and aggregating likes into sliding-window combos."
+    },
+    {
+      "file": "server/rate-limiter.js",
+      "name": "flushCombo",
+      "params": "",
+      "startLine": 70,
+      "endLine": 97,
+      "duty": "Packages accumulated like combos into a single batched event and pushes it to the dispatch queue."
+    },
+    {
+      "file": "server/rate-limiter.js",
+      "name": "drainQueue",
+      "params": "",
+      "startLine": 102,
+      "endLine": 108,
+      "duty": "Immediately flushes pending combos and drains all queued events through the dispatch callback."
+    },
+    {
+      "file": "server/rate-limiter.js",
+      "name": "getQueueSize",
+      "params": "",
+      "startLine": 113,
+      "endLine": 115,
+      "duty": "Returns the current number of pending events held in the rate limiter queue."
+    },
+    {
+      "file": "server/rate-limiter.js",
+      "name": "reset",
+      "params": "",
+      "startLine": 120,
+      "endLine": 132,
+      "duty": "Clears all pending events, resets the like combo accumulator, and halts running timers."
+    },
+    {
+      "file": "server/server.js",
+      "name": "broadcast",
+      "params": "payload",
+      "startLine": 38,
+      "endLine": 45,
+      "duty": "Serializes and broadcasts JSON message payloads to all currently connected WebSocket clients."
+    },
+    {
+      "file": "server/tiktok-service.js",
+      "name": "connect",
+      "params": "username",
+      "startLine": 25,
+      "endLine": 58,
+      "duty": "Establishes a real-time scraping connection to a TikTok LIVE room by username with automatic event binding."
+    },
+    {
+      "file": "server/tiktok-service.js",
+      "name": "_bindEvents",
+      "params": "",
+      "startLine": 63,
+      "endLine": 94,
+      "duty": "Attaches internal event listeners for TikTok chat, gift, like, social, room user counts, and disconnects."
+    },
+    {
+      "file": "server/tiktok-service.js",
+      "name": "_scheduleReconnect",
+      "params": "",
+      "startLine": 99,
+      "endLine": 111,
+      "duty": "Schedules an automatic reconnection attempt using exponential backoff when a stream drops unexpectedly."
+    },
+    {
+      "file": "server/tiktok-service.js",
+      "name": "disconnect",
+      "params": "",
+      "startLine": 116,
+      "endLine": 130,
+      "duty": "Manually terminates the active TikTok webcast connection and cancels pending reconnect timers."
+    },
+    {
+      "file": "server/tiktok-service.js",
+      "name": "getStatus",
+      "params": "",
+      "startLine": 135,
+      "endLine": 142,
+      "duty": "Returns the current live connection status, room ID, viewer count, and connected username."
+    },
+    {
+      "file": "src/audio-system.js",
+      "name": "split3BandFrequency",
+      "params": "spectrum, sampleRate = 44100, fftSize = 512",
+      "startLine": 10,
+      "endLine": 50,
+      "duty": "Slices an FFT byte frequency spectrum into isolated Bass (0-150Hz), Mids (150-1000Hz), and Treble (>1000Hz) energy values."
+    },
+    {
+      "file": "src/audio-system.js",
+      "name": "calculateAudioFlux",
+      "params": "current, avg, smoothing = 0.85",
+      "startLine": 55,
+      "endLine": 59,
+      "duty": "Computes smoothed running average energy and instantaneous positive onset flux for beat detection."
+    },
+    {
+      "file": "src/audio-system.js",
+      "name": "synthesizeSfxParams",
+      "params": "name",
+      "startLine": 88,
+      "endLine": 90,
+      "duty": "Provides procedural frequency, gain, and timing parameters for zero-asset sound synthesis."
+    },
+    {
+      "file": "src/audio-system.js",
+      "name": "getBeatStepEvents",
+      "params": "step",
+      "startLine": 122,
+      "endLine": 135,
+      "duty": "Maps a 16-step sequencer index to discrete Kick (four-on-the-floor), Snare (backbeat), and Hi-Hat triggers."
+    },
+    {
+      "file": "src/audio-system.js",
+      "name": "start",
+      "params": "audioCtx = this.ctx, destinationNode = this.destination",
+      "startLine": 152,
+      "endLine": 171,
+      "duty": "Starts the 16-step 128 BPM loop timer and connects procedural drum voices to the audio destination."
+    },
+    {
+      "file": "src/audio-system.js",
+      "name": "_playStep",
+      "params": "step",
+      "startLine": 173,
+      "endLine": 247,
+      "duty": "Synthesizes swept-sine kicks, bandpass filtered snare noise, and highpass hi-hat ticks for the current sequencer step."
+    },
+    {
+      "file": "src/audio-system.js",
+      "name": "stop",
+      "params": "",
+      "startLine": 249,
+      "endLine": 255,
+      "duty": "Halts the procedural drum loop and clears active step timers."
+    },
+    {
+      "file": "src/audio-system.js",
+      "name": "setVolume",
+      "params": "v",
+      "startLine": 257,
+      "endLine": 262,
+      "duty": "Adjusts the master gain volume level of the procedural beat engine."
+    },
+    {
+      "file": "src/audio-system.js",
+      "name": "unlockAudio",
+      "params": "",
+      "startLine": 310,
+      "endLine": 319,
+      "duty": "Resumes the browser AudioContext from suspended state upon user interaction and starts the beat synthesizer."
+    },
+    {
+      "file": "src/audio-system.js",
+      "name": "getBands",
+      "params": "",
+      "startLine": 321,
+      "endLine": 346,
+      "duty": "Reads current frequency data from the AnalyserNode and returns normalized energy and flux across 3 audio bands."
+    },
+    {
+      "file": "src/audio-system.js",
+      "name": "playSfx",
+      "params": "name",
+      "startLine": 348,
+      "endLine": 411,
+      "duty": "Procedurally synthesizes sound effects (coin clink, air horn, bass boom) with exponential clickless decay envelopes."
+    },
+    {
+      "file": "src/audio-system.js",
+      "name": "setVolume",
+      "params": "val",
+      "startLine": 413,
+      "endLine": 420,
+      "duty": "Updates the global sound effects volume gain."
+    },
+    {
+      "file": "src/audio-system.js",
+      "name": "toggleMute",
+      "params": "",
+      "startLine": 422,
+      "endLine": 428,
+      "duty": "Toggles audio master gain between muted and unmuted states."
+    },
+    {
+      "file": "src/avatar-manager.js",
+      "name": "parseColorCommand",
+      "params": "comment",
+      "startLine": 35,
+      "endLine": 50,
+      "duty": "Parses chat comments for !color directives, returning a canonical Slime color definition while rejecting hex values."
+    },
+    {
+      "file": "src/avatar-manager.js",
+      "name": "getSlimeKinematics",
+      "params": "bpmPhase, isBouncing = false",
+      "startLine": 72,
+      "endLine": 92,
+      "duty": "Calculates volume-preserving mathematical Squash & Stretch scale factors and vertical bounce jump displacement synchronized with music BPM."
+    },
+    {
+      "file": "src/avatar-manager.js",
+      "name": "getDanceKinematics",
+      "params": "style, phase",
+      "startLine": 97,
+      "endLine": 170,
+      "duty": "Computes procedurally animated limb and torso rotation offsets for humanoid and procedural dance styles."
+    },
+    {
+      "file": "src/avatar-manager.js",
+      "name": "touch",
+      "params": "userId, username, coins = 0",
+      "startLine": 182,
+      "endLine": 228,
+      "duty": "Registers or touches a viewer's activity timestamp, accumulates coins, updates VIP tiers, and evicts idle avatars over capacity."
+    },
+    {
+      "file": "src/avatar-manager.js",
+      "name": "disposeAvatar",
+      "params": "avatar",
+      "startLine": 253,
+      "endLine": 263,
+      "duty": "Safely unmounts an avatar from the 3D scene and disposes of all mesh materials, geometries, and canvas textures to prevent VRAM leaks."
+    },
+    {
+      "file": "src/avatar-manager.js",
+      "name": "createSlimeGeometry",
+      "params": "",
+      "startLine": 269,
+      "endLine": 280,
+      "duty": "Creates a smooth sphere geometry with a flattened bottom vertex profile to sit naturally on the dance floor."
+    },
+    {
+      "file": "src/avatar-manager.js",
+      "name": "createSlimeFaceTexture",
+      "params": "isSmiling = true",
+      "startLine": 285,
+      "endLine": 319,
+      "duty": "Generates a procedural 2D canvas face texture featuring glossy eyes and a smile without rosy cheeks."
+    },
+    {
+      "file": "src/avatar-manager.js",
+      "name": "createAvatarMesh",
+      "params": "userData",
+      "startLine": 324,
+      "endLine": 446,
+      "duty": "Builds a complete 3D Slime mesh hierarchy with translucent jelly material, blinking eyes, VIP accessories, and overhead billboard."
+    },
+    {
+      "file": "src/avatar-manager.js",
+      "name": "setSlimeColor",
+      "params": "slimeGroup, colorKey",
+      "startLine": 451,
+      "endLine": 462,
+      "duty": "Updates the material color and emissive glow of an existing 3D Slime to a chosen canonical color."
+    },
+    {
+      "file": "src/avatar-manager.js",
+      "name": "createBillboardSprite",
+      "params": "userData",
+      "startLine": 467,
+      "endLine": 534,
+      "duty": "Creates a 3D billboard sprite displaying the user's TikTok avatar, nickname, and VIP rank badge above their Slime."
+    },
+    {
+      "file": "src/club-environment.js",
+      "name": "init",
+      "params": "",
+      "startLine": 36,
+      "endLine": 46,
+      "duty": "Coordinates setup of ambient lights, moving heads, lasers, VIP podium, DJ booth, and particle systems."
+    },
+    {
+      "file": "src/club-environment.js",
+      "name": "createAccentLights",
+      "params": "",
+      "startLine": 51,
+      "endLine": 63,
+      "duty": "Adds overhead spotlights for the DJ console and warm amber point lights for the bar lounge."
+    },
+    {
+      "file": "src/club-environment.js",
+      "name": "createLedFloor",
+      "params": "",
+      "startLine": 68,
+      "endLine": 103,
+      "duty": "Constructs an 8x8 matrix of LED floor tiles in a single draw call using Three.js InstancedMesh."
+    },
+    {
+      "file": "src/club-environment.js",
+      "name": "createVipPodium",
+      "params": "",
+      "startLine": 108,
+      "endLine": 150,
+      "duty": "Builds an elevated circular VIP podium featuring a gold metallic rim and glowing neon glass stage top."
+    },
+    {
+      "file": "src/club-environment.js",
+      "name": "createDjBooth",
+      "params": "",
+      "startLine": 155,
+      "endLine": 229,
+      "duty": "Assembles the DJ table with spinning vinyl records, Pioneer-style mixer, and animated DJ mascot."
+    },
+    {
+      "file": "src/club-environment.js",
+      "name": "createWallsAndNeon",
+      "params": "",
+      "startLine": 234,
+      "endLine": 251,
+      "duty": "Constructs club boundary walls, bar counters, and emissive neon club signage."
+    },
+    {
+      "file": "src/club-environment.js",
+      "name": "createMovingHeads",
+      "params": "",
+      "startLine": 256,
+      "endLine": 290,
+      "duty": "Builds 4 dual-axis moving head spotlights that sweep light cones across the venue."
+    },
+    {
+      "file": "src/club-environment.js",
+      "name": "createLaserBeams",
+      "params": "",
+      "startLine": 295,
+      "endLine": 313,
+      "duty": "Creates 6 additive-blended laser beam geometry cones fanning out from the ceiling rig."
+    },
+    {
+      "file": "src/club-environment.js",
+      "name": "createFireworksSystem",
+      "params": "",
+      "startLine": 318,
+      "endLine": 353,
+      "duty": "Initializes a 6,000-particle single-buffer Points system for multi-tier fireworks bursts."
+    },
+    {
+      "file": "src/club-environment.js",
+      "name": "createFlyingHeartsSystem",
+      "params": "",
+      "startLine": 358,
+      "endLine": 380,
+      "duty": "Initializes a single-buffer particle system for floating 3D hearts triggered by viewer likes."
+    },
+    {
+      "file": "src/club-environment.js",
+      "name": "emitFlyingHearts",
+      "params": "count = 10",
+      "startLine": 425,
+      "endLine": 448,
+      "duty": "Spawns floating hearts that rise from the floor and sway upward upon viewer likes."
+    },
+    {
+      "file": "src/club-environment.js",
+      "name": "update",
+      "params": "delta, bands = {}",
+      "startLine": 450,
+      "endLine": 450,
+      "duty": "Updates vinyl rotation, moving head sweeps, laser strobes, floor tile colors, and particle physics each frame."
+    },
+    {
+      "file": "src/main.js",
+      "name": "handleLiveEvent",
+      "params": "evt",
+      "startLine": 72,
+      "endLine": 190,
+      "duty": "Processes incoming normalized WebSocket live events, routing likes, chats, gifts, and follows to visual and audio systems."
+    },
+    {
+      "file": "src/main.js",
+      "name": "getOrCreateAvatarMesh",
+      "params": "userData, coins = 0",
+      "startLine": 195,
+      "endLine": 218,
+      "duty": "Retrieves or instantiates a 3D Slime avatar mesh for a viewer, positioning it on a vacant dance floor grid slot."
+    },
+    {
+      "file": "src/main.js",
+      "name": "animate",
+      "params": "",
+      "startLine": 224,
+      "endLine": 339,
+      "duty": "The main 60 FPS WebGL render loop updating audio analysis, camera transitions, Slime squash-and-stretch, and environmental lighting."
+    },
+    {
+      "file": "src/scene-manager.js",
+      "name": "getOrbitCameraPosition",
+      "params": "theta, phi = 0.85, radius = ORBIT_CONFIG.radius",
+      "startLine": 16,
+      "endLine": 25,
+      "duty": "Computes clamped spherical orbit coordinates keeping the camera within room boundaries and focused on the dance floor."
+    },
+    {
+      "file": "src/scene-manager.js",
+      "name": "init",
+      "params": "",
+      "startLine": 83,
+      "endLine": 152,
+      "duty": "Configures renderer pixel ratio, shadow-free tone mapping, and window resize event listeners."
+    },
+    {
+      "file": "src/scene-manager.js",
+      "name": "setCameraPreset",
+      "params": "key",
+      "startLine": 154,
+      "endLine": 164,
+      "duty": "Smoothly transitions the camera position, focus target, and FOV to a designated camera preset."
+    },
+    {
+      "file": "src/scene-manager.js",
+      "name": "toggleChromaKey",
+      "params": "",
+      "startLine": 166,
+      "endLine": 177,
+      "duty": "Switches the viewport background between standard club atmosphere and chroma key green for OBS streaming."
+    },
+    {
+      "file": "src/scene-manager.js",
+      "name": "toggleAlpha",
+      "params": "",
+      "startLine": 179,
+      "endLine": 188,
+      "duty": "Toggles WebGL clear alpha between opaque black and transparent for OBS browser overlays."
+    },
+    {
+      "file": "src/scene-manager.js",
+      "name": "onResize",
+      "params": "",
+      "startLine": 190,
+      "endLine": 196,
+      "duty": "Updates camera aspect ratio and renderer dimensions when the browser window or stream canvas resizes."
+    },
+    {
+      "file": "src/scene-manager.js",
+      "name": "update",
+      "params": "deltaTime = 0.016, bassPunch = 0",
+      "startLine": 198,
+      "endLine": 225,
+      "duty": "Lerps camera position and look-at target smoothly toward the active preset, pulsing orbit distance on bass hits."
+    },
+    {
+      "file": "src/ui-overlay.js",
+      "name": "initElements",
+      "params": "",
+      "startLine": 21,
+      "endLine": 33,
+      "duty": "Caches DOM element references for fast real-time UI updates during stream events."
+    },
+    {
+      "file": "src/ui-overlay.js",
+      "name": "bindEvents",
+      "params": "",
+      "startLine": 35,
+      "endLine": 145,
+      "duty": "Binds event listeners for UI interactions, audio unlock banner, keyboard shortcuts, and admin form submissions."
+    },
+    {
+      "file": "src/ui-overlay.js",
+      "name": "unlockAudioHandler",
+      "params": "",
+      "startLine": 37,
+      "endLine": 49,
+      "duty": "Handles the 1-click audio unlock prompt, resuming AudioContext and fading out the prompt banner."
+    },
+    {
+      "file": "src/ui-overlay.js",
+      "name": "bindMockButton",
+      "params": "id, fn",
+      "startLine": 147,
+      "endLine": 150,
+      "duty": "Attaches click handlers to admin drawer mock simulation buttons."
+    },
+    {
+      "file": "src/ui-overlay.js",
+      "name": "toggleAdminDrawer",
+      "params": "",
+      "startLine": 152,
+      "endLine": 161,
+      "duty": "Toggles visibility of the streamer administration sidebar drawer."
+    },
+    {
+      "file": "src/ui-overlay.js",
+      "name": "updateTikTokStatus",
+      "params": "status",
+      "startLine": 163,
+      "endLine": 172,
+      "duty": "Updates the HUD connection badge with real-time TikTok room status and viewer count."
+    },
+    {
+      "file": "src/ui-overlay.js",
+      "name": "addHype",
+      "params": "points = 1",
+      "startLine": 174,
+      "endLine": 185,
+      "duty": "Increments stream Hype Meter points and triggers 15-second Frenzy Mode when the meter reaches 100%."
+    },
+    {
+      "file": "src/ui-overlay.js",
+      "name": "triggerFrenzyMode",
+      "params": "",
+      "startLine": 187,
+      "endLine": 207,
+      "duty": "Activates the 15-second club Frenzy party mode with air horn SFX and full-room fireworks."
+    },
+    {
+      "file": "src/ui-overlay.js",
+      "name": "showGiftAlert",
+      "params": "giftEvent",
+      "startLine": 209,
+      "endLine": 242,
+      "duty": "Displays an animated glassmorphic gift alert card with donor avatar, name, and gift tier icon."
+    },
+    {
+      "file": "src/ui-overlay.js",
+      "name": "updateLeaderboard",
+      "params": "donors = []",
+      "startLine": 244,
+      "endLine": 265,
+      "duty": "Updates the Top 3 Donors leaderboard widget with rank badges and accumulated coin totals."
+    }
+  ]
+}

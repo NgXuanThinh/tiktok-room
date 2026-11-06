@@ -1,0 +1,696 @@
+{
+  "scannedAt": "2026-11-06T04:53:19.335Z",
+  "files": [
+    {
+      "filePath": "server/avatar-proxy.js",
+      "absolutePath": "/app/server/avatar-proxy.js",
+      "imports": [
+        "lru-cache"
+      ],
+      "functions": [
+        {
+          "name": "extractInitials",
+          "params": "name = ''",
+          "startLine": 24,
+          "endLine": 34
+        },
+        {
+          "name": "generateSvgAvatar",
+          "params": "username = 'User', userId = '0'",
+          "startLine": 39,
+          "endLine": 61
+        },
+        {
+          "name": "fetchAvatarWithCache",
+          "params": "targetUrl, username = 'Viewer', userId = '0'",
+          "startLine": 66,
+          "endLine": 116
+        },
+        {
+          "name": "avatarProxyRouter",
+          "params": "req, res, next",
+          "startLine": 121,
+          "endLine": 148
+        }
+      ]
+    },
+    {
+      "filePath": "server/event-normalizer.js",
+      "absolutePath": "/app/server/event-normalizer.js",
+      "imports": [],
+      "functions": [
+        {
+          "name": "parseColorCommand",
+          "params": "comment",
+          "startLine": 38,
+          "endLine": 55
+        },
+        {
+          "name": "sanitizeComment",
+          "params": "text",
+          "startLine": 81,
+          "endLine": 84
+        },
+        {
+          "name": "extractUser",
+          "params": "raw",
+          "startLine": 89,
+          "endLine": 97
+        },
+        {
+          "name": "normalizeChat",
+          "params": "raw",
+          "startLine": 102,
+          "endLine": 113
+        },
+        {
+          "name": "normalizeGift",
+          "params": "raw",
+          "startLine": 122,
+          "endLine": 148
+        },
+        {
+          "name": "normalizeLike",
+          "params": "raw",
+          "startLine": 153,
+          "endLine": 160
+        },
+        {
+          "name": "normalizeSocial",
+          "params": "type, raw",
+          "startLine": 165,
+          "endLine": 170
+        },
+        {
+          "name": "normalizeTikTokEvent",
+          "params": "type, raw = {}",
+          "startLine": 178,
+          "endLine": 178
+        }
+      ]
+    },
+    {
+      "filePath": "server/mock-simulator.js",
+      "absolutePath": "/app/server/mock-simulator.js",
+      "imports": [
+        "./event-normalizer.js"
+      ],
+      "functions": [
+        {
+          "name": "constructor",
+          "params": "options = {}",
+          "startLine": 46,
+          "endLine": 46
+        },
+        {
+          "name": "getRandomViewer",
+          "params": "",
+          "startLine": 52,
+          "endLine": 54
+        },
+        {
+          "name": "simulateLikes",
+          "params": "count = 10, user = null",
+          "startLine": 56,
+          "endLine": 65
+        },
+        {
+          "name": "simulateChat",
+          "params": "customText = null, user = null",
+          "startLine": 67,
+          "endLine": 76
+        },
+        {
+          "name": "simulateGift",
+          "params": "tier = 1, customGiftName = null, customCoins = null, user = null",
+          "startLine": 78,
+          "endLine": 95
+        },
+        {
+          "name": "startAutoSimulation",
+          "params": "intervalMs = 1500",
+          "startLine": 97,
+          "endLine": 112
+        },
+        {
+          "name": "stopAutoSimulation",
+          "params": "",
+          "startLine": 114,
+          "endLine": 120
+        }
+      ]
+    },
+    {
+      "filePath": "server/rate-limiter.js",
+      "absolutePath": "/app/server/rate-limiter.js",
+      "imports": [],
+      "functions": [
+        {
+          "name": "constructor",
+          "params": "options = {}",
+          "startLine": 4,
+          "endLine": 4
+        },
+        {
+          "name": "enqueue",
+          "params": "event",
+          "startLine": 32,
+          "endLine": 65
+        },
+        {
+          "name": "flushCombo",
+          "params": "",
+          "startLine": 70,
+          "endLine": 97
+        },
+        {
+          "name": "drainQueue",
+          "params": "",
+          "startLine": 102,
+          "endLine": 108
+        },
+        {
+          "name": "getQueueSize",
+          "params": "",
+          "startLine": 113,
+          "endLine": 115
+        },
+        {
+          "name": "reset",
+          "params": "",
+          "startLine": 120,
+          "endLine": 132
+        }
+      ]
+    },
+    {
+      "filePath": "server/server.js",
+      "absolutePath": "/app/server/server.js",
+      "imports": [
+        "express",
+        "http",
+        "path",
+        "url",
+        "ws",
+        "./event-normalizer.js",
+        "./rate-limiter.js",
+        "./avatar-proxy.js",
+        "./tiktok-service.js",
+        "./mock-simulator.js"
+      ],
+      "functions": [
+        {
+          "name": "broadcast",
+          "params": "payload",
+          "startLine": 38,
+          "endLine": 45
+        }
+      ]
+    },
+    {
+      "filePath": "server/tiktok-service.js",
+      "absolutePath": "/app/server/tiktok-service.js",
+      "imports": [
+        "events",
+        "tiktok-live-connector"
+      ],
+      "functions": [
+        {
+          "name": "constructor",
+          "params": "",
+          "startLine": 8,
+          "endLine": 19
+        },
+        {
+          "name": "connect",
+          "params": "username",
+          "startLine": 25,
+          "endLine": 58
+        },
+        {
+          "name": "_bindEvents",
+          "params": "",
+          "startLine": 63,
+          "endLine": 94
+        },
+        {
+          "name": "_scheduleReconnect",
+          "params": "",
+          "startLine": 99,
+          "endLine": 111
+        },
+        {
+          "name": "disconnect",
+          "params": "",
+          "startLine": 116,
+          "endLine": 130
+        },
+        {
+          "name": "getStatus",
+          "params": "",
+          "startLine": 135,
+          "endLine": 142
+        }
+      ]
+    },
+    {
+      "filePath": "src/audio-system.js",
+      "absolutePath": "/app/src/audio-system.js",
+      "imports": [],
+      "functions": [
+        {
+          "name": "split3BandFrequency",
+          "params": "spectrum, sampleRate = 44100, fftSize = 512",
+          "startLine": 10,
+          "endLine": 50
+        },
+        {
+          "name": "calculateAudioFlux",
+          "params": "current, avg, smoothing = 0.85",
+          "startLine": 55,
+          "endLine": 59
+        },
+        {
+          "name": "synthesizeSfxParams",
+          "params": "name",
+          "startLine": 88,
+          "endLine": 90
+        },
+        {
+          "name": "getBeatStepEvents",
+          "params": "step",
+          "startLine": 122,
+          "endLine": 135
+        },
+        {
+          "name": "constructor",
+          "params": "audioCtx = null, destinationNode = null",
+          "startLine": 142,
+          "endLine": 150
+        },
+        {
+          "name": "start",
+          "params": "audioCtx = this.ctx, destinationNode = this.destination",
+          "startLine": 152,
+          "endLine": 171
+        },
+        {
+          "name": "_playStep",
+          "params": "step",
+          "startLine": 173,
+          "endLine": 247
+        },
+        {
+          "name": "stop",
+          "params": "",
+          "startLine": 249,
+          "endLine": 255
+        },
+        {
+          "name": "setVolume",
+          "params": "v",
+          "startLine": 257,
+          "endLine": 262
+        },
+        {
+          "name": "unlockAudio",
+          "params": "instance = null",
+          "startLine": 268,
+          "endLine": 273
+        },
+        {
+          "name": "constructor",
+          "params": "",
+          "startLine": 279,
+          "endLine": 289
+        },
+        {
+          "name": "init",
+          "params": "",
+          "startLine": 291,
+          "endLine": 308
+        },
+        {
+          "name": "unlockAudio",
+          "params": "",
+          "startLine": 310,
+          "endLine": 319
+        },
+        {
+          "name": "getBands",
+          "params": "",
+          "startLine": 321,
+          "endLine": 346
+        },
+        {
+          "name": "playSfx",
+          "params": "name",
+          "startLine": 348,
+          "endLine": 411
+        },
+        {
+          "name": "setVolume",
+          "params": "val",
+          "startLine": 413,
+          "endLine": 420
+        },
+        {
+          "name": "toggleMute",
+          "params": "",
+          "startLine": 422,
+          "endLine": 428
+        }
+      ]
+    },
+    {
+      "filePath": "src/avatar-manager.js",
+      "absolutePath": "/app/src/avatar-manager.js",
+      "imports": [
+        "three"
+      ],
+      "functions": [
+        {
+          "name": "parseColorCommand",
+          "params": "comment",
+          "startLine": 35,
+          "endLine": 50
+        },
+        {
+          "name": "getSlimeKinematics",
+          "params": "bpmPhase, isBouncing = false",
+          "startLine": 72,
+          "endLine": 92
+        },
+        {
+          "name": "getDanceKinematics",
+          "params": "style, phase",
+          "startLine": 97,
+          "endLine": 170
+        },
+        {
+          "name": "constructor",
+          "params": "options = {}",
+          "startLine": 176,
+          "endLine": 176
+        },
+        {
+          "name": "touch",
+          "params": "userId, username, coins = 0",
+          "startLine": 182,
+          "endLine": 228
+        },
+        {
+          "name": "disposeAvatar",
+          "params": "avatar",
+          "startLine": 253,
+          "endLine": 263
+        },
+        {
+          "name": "createSlimeGeometry",
+          "params": "",
+          "startLine": 269,
+          "endLine": 280
+        },
+        {
+          "name": "createSlimeFaceTexture",
+          "params": "isSmiling = true",
+          "startLine": 285,
+          "endLine": 319
+        },
+        {
+          "name": "createAvatarMesh",
+          "params": "userData",
+          "startLine": 324,
+          "endLine": 446
+        },
+        {
+          "name": "setSlimeColor",
+          "params": "slimeGroup, colorKey",
+          "startLine": 451,
+          "endLine": 462
+        },
+        {
+          "name": "createBillboardSprite",
+          "params": "userData",
+          "startLine": 467,
+          "endLine": 534
+        },
+        {
+          "name": "redraw",
+          "params": "img = null",
+          "startLine": 473,
+          "endLine": 512
+        }
+      ]
+    },
+    {
+      "filePath": "src/club-environment.js",
+      "absolutePath": "/app/src/club-environment.js",
+      "imports": [
+        "three"
+      ],
+      "functions": [
+        {
+          "name": "constructor",
+          "params": "scene",
+          "startLine": 12,
+          "endLine": 34
+        },
+        {
+          "name": "init",
+          "params": "",
+          "startLine": 36,
+          "endLine": 46
+        },
+        {
+          "name": "createAccentLights",
+          "params": "",
+          "startLine": 51,
+          "endLine": 63
+        },
+        {
+          "name": "createLedFloor",
+          "params": "",
+          "startLine": 68,
+          "endLine": 103
+        },
+        {
+          "name": "createVipPodium",
+          "params": "",
+          "startLine": 108,
+          "endLine": 150
+        },
+        {
+          "name": "createDjBooth",
+          "params": "",
+          "startLine": 155,
+          "endLine": 229
+        },
+        {
+          "name": "createWallsAndNeon",
+          "params": "",
+          "startLine": 234,
+          "endLine": 251
+        },
+        {
+          "name": "createMovingHeads",
+          "params": "",
+          "startLine": 256,
+          "endLine": 290
+        },
+        {
+          "name": "createLaserBeams",
+          "params": "",
+          "startLine": 295,
+          "endLine": 313
+        },
+        {
+          "name": "createFireworksSystem",
+          "params": "",
+          "startLine": 318,
+          "endLine": 353
+        },
+        {
+          "name": "createFlyingHeartsSystem",
+          "params": "",
+          "startLine": 358,
+          "endLine": 380
+        },
+        {
+          "name": "emitFlyingHearts",
+          "params": "count = 10",
+          "startLine": 425,
+          "endLine": 448
+        },
+        {
+          "name": "update",
+          "params": "delta, bands = {}",
+          "startLine": 450,
+          "endLine": 450
+        }
+      ]
+    },
+    {
+      "filePath": "src/main.js",
+      "absolutePath": "/app/src/main.js",
+      "imports": [
+        "three",
+        "./scene-manager.js",
+        "./club-environment.js",
+        "./audio-system.js",
+        "./audio-system.js",
+        "./ui-overlay.js"
+      ],
+      "functions": [
+        {
+          "name": "handleLiveEvent",
+          "params": "evt",
+          "startLine": 72,
+          "endLine": 190
+        },
+        {
+          "name": "getOrCreateAvatarMesh",
+          "params": "userData, coins = 0",
+          "startLine": 195,
+          "endLine": 218
+        },
+        {
+          "name": "animate",
+          "params": "",
+          "startLine": 224,
+          "endLine": 339
+        }
+      ]
+    },
+    {
+      "filePath": "src/scene-manager.js",
+      "absolutePath": "/app/src/scene-manager.js",
+      "imports": [
+        "three"
+      ],
+      "functions": [
+        {
+          "name": "getOrbitCameraPosition",
+          "params": "theta, phi = 0.85, radius = ORBIT_CONFIG.radius",
+          "startLine": 16,
+          "endLine": 25
+        },
+        {
+          "name": "constructor",
+          "params": "container",
+          "startLine": 60,
+          "endLine": 81
+        },
+        {
+          "name": "init",
+          "params": "",
+          "startLine": 83,
+          "endLine": 152
+        },
+        {
+          "name": "setCameraPreset",
+          "params": "key",
+          "startLine": 154,
+          "endLine": 164
+        },
+        {
+          "name": "toggleChromaKey",
+          "params": "",
+          "startLine": 166,
+          "endLine": 177
+        },
+        {
+          "name": "toggleAlpha",
+          "params": "",
+          "startLine": 179,
+          "endLine": 188
+        },
+        {
+          "name": "onResize",
+          "params": "",
+          "startLine": 190,
+          "endLine": 196
+        },
+        {
+          "name": "update",
+          "params": "deltaTime = 0.016, bassPunch = 0",
+          "startLine": 198,
+          "endLine": 225
+        }
+      ]
+    },
+    {
+      "filePath": "src/ui-overlay.js",
+      "absolutePath": "/app/src/ui-overlay.js",
+      "imports": [],
+      "functions": [
+        {
+          "name": "constructor",
+          "params": "options = {}",
+          "startLine": 3,
+          "endLine": 3
+        },
+        {
+          "name": "initElements",
+          "params": "",
+          "startLine": 21,
+          "endLine": 33
+        },
+        {
+          "name": "bindEvents",
+          "params": "",
+          "startLine": 35,
+          "endLine": 145
+        },
+        {
+          "name": "unlockAudioHandler",
+          "params": "",
+          "startLine": 37,
+          "endLine": 49
+        },
+        {
+          "name": "bindMockButton",
+          "params": "id, fn",
+          "startLine": 147,
+          "endLine": 150
+        },
+        {
+          "name": "toggleAdminDrawer",
+          "params": "",
+          "startLine": 152,
+          "endLine": 161
+        },
+        {
+          "name": "updateTikTokStatus",
+          "params": "status",
+          "startLine": 163,
+          "endLine": 172
+        },
+        {
+          "name": "addHype",
+          "params": "points = 1",
+          "startLine": 174,
+          "endLine": 185
+        },
+        {
+          "name": "triggerFrenzyMode",
+          "params": "",
+          "startLine": 187,
+          "endLine": 207
+        },
+        {
+          "name": "showGiftAlert",
+          "params": "giftEvent",
+          "startLine": 209,
+          "endLine": 242
+        },
+        {
+          "name": "updateLeaderboard",
+          "params": "donors = []",
+          "startLine": 244,
+          "endLine": 265
+        }
+      ]
+    }
+  ]
+}
