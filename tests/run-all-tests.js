@@ -23,7 +23,9 @@ const suites = [
   { name: 'orbit-camera-venue-view', path: './orbit-camera-venue-view.test.js' },
   { name: 'slime-eye-sync-whale', path: './slime-eye-sync-whale.test.js' },
   { name: 'vip-podium-scheduler', path: './vip-podium-scheduler.test.js' },
-  { name: 'custom-mock-person', path: './custom-mock-person.test.js' }
+  { name: 'custom-mock-person', path: './custom-mock-person.test.js' },
+  // User Feedback Refinements (camera zoom, floor expansion, radial spawn, spot lighting, no viewer)
+  { name: 'camera-zoom-spotlights-floor', path: './camera-zoom-spotlights-floor.test.js' }
 ];
 
 async function runAll() {

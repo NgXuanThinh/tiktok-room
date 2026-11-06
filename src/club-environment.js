@@ -15,8 +15,28 @@ export const FLOOR_EMISSIVE_CONFIG = {
   minPulseBrightness: 0.25
 };
 
+export const FLOOR_GRID_CONFIG = {
+  rows: 12,
+  cols: 12,
+  tileSize: 1.6,
+  tileSpacing: 1.8,
+  get count() { return this.rows * this.cols; }
+};
+
+export function clampSpotlightToFloor(target = { x: 0, y: 0, z: 0 }) {
+  const minX = -8.5;
+  const maxX = 8.5;
+  const minZ = -7.5;
+  const maxZ = 9.5;
+  return {
+    x: Math.max(minX, Math.min(maxX, Number(target?.x || 0))),
+    y: 0,
+    z: Math.max(minZ, Math.min(maxZ, Number(target?.z || 0)))
+  };
+}
+
 export const BACK_WALL_CONFIG = {
-  z: -12.5
+  z: -15.5
 };
 
 const NEON_PALETTE = [
@@ -81,10 +101,10 @@ export class ClubEnvironment {
   }
 
   /**
-   * 8x8 LED Dance Floor Matrix (64 tiles) via InstancedMesh (Exact 1 Draw Call).
+   * 12x12 LED Dance Floor Matrix (144 tiles) via InstancedMesh (Exact 1 Draw Call).
    */
   createLedFloor() {
-    const tileGeom = new THREE.BoxGeometry(1.8, 0.2, 1.8);
+    const tileGeom = new THREE.BoxGeometry(FLOOR_GRID_CONFIG.tileSize, 0.2, FLOOR_GRID_CONFIG.tileSize);
     const tileMat = new THREE.MeshStandardMaterial({
       color: 0x220538,
       emissive: FLOOR_EMISSIVE_CONFIG.baseEmissive,
@@ -93,18 +113,19 @@ export class ClubEnvironment {
       roughness: 0.15
     });
 
-    const count = 64; // 8x8
+    const count = FLOOR_GRID_CONFIG.count;
     this.floorMesh = new THREE.InstancedMesh(tileGeom, tileMat, count);
     this.floorMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
 
     const dummy = new THREE.Object3D();
-    const colors = new Float32Array(count * 3);
+    const halfCols = (FLOOR_GRID_CONFIG.cols - 1) / 2;
+    const halfRows = (FLOOR_GRID_CONFIG.rows - 1) / 2;
 
     let idx = 0;
-    for (let r = 0; r < 8; r++) {
-      for (let c = 0; c < 8; c++) {
-        const x = (c - 3.5) * 2.0;
-        const z = (r - 3.5) * 2.0;
+    for (let r = 0; r < FLOOR_GRID_CONFIG.rows; r++) {
+      for (let c = 0; c < FLOOR_GRID_CONFIG.cols; c++) {
+        const x = (c - halfCols) * FLOOR_GRID_CONFIG.tileSpacing;
+        const z = (r - halfRows) * FLOOR_GRID_CONFIG.tileSpacing + 0.5;
         dummy.position.set(x, -0.1, z);
         dummy.updateMatrix();
         this.floorMesh.setMatrixAt(idx, dummy.matrix);
@@ -253,9 +274,9 @@ export class ClubEnvironment {
   createWallsAndNeon() {
     const wallMat = new THREE.MeshStandardMaterial({ color: 0x070710, roughness: 0.9 });
     
-    // Back Wall (Deepened to Z = -12.5m for full-venue orbit camera clearance)
-    const backWall = new THREE.Mesh(new THREE.BoxGeometry(26, 14, 0.5), wallMat);
-    backWall.position.set(0, 6, BACK_WALL_CONFIG.z);
+    // Back Wall (Deepened to Z = -15.5m and widened for full-venue orbit camera clearance)
+    const backWall = new THREE.Mesh(new THREE.BoxGeometry(36, 16, 0.5), wallMat);
+    backWall.position.set(0, 7, BACK_WALL_CONFIG.z);
     this.scene.add(backWall);
 
     // Neon Logo Bar
@@ -264,24 +285,24 @@ export class ClubEnvironment {
       emissive: 0xff007f,
       emissiveIntensity: 2.5
     });
-    const neonBar = new THREE.Mesh(new THREE.BoxGeometry(8, 0.4, 0.2), neonBarMat);
-    neonBar.position.set(0, 7.5, BACK_WALL_CONFIG.z + 0.3);
+    const neonBar = new THREE.Mesh(new THREE.BoxGeometry(10, 0.5, 0.2), neonBarMat);
+    neonBar.position.set(0, 8.5, BACK_WALL_CONFIG.z + 0.3);
     this.scene.add(neonBar);
   }
 
   /**
-   * 4 Moving Head Spotlights at ceiling corners.
+   * 4 Moving Head Spotlights at ceiling corners with dance floor bounds clamping.
    */
   createMovingHeads() {
     const positions = [
-      [-6, 8, -6],
-      [6, 8, -6],
-      [-6, 8, 6],
-      [6, 8, 6]
+      [-8, 9, -7],
+      [8, 9, -7],
+      [-8, 9, 8],
+      [8, 9, 8]
     ];
 
-    const coneGeom = new THREE.CylinderGeometry(0.1, 1.8, 10, 16, 1, true);
-    coneGeom.translate(0, -5, 0);
+    const coneGeom = new THREE.CylinderGeometry(0.1, 1.8, 12, 16, 1, true);
+    coneGeom.translate(0, -6, 0);
 
     for (let i = 0; i < positions.length; i++) {
       const p = positions[i];
@@ -300,11 +321,45 @@ export class ClubEnvironment {
       const cone = new THREE.Mesh(coneGeom, coneMat);
       headGroup.add(cone);
 
-      const spot = new THREE.SpotLight(col, 5.0, 20, Math.PI / 6, 0.5);
+      const spot = new THREE.SpotLight(col, 5.0, 24, Math.PI / 6, 0.5);
       headGroup.add(spot);
 
       this.scene.add(headGroup);
-      this.movingHeads.push({ group: headGroup, spot, baseCol: col, speed: 1.0 + i * 0.2 });
+      this.movingHeads.push({
+        group: headGroup,
+        spot,
+        baseCol: col,
+        speed: 1.0 + i * 0.2,
+        isFocused: false,
+        focusTarget: null,
+        focusTimer: 0
+      });
+    }
+  }
+
+  /**
+   * Focuses moving head spotlights based on donation tier:
+   * Tier 1: 1 spotlight focuses on donor
+   * Tier 2: 2 spotlights focus on donor
+   * Tier 3/4: All 4 spotlights converge on VIP podium and whale donor
+   */
+  focusSpotlights(tier = 1, targetPosition = null, duration = 4.0) {
+    const numSpots = tier >= 3 ? 4 : (tier === 2 ? 2 : 1);
+    const podiumTarget = { x: 0, y: 0.8, z: -3.5 };
+    const clampedTarget = targetPosition ? clampSpotlightToFloor(targetPosition) : podiumTarget;
+
+    for (let i = 0; i < this.movingHeads.length; i++) {
+      const mh = this.movingHeads[i];
+      if (i < numSpots) {
+        mh.isFocused = true;
+        mh.focusTimer = duration;
+        mh.focusTarget = tier >= 3
+          ? (i < 2 ? podiumTarget : clampedTarget)
+          : clampedTarget;
+        if (mh.spot && mh.spot.color?.setHex) {
+          mh.spot.color.setHex(tier >= 3 ? 0xffd700 : (tier === 2 ? 0x00f2fe : mh.baseCol.getHex()));
+        }
+      }
     }
   }
 
@@ -475,11 +530,13 @@ export class ClubEnvironment {
     // 1. LED Floor wave pulse based on Bass with vibrant purple palette & minimum emissive glow
     this.wavePhase += delta * (2.0 + bass * 0.05);
     const colorHolder = new THREE.Color();
+    const halfCols = (FLOOR_GRID_CONFIG.cols - 1) / 2;
+    const halfRows = (FLOOR_GRID_CONFIG.rows - 1) / 2;
     let idx = 0;
-    for (let r = 0; r < 8; r++) {
-      for (let c = 0; c < 8; c++) {
-        const distFromCenter = Math.sqrt((c - 3.5) ** 2 + (r - 3.5) ** 2);
-        const wave = Math.sin(this.wavePhase - distFromCenter * 0.8);
+    for (let r = 0; r < FLOOR_GRID_CONFIG.rows; r++) {
+      for (let c = 0; c < FLOOR_GRID_CONFIG.cols; c++) {
+        const distFromCenter = Math.sqrt((c - halfCols) ** 2 + (r - halfRows) ** 2);
+        const wave = Math.sin(this.wavePhase - distFromCenter * 0.6);
         const intensity = Math.max(
           FLOOR_EMISSIVE_CONFIG.minPulseBrightness,
           (wave + 1) * 0.5 * (1.0 + (bands.bassFlux || 0) * 0.03)
@@ -505,15 +562,37 @@ export class ClubEnvironment {
       this.djMascotHand.rotation.z = Math.sin(this.time * 6.0) * 0.3;
     }
 
-    // 3. Moving Heads driven by Mids Lissajous curve
-    const midsSpeed = 1.0 + mids * 0.02;
+    // 3. Moving Heads with floor clamping and tiered donate spot focusing
     for (let i = 0; i < this.movingHeads.length; i++) {
       const mh = this.movingHeads[i];
-      const pan = Math.sin(this.time * mh.speed * 0.8) * Math.PI * 0.6;
-      const tilt = (Math.cos(this.time * mh.speed * 1.2) + 1) * 0.5 * (Math.PI / 3);
-      mh.group.rotation.y = pan;
-      mh.group.rotation.x = tilt;
-      mh.spot.intensity = 4.0 + (bands.midsFlux || 0) * 0.05;
+      if (mh.isFocused) {
+        mh.focusTimer -= delta;
+        if (mh.focusTimer <= 0) {
+          mh.isFocused = false;
+          if (mh.spot && mh.spot.color?.setHex) mh.spot.color.copy(mh.baseCol);
+        }
+      }
+
+      let targetPos;
+      if (mh.isFocused && mh.focusTarget) {
+        targetPos = mh.focusTarget;
+      } else {
+        const ambientX = Math.sin(this.time * mh.speed * 0.7 + i * 1.5) * 6.5;
+        const ambientZ = Math.cos(this.time * mh.speed * 0.5 + i * 1.2) * 6.5 + 0.5;
+        targetPos = clampSpotlightToFloor({ x: ambientX, y: 0, z: ambientZ });
+      }
+
+      const dx = targetPos.x - mh.group.position.x;
+      const dy = (targetPos.y || 0) - mh.group.position.y;
+      const dz = targetPos.z - mh.group.position.z;
+      const targetPan = Math.atan2(dx, dz);
+      const horizDist = Math.hypot(dx, dz);
+      const targetTilt = -Math.atan2(dy, horizDist) - Math.PI / 2;
+
+      const lerpSpeed = mh.isFocused ? 6.0 : 2.5;
+      mh.group.rotation.y += (targetPan - mh.group.rotation.y) * Math.min(1.0, delta * lerpSpeed);
+      mh.group.rotation.x += (targetTilt - mh.group.rotation.x) * Math.min(1.0, delta * lerpSpeed);
+      mh.spot.intensity = (mh.isFocused ? 7.5 : 4.0) + (bands.midsFlux || 0) * 0.05;
     }
 
     // 4. Laser Beams Strobe & Angle driven by Treble

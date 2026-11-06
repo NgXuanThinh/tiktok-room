@@ -1,7 +1,7 @@
 // src/main.js - Application entrypoint coordinating WebGL, WebSocket hub, avatars, and audio
 import * as THREE from 'three';
 import { SceneManager } from './scene-manager.js';
-import { ClubEnvironment } from './club-environment.js';
+import { ClubEnvironment, FLOOR_GRID_CONFIG } from './club-environment.js';
 import { AudioSystem } from './audio-system.js';
 import {
   AvatarOccupancyManager,
@@ -106,6 +106,36 @@ export class VipPodiumScheduler {
   }
 }
 
+// Spatial dance floor grid slots: Generated radially from dance floor center outwards
+export function generateDanceFloorSlots(config = FLOOR_GRID_CONFIG) {
+  const slots = [];
+  const cfg = config || { rows: 12, cols: 12, tileSpacing: 1.8 };
+  const halfRows = (cfg.rows - 1) / 2;
+  const halfCols = (cfg.cols - 1) / 2;
+  const spacing = cfg.tileSpacing || 1.8;
+  const centerZ = 0.5;
+
+  for (let r = 0; r < cfg.rows; r++) {
+    for (let c = 0; c < cfg.cols; c++) {
+      const x = (c - halfCols) * spacing;
+      const z = (r - halfRows) * spacing + centerZ;
+      // Reserve space for VIP podium around (0, 0, -3.5)
+      if (Math.hypot(x, z - (-3.5)) < 2.4) continue;
+      // Distance to dance floor center (0, 0, 0.5)
+      const distToCenter = Math.hypot(x, z - centerZ);
+      slots.push({
+        pos: new THREE.Vector3(x, 0, z),
+        distToCenter
+      });
+    }
+  }
+
+  // Strict center-outward radial sorting:
+  // Slots closest to center come FIRST, expanding outward in concentric rings
+  slots.sort((a, b) => a.distToCenter - b.distToCenter);
+  return slots.map((s) => s.pos);
+}
+
 // Only run WebGL client and WebSocket connection in browser environments
 if (typeof window !== 'undefined' && typeof document !== 'undefined') {
   initClientApp();
@@ -119,18 +149,11 @@ function initClientApp() {
   const occupancyManager = new AvatarOccupancyManager({ maxCapacity: 100, idleTimeoutMs: 120000 });
   const vipScheduler = new VipPodiumScheduler({ duration: 15.0 });
 
-// Active avatar 3D meshes map: userId -> THREE.Group
-const avatarMeshes = new Map();
+  // Active avatar 3D meshes map: userId -> THREE.Group
+  const avatarMeshes = new Map();
 
-// Spatial dance floor grid slots (8x8 grid within -6 to +6)
-const floorSlots = [];
-for (let x = -5.5; x <= 5.5; x += 1.4) {
-  for (let z = -5.5; z <= 5.5; z += 1.4) {
-    if (Math.abs(x) < 2.0 && z < -2.0) continue; // Reserve space for VIP podium
-    floorSlots.push(new THREE.Vector3(x, 0, z));
-  }
-}
-let nextSlotIdx = 0;
+  const floorSlots = generateDanceFloorSlots(FLOOR_GRID_CONFIG);
+  let nextSlotIdx = 0;
 
 // User Cumulative Coins for Leaderboard
 const userCoinsMap = new Map();
@@ -239,6 +262,11 @@ function handleLiveEvent(evt) {
       const origin = mesh.position.clone();
       clubEnvironment.triggerFireworks(tier, origin);
 
+      // Focus moving head spotlights based on tier
+      if (typeof clubEnvironment.focusSpotlights === 'function') {
+        clubEnvironment.focusSpotlights(tier, origin, tier >= 3 ? 15.0 : (tier === 2 ? 4.0 : 3.0));
+      }
+
       // Slime VIP Promotion & Tier Scaling via VipPodiumScheduler
       if (tier >= 3) {
         applyWhaleSlimeAesthetics(mesh, tier);
@@ -283,6 +311,7 @@ function getOrCreateAvatarMesh(userData, coins = 0) {
   if (!mesh) {
     mesh = createAvatarMesh({
       ...userData,
+      level: userData.level || 'Lv.1',
       isPinned: trackedAvatar.isPinned,
       totalCoins: trackedAvatar.totalCoins
     });

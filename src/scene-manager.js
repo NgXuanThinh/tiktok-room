@@ -14,7 +14,9 @@ export const FULL_VENUE_ORBIT_CONFIG = {
   radius: 10.0,
   target: { x: 0, y: 1.4, z: -2.5 },
   elevationY: 5.0,
-  fov: 68
+  fov: 68,
+  minRadius: 6.0,
+  maxRadius: 25.0
 };
 
 export const VIP_ZOOM_CONFIG = {
@@ -96,11 +98,13 @@ export class SceneManager {
   }
 
   init() {
-    const width = this.container.clientWidth || window.innerWidth;
-    const height = this.container.clientHeight || window.innerHeight;
+    const hasWindow = typeof window !== 'undefined';
+    const width = (this.container && this.container.clientWidth) || (hasWindow ? window.innerWidth : 1280);
+    const height = (this.container && this.container.clientHeight) || (hasWindow ? window.innerHeight : 720);
 
     // Check URL parameters for OBS broadcasting modes
-    const urlParams = new URLSearchParams(window.location.search);
+    const search = hasWindow && window.location ? window.location.search : '';
+    const urlParams = new URLSearchParams(search);
     this.isAlpha = urlParams.get('alpha') === 'true';
     this.isChromaGreen = urlParams.get('chroma') === 'green';
 
@@ -108,7 +112,7 @@ export class SceneManager {
     this.scene = new THREE.Scene();
     if (this.isAlpha) {
       this.scene.background = null;
-      document.body.style.background = 'transparent';
+      if (typeof document !== 'undefined' && document.body) document.body.style.background = 'transparent';
     } else if (this.isChromaGreen) {
       this.scene.background = new THREE.Color(0x00ff00);
     } else {
@@ -122,16 +126,27 @@ export class SceneManager {
     this.camera.lookAt(this.camCurrentLook);
 
     // WebGL Renderer
-    this.renderer = new THREE.WebGLRenderer({
-      antialias: true,
-      alpha: this.isAlpha,
-      powerPreference: 'high-performance'
-    });
-    this.renderer.setSize(width, height);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2.0));
-    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.1;
-    this.container.appendChild(this.renderer.domElement);
+    if (typeof document !== 'undefined') {
+      this.renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        alpha: this.isAlpha,
+        powerPreference: 'high-performance'
+      });
+      this.renderer.setSize(width, height);
+      this.renderer.setPixelRatio(hasWindow ? Math.min(window.devicePixelRatio, 2.0) : 1.0);
+      this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      this.renderer.toneMappingExposure = 1.1;
+      if (this.container && typeof this.container.appendChild === 'function') {
+        this.container.appendChild(this.renderer.domElement);
+      }
+    } else {
+      this.renderer = {
+        setSize: () => {},
+        setPixelRatio: () => {},
+        render: () => {},
+        domElement: {}
+      };
+    }
 
     // Ambient Lighting (boosted for rich club visibility)
     const ambientLight = new THREE.AmbientLight(0x333344, 1.6);
@@ -146,24 +161,26 @@ export class SceneManager {
     dirLight.position.set(5, 12, 7);
     this.scene.add(dirLight);
 
-    // Window Resize Event
-    window.addEventListener('resize', () => this.onResize());
+    if (hasWindow) {
+      // Window Resize Event
+      window.addEventListener('resize', () => this.onResize());
 
-    // Hotkey bindings: F2 for Chroma Key, 1-4 for Camera presets
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'F2') {
-        e.preventDefault();
-        this.toggleChromaKey();
-      } else if (e.key === '1') {
-        this.setCameraPreset('orbit');
-      } else if (e.key === '2') {
-        this.setCameraPreset('dj');
-      } else if (e.key === '3') {
-        this.setCameraPreset('top');
-      } else if (e.key === '4') {
-        this.setCameraPreset('vip');
-      }
-    });
+      // Hotkey bindings: F2 for Chroma Key, 1-4 for Camera presets
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'F2') {
+          e.preventDefault();
+          this.toggleChromaKey();
+        } else if (e.key === '1') {
+          this.setCameraPreset('orbit');
+        } else if (e.key === '2') {
+          this.setCameraPreset('dj');
+        } else if (e.key === '3') {
+          this.setCameraPreset('top');
+        } else if (e.key === '4') {
+          this.setCameraPreset('vip');
+        }
+      });
+    }
   }
 
   setCameraPreset(key, duration = null) {
@@ -186,6 +203,20 @@ export class SceneManager {
     // Smooth FOV transition
     this.camera.fov = this.currentPreset.fov;
     this.camera.updateProjectionMatrix();
+  }
+
+  setOrbitRadius(radius) {
+    const minR = FULL_VENUE_ORBIT_CONFIG.minRadius || 6.0;
+    const maxR = FULL_VENUE_ORBIT_CONFIG.maxRadius || 25.0;
+    this.orbitRadius = Math.max(minR, Math.min(maxR, Number(radius || 10.0)));
+  }
+
+  setFov(fov) {
+    const clampedFov = Math.max(30, Math.min(90, Number(fov || 68)));
+    if (this.camera) {
+      this.camera.fov = clampedFov;
+      this.camera.updateProjectionMatrix();
+    }
   }
 
   revertVipCamera() {
@@ -235,14 +266,15 @@ export class SceneManager {
       }
     }
 
-    // Full-venue orbit rotation centered at venue midpoint (0, 1.4, -2.5)
+    // Full-venue orbit rotation centered at venue midpoint (0, 1.4, -2.5) with dynamic radius and elevation scaling
     if (this.currentPreset.isOrbit) {
       this.orbitTheta += 0.10 * deltaTime;
       const target = FULL_VENUE_ORBIT_CONFIG.target;
-      const r = FULL_VENUE_ORBIT_CONFIG.radius;
+      const r = this.orbitRadius || FULL_VENUE_ORBIT_CONFIG.radius;
       const x = target.x + r * Math.sin(this.orbitTheta);
       const z = target.z + r * Math.cos(this.orbitTheta);
-      const y = FULL_VENUE_ORBIT_CONFIG.elevationY;
+      // Elevation scales gracefully with radius to always maintain a clear downward look angle over the DJ booth
+      const y = Math.max(FULL_VENUE_ORBIT_CONFIG.elevationY, (r / 10.0) * 5.0);
       this.camTargetPos.set(
         x,
         y + (bassPunch > 50 ? Math.sin(this.orbitTheta * 4) * 0.15 : 0),

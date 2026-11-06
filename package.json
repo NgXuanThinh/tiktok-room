@@ -10,6 +10,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "mock": "node server/mock-simulator.js",
+    "preview:slime": "vite --config vite.preview.config.js",
     "test": "node tests/full-system.test.js"
   },
   "dependencies": {

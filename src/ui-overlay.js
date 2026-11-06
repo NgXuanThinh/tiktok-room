@@ -72,6 +72,30 @@ export class UiOverlay {
       });
     });
 
+    // Camera Orbit Distance & Zoom Slider
+    const distSlider = document.getElementById('camera-distance-slider');
+    const distVal = document.getElementById('camera-distance-val');
+    if (distSlider) {
+      distSlider.addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        if (distVal) distVal.textContent = `${val.toFixed(1)}m`;
+        if (this.sceneManager) this.sceneManager.setOrbitRadius(val);
+      });
+    }
+
+    const setDistHelper = (val) => {
+      if (distSlider) distSlider.value = val;
+      if (distVal) distVal.textContent = `${val.toFixed(1)}m`;
+      if (this.sceneManager) this.sceneManager.setOrbitRadius(val);
+    };
+
+    const closeBtn = document.getElementById('btn-cam-close');
+    if (closeBtn) closeBtn.addEventListener('click', () => setDistHelper(7.0));
+    const midBtn = document.getElementById('btn-cam-mid');
+    if (midBtn) midBtn.addEventListener('click', () => setDistHelper(10.0));
+    const wideBtn = document.getElementById('btn-cam-wide');
+    if (wideBtn) wideBtn.addEventListener('click', () => setDistHelper(16.0));
+
     // Chroma & Alpha buttons
     const chromaBtn = document.getElementById('btn-chroma');
     if (chromaBtn) {

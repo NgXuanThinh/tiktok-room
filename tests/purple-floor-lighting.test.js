@@ -66,7 +66,7 @@ export async function run() {
         const env = new ClubEnvironment();
         if (env.floorMesh) {
           assert.strictEqual(env.floorMesh.isInstancedMesh, true, 'Floor mesh must be an InstancedMesh');
-          assert.strictEqual(env.floorMesh.count, 64, 'Floor mesh must hold exactly 64 tiles (8x8)');
+          assert.ok(env.floorMesh.count >= 64, 'Floor mesh must hold at least 64 tiles');
         }
       }
     },

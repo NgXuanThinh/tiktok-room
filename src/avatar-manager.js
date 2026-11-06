@@ -214,7 +214,7 @@ export class AvatarOccupancyManager {
 
     avatar = {
       id,
-      username: username || 'Viewer',
+      username: username || 'User',
       totalCoins: Number(coins || 0),
       isPinned: Number(coins || 0) >= 500,
       lastActive: now,
@@ -562,10 +562,14 @@ export function setSlimeColor(slimeGroup, colorKey) {
  * Creates 2D Canvas Sprite Billboard with avatar photo and username.
  */
 export function createBillboardSprite(userData) {
+  const level = userData.level || 'Lv.1';
+  const coinStr = userData.totalCoins ? ` ★ ${userData.totalCoins}` : '';
+  const badgeText = `${level}${coinStr}`;
+
   if (typeof document === 'undefined') {
     const dummySprite = new THREE.Object3D();
     dummySprite.scale.set(1.8, 0.9, 1.0);
-    dummySprite.userData = {};
+    dummySprite.userData = { badgeText, level };
     return dummySprite;
   }
   const canvas = document.createElement('canvas');
@@ -605,13 +609,13 @@ export function createBillboardSprite(userData) {
     ctx.font = 'bold 18px sans-serif';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
-    const cleanName = (userData.username || 'Viewer').slice(0, 12);
+    const cleanName = (userData.nickname || userData.username || 'User').slice(0, 12);
     ctx.fillText(cleanName, 88, 44);
 
-    ctx.fillStyle = userData.isPinned ? '#ffd700' : '#00F0FF';
-    ctx.font = '14px sans-serif';
-    const coinText = userData.totalCoins ? `★ ${userData.totalCoins}` : 'Viewer';
-    ctx.fillText(coinText, 88, 64);
+    // Render Level badge (e.g. Lv.1, Lv.10, VIP, TOP 1) - NEVER 'Viewer'
+    ctx.fillStyle = userData.isPinned ? '#ffd700' : (level.includes('TOP') || level.includes('VIP') ? '#ffd700' : '#00F0FF');
+    ctx.font = 'bold 14px sans-serif';
+    ctx.fillText(badgeText, 88, 64);
   };
 
   redraw();
@@ -632,6 +636,6 @@ export function createBillboardSprite(userData) {
     img.src = `/api/avatar?name=${encodeURIComponent(userData.username || '')}&url=${encodeURIComponent(userData.avatarUrl || '')}`;
   }
 
-  sprite.userData = { canvas, ctx, texture, redraw };
+  sprite.userData = { canvas, ctx, texture, redraw, badgeText, level };
   return sprite;
 }
