@@ -1,6 +1,24 @@
 // src/club-environment.js - InstancedMesh LED floor (1 draw call), VIP stage, DJ booth, moving heads, lasers, fireworks, hearts
 import * as THREE from 'three';
 
+export const PURPLE_FLOOR_PALETTE = [
+  new THREE.Color(0x8A2BE2), // BlueViolet
+  new THREE.Color(0x9400D3), // DarkViolet
+  new THREE.Color(0xBA55D3), // MediumOrchid
+  new THREE.Color(0x4B0082), // Indigo
+  new THREE.Color(0xDDA0DD)  // Plum
+];
+
+export const FLOOR_EMISSIVE_CONFIG = {
+  baseEmissive: 0x3b0066,
+  emissiveIntensity: 0.65,
+  minPulseBrightness: 0.25
+};
+
+export const BACK_WALL_CONFIG = {
+  z: -12.5
+};
+
 const NEON_PALETTE = [
   new THREE.Color(0x00f2fe), // Cyan
   new THREE.Color(0xff007f), // Hot Pink
@@ -10,7 +28,7 @@ const NEON_PALETTE = [
 
 export class ClubEnvironment {
   constructor(scene) {
-    this.scene = scene;
+    this.scene = scene || new THREE.Scene();
 
     // Components
     this.floorMesh = null;
@@ -68,10 +86,11 @@ export class ClubEnvironment {
   createLedFloor() {
     const tileGeom = new THREE.BoxGeometry(1.8, 0.2, 1.8);
     const tileMat = new THREE.MeshStandardMaterial({
-      color: 0x111122,
-      emissive: 0x000000,
+      color: 0x220538,
+      emissive: FLOOR_EMISSIVE_CONFIG.baseEmissive,
+      emissiveIntensity: FLOOR_EMISSIVE_CONFIG.emissiveIntensity,
       metalness: 0.8,
-      roughness: 0.2
+      roughness: 0.15
     });
 
     const count = 64; // 8x8
@@ -90,8 +109,8 @@ export class ClubEnvironment {
         dummy.updateMatrix();
         this.floorMesh.setMatrixAt(idx, dummy.matrix);
 
-        // Initial cyberpunk color
-        const baseCol = NEON_PALETTE[(r + c) % NEON_PALETTE.length];
+        // Initial cyberpunk purple color
+        const baseCol = PURPLE_FLOOR_PALETTE[(r + c) % PURPLE_FLOOR_PALETTE.length];
         this.floorMesh.setColorAt(idx, baseCol);
         idx++;
       }
@@ -234,9 +253,9 @@ export class ClubEnvironment {
   createWallsAndNeon() {
     const wallMat = new THREE.MeshStandardMaterial({ color: 0x070710, roughness: 0.9 });
     
-    // Back Wall
-    const backWall = new THREE.Mesh(new THREE.BoxGeometry(22, 12, 0.5), wallMat);
-    backWall.position.set(0, 6, -9);
+    // Back Wall (Deepened to Z = -12.5m for full-venue orbit camera clearance)
+    const backWall = new THREE.Mesh(new THREE.BoxGeometry(26, 14, 0.5), wallMat);
+    backWall.position.set(0, 6, BACK_WALL_CONFIG.z);
     this.scene.add(backWall);
 
     // Neon Logo Bar
@@ -246,7 +265,7 @@ export class ClubEnvironment {
       emissiveIntensity: 2.5
     });
     const neonBar = new THREE.Mesh(new THREE.BoxGeometry(8, 0.4, 0.2), neonBarMat);
-    neonBar.position.set(0, 7.5, -8.7);
+    neonBar.position.set(0, 7.5, BACK_WALL_CONFIG.z + 0.3);
     this.scene.add(neonBar);
   }
 
@@ -453,7 +472,7 @@ export class ClubEnvironment {
     const mids = bands.mids || 0;
     const treble = bands.treble || 0;
 
-    // 1. LED Floor wave pulse based on Bass
+    // 1. LED Floor wave pulse based on Bass with vibrant purple palette & minimum emissive glow
     this.wavePhase += delta * (2.0 + bass * 0.05);
     const colorHolder = new THREE.Color();
     let idx = 0;
@@ -461,9 +480,12 @@ export class ClubEnvironment {
       for (let c = 0; c < 8; c++) {
         const distFromCenter = Math.sqrt((c - 3.5) ** 2 + (r - 3.5) ** 2);
         const wave = Math.sin(this.wavePhase - distFromCenter * 0.8);
-        const intensity = Math.max(0.1, (wave + 1) * 0.5 * (1.0 + (bands.bassFlux || 0) * 0.03));
+        const intensity = Math.max(
+          FLOOR_EMISSIVE_CONFIG.minPulseBrightness,
+          (wave + 1) * 0.5 * (1.0 + (bands.bassFlux || 0) * 0.03)
+        );
 
-        const baseCol = NEON_PALETTE[(r + c) % NEON_PALETTE.length];
+        const baseCol = PURPLE_FLOOR_PALETTE[(r + c) % PURPLE_FLOOR_PALETTE.length];
         colorHolder.copy(baseCol).multiplyScalar(intensity);
         this.floorMesh.setColorAt(idx, colorHolder);
         idx++;

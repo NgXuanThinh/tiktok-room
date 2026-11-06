@@ -13,11 +13,17 @@ const suites = [
   { name: 'kinematics-culling', path: './kinematics-culling.test.js' },
   { name: 'audio-sfx', path: './audio-sfx.test.js' },
   { name: 'integration-e2e', path: './integration-e2e.test.js' },
-  // New Feature Suites (task_fix_slime_visuals_audio)
+  // Feature Suites (task_fix_slime_visuals_audio)
   { name: 'slime-color-palette', path: './slime-color-palette.test.js' },
   { name: 'camera-orbit-bounds', path: './camera-orbit-bounds.test.js' },
   { name: 'slime-kinematics', path: './slime-kinematics.test.js' },
-  { name: 'procedural-audio-loop', path: './procedural-audio-loop.test.js' }
+  { name: 'procedural-audio-loop', path: './procedural-audio-loop.test.js' },
+  // Targeted Feature Suites (task_purple_floor_camera_mock_vip)
+  { name: 'purple-floor-lighting', path: './purple-floor-lighting.test.js' },
+  { name: 'orbit-camera-venue-view', path: './orbit-camera-venue-view.test.js' },
+  { name: 'slime-eye-sync-whale', path: './slime-eye-sync-whale.test.js' },
+  { name: 'vip-podium-scheduler', path: './vip-podium-scheduler.test.js' },
+  { name: 'custom-mock-person', path: './custom-mock-person.test.js' }
 ];
 
 async function runAll() {

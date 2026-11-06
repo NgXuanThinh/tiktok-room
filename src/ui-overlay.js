@@ -126,6 +126,32 @@ export class UiOverlay {
       });
     }
 
+    // Custom Mock Person Buttons
+    this.bindMockButton('btn-mock-spawn', () => {
+      const user = this.getCustomMockUser();
+      if (this.ws) this.ws.send(JSON.stringify({ type: 'mock_trigger', action: 'spawn', user }));
+    });
+    this.bindMockButton('btn-mock-rose', () => {
+      const user = this.getCustomMockUser();
+      if (this.ws) this.ws.send(JSON.stringify({ type: 'mock_trigger', action: 'gift', tier: 1, giftName: 'Rose', coins: 1, user }));
+    });
+    this.bindMockButton('btn-mock-perfume', () => {
+      const user = this.getCustomMockUser();
+      if (this.ws) this.ws.send(JSON.stringify({ type: 'mock_trigger', action: 'gift', tier: 2, giftName: 'Perfume', coins: 100, user }));
+    });
+    this.bindMockButton('btn-mock-lion', () => {
+      const user = this.getCustomMockUser();
+      if (this.ws) this.ws.send(JSON.stringify({ type: 'mock_trigger', action: 'gift', tier: 3, giftName: 'Lion', coins: 500, user }));
+    });
+    this.bindMockButton('btn-mock-chat', () => {
+      const user = this.getCustomMockUser();
+      if (this.ws) this.ws.send(JSON.stringify({ type: 'mock_trigger', action: 'chat', comment: 'Let us party with VIP!', user }));
+    });
+    this.bindMockButton('btn-mock-likes', () => {
+      const user = this.getCustomMockUser();
+      if (this.ws) this.ws.send(JSON.stringify({ type: 'mock_trigger', action: 'likes', count: 10, user }));
+    });
+
     // Mock Testing Buttons
     this.bindMockButton('mock-likes', () => {
       if (this.ws) this.ws.send(JSON.stringify({ type: 'mock_trigger', action: 'likes', count: 10 }));
@@ -142,6 +168,29 @@ export class UiOverlay {
     this.bindMockButton('mock-gift-tier3', () => {
       if (this.ws) this.ws.send(JSON.stringify({ type: 'mock_trigger', action: 'gift', tier: 3 }));
     });
+  }
+
+  getCustomMockUser() {
+    const usernameEl = document.getElementById('mock-custom-username');
+    const levelEl = document.getElementById('mock-custom-level');
+    const colorEl = document.getElementById('mock-custom-color');
+
+    const username = usernameEl?.value?.trim() || 'DaiGiaBinhDuong';
+    const level = levelEl?.value || 'TOP 1';
+    const slimeColor = colorEl?.value || 'yellow';
+    const cleanId = username.toLowerCase().replace(/[^a-z0-9]/g, '_');
+    const id = cleanId.startsWith('custom_') ? cleanId : `custom_${cleanId}`;
+
+    return {
+      id,
+      userId: id,
+      uniqueId: id,
+      username,
+      nickname: username,
+      level,
+      slimeColor,
+      avatarUrl: ''
+    };
   }
 
   bindMockButton(id, fn) {

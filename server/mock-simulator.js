@@ -1,6 +1,27 @@
 // server/mock-simulator.js - Tri-modal mock event injector (CLI, UI trigger, REST endpoint)
 import { normalizeTikTokEvent } from './event-normalizer.js';
 
+export const MOCK_LEVELS = ['Lv.1', 'Lv.10', 'Lv.25', 'Lv.50', 'VIP', 'TOP 1'];
+
+export function createCustomMockUser(params = {}) {
+  const username = params.username || 'DaiGiaBinhDuong';
+  const level = params.level || 'TOP 1';
+  const slimeColor = params.slimeColor || 'yellow';
+  const cleanId = username.toLowerCase().replace(/[^a-z0-9]/g, '_');
+  const id = cleanId.startsWith('custom_') ? cleanId : `custom_${cleanId}`;
+
+  return {
+    id,
+    userId: id,
+    uniqueId: id,
+    username,
+    nickname: username,
+    level,
+    slimeColor,
+    avatarUrl: params.avatarUrl || ''
+  };
+}
+
 const MOCK_VIEWERS = [
   { userId: '101', uniqueId: 'dj_beatmaker', nickname: 'DJ Beat', avatarUrl: '' },
   { userId: '102', uniqueId: 'club_queen', nickname: 'Club Queen', avatarUrl: '' },
@@ -89,6 +110,17 @@ export class MockSimulator {
       giftName,
       diamondCount,
       repeatCount: 1
+    });
+    this.onEvent(evt);
+    return evt;
+  }
+
+  simulateSpawn(user = null) {
+    const u = user || this.getRandomViewer();
+    const color = u.slimeColor || 'green';
+    const evt = normalizeTikTokEvent('chat', {
+      ...u,
+      comment: `!color ${color}`
     });
     this.onEvent(evt);
     return evt;
