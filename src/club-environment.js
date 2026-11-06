@@ -20,15 +20,15 @@ export const FLOOR_GRID_CONFIG = {
   cols: 12,
   tileSize: 1.5,
   tileSpacing: 1.6,
-  startZ: -5.0,
+  centerZ: 0,
   get count() { return this.rows * this.cols; }
 };
 
 export function clampSpotlightToFloor(target = { x: 0, y: 0, z: 0 }) {
   const minX = -7.5;
   const maxX = 7.5;
-  const minZ = -5.0;
-  const maxZ = 9.5;
+  const minZ = -7.5;
+  const maxZ = 7.5;
   return {
     x: Math.max(minX, Math.min(maxX, Number(target?.x || 0))),
     y: Number(target?.y || 0),
@@ -37,7 +37,7 @@ export function clampSpotlightToFloor(target = { x: 0, y: 0, z: 0 }) {
 }
 
 export const BACK_WALL_CONFIG = {
-  z: -18.5
+  z: -14.5
 };
 
 const NEON_PALETTE = [
@@ -89,9 +89,9 @@ export class ClubEnvironment {
    */
   createAccentLights() {
     // DJ Console Overhead Spotlight
-    const djSpot = new THREE.SpotLight(0x00f2fe, 3.5, 12, Math.PI / 5, 0.4);
-    djSpot.position.set(0, 5.0, -6.0);
-    djSpot.target.position.set(0, 1.6, -6.5);
+    const djSpot = new THREE.SpotLight(0x00f2fe, 3.5, 14, Math.PI / 5, 0.4);
+    djSpot.position.set(0, 6.0, -9.5);
+    djSpot.target.position.set(0, 1.6, -10.25);
     this.scene.add(djSpot);
     this.scene.add(djSpot.target);
 
@@ -120,13 +120,13 @@ export class ClubEnvironment {
 
     const dummy = new THREE.Object3D();
     const halfCols = (FLOOR_GRID_CONFIG.cols - 1) / 2;
-    const startZ = FLOOR_GRID_CONFIG.startZ !== undefined ? FLOOR_GRID_CONFIG.startZ : -5.0;
+    const halfRows = (FLOOR_GRID_CONFIG.rows - 1) / 2;
 
     let idx = 0;
     for (let r = 0; r < FLOOR_GRID_CONFIG.rows; r++) {
       for (let c = 0; c < FLOOR_GRID_CONFIG.cols; c++) {
         const x = (c - halfCols) * FLOOR_GRID_CONFIG.tileSpacing;
-        const z = startZ + r * FLOOR_GRID_CONFIG.tileSpacing;
+        const z = (r - halfRows) * FLOOR_GRID_CONFIG.tileSpacing;
         dummy.position.set(x, -0.1, z);
         dummy.updateMatrix();
         this.floorMesh.setMatrixAt(idx, dummy.matrix);
@@ -195,7 +195,7 @@ export class ClubEnvironment {
    */
   createDjBooth() {
     const djGroup = new THREE.Group();
-    djGroup.position.set(0, 0, -6.5);
+    djGroup.position.set(0, 0, -10.25); // Flush with floor top edge (Z = -9.55m)
 
     // DJ Table
     const tableGeom = new THREE.BoxGeometry(4.5, 1.6, 1.4);
@@ -300,10 +300,10 @@ export class ClubEnvironment {
    */
   createMovingHeads() {
     const positions = [
-      [-6.5, 9.5, -4.5],
-      [6.5, 9.5, -4.5],
-      [-6.5, 9.5, 11.5],
-      [6.5, 9.5, 11.5]
+      [-7.0, 9.0, -7.0],
+      [7.0, 9.0, -7.0],
+      [-7.0, 9.0, 7.0],
+      [7.0, 9.0, 7.0]
     ];
 
     const coneGeom = new THREE.CylinderGeometry(0.12, 1.8, 16, 16, 1, true);
@@ -391,7 +391,7 @@ export class ClubEnvironment {
 
     for (let i = 0; i < 6; i++) {
       const laser = new THREE.Mesh(beamGeom, laserMat.clone());
-      laser.position.set(-5 + i * 2, 7.5, -6.5);
+      laser.position.set(-5 + i * 2, 8.5, -10.25);
       this.scene.add(laser);
       this.laserBeams.push({ mesh: laser, offset: i * 0.8 });
     }
@@ -548,13 +548,13 @@ export class ClubEnvironment {
     this.wavePhase += delta * (2.0 + bass * 0.05);
     const colorHolder = new THREE.Color();
     const halfCols = (FLOOR_GRID_CONFIG.cols - 1) / 2;
-    const startZ = FLOOR_GRID_CONFIG.startZ !== undefined ? FLOOR_GRID_CONFIG.startZ : -5.0;
+    const halfRows = (FLOOR_GRID_CONFIG.rows - 1) / 2;
     let idx = 0;
     for (let r = 0; r < FLOOR_GRID_CONFIG.rows; r++) {
       for (let c = 0; c < FLOOR_GRID_CONFIG.cols; c++) {
         const x = (c - halfCols) * FLOOR_GRID_CONFIG.tileSpacing;
-        const z = startZ + r * FLOOR_GRID_CONFIG.tileSpacing;
-        const distFromCenter = Math.hypot(x, z - 3.8);
+        const z = (r - halfRows) * FLOOR_GRID_CONFIG.tileSpacing;
+        const distFromCenter = Math.hypot(x, z);
         const wave = Math.sin(this.wavePhase - distFromCenter * 0.4);
         const intensity = Math.max(
           FLOOR_EMISSIVE_CONFIG.minPulseBrightness,
@@ -598,13 +598,13 @@ export class ClubEnvironment {
       } else {
         // Distinct, smooth floor trajectories for each moving head strictly on dance floor
         if (i === 0) {
-          rawTarget = { x: -3.0 + 3.0 * Math.sin(this.time * 0.85), y: 0, z: 1.0 + 4.0 * Math.cos(this.time * 0.95) };
+          rawTarget = { x: -3.5 + 2.5 * Math.sin(this.time * 0.85), y: 0, z: -3.5 + 2.5 * Math.cos(this.time * 0.95) };
         } else if (i === 1) {
-          rawTarget = { x: 3.0 + 3.0 * Math.cos(this.time * 0.90 + 1.0), y: 0, z: 1.0 + 4.0 * Math.sin(this.time * 0.80 + 0.5) };
+          rawTarget = { x: 3.5 + 2.5 * Math.cos(this.time * 0.90 + 1.0), y: 0, z: -3.5 + 2.5 * Math.sin(this.time * 0.80 + 0.5) };
         } else if (i === 2) {
-          rawTarget = { x: 4.0 * Math.sin(this.time * 0.75 + 2.0), y: 0, z: 5.5 + 3.5 * Math.cos(this.time * 1.0) };
+          rawTarget = { x: -3.5 + 2.5 * Math.sin(this.time * 0.75 + 2.0), y: 0, z: 3.5 + 2.5 * Math.cos(this.time * 1.0) };
         } else {
-          rawTarget = { x: 4.0 * Math.cos(this.time * 0.80 + 3.0), y: 0, z: 5.5 + 3.5 * Math.sin(this.time * 0.90 + 1.5) };
+          rawTarget = { x: 3.5 + 2.5 * Math.cos(this.time * 0.80 + 3.0), y: 0, z: 3.5 + 2.5 * Math.sin(this.time * 0.90 + 1.5) };
         }
       }
 

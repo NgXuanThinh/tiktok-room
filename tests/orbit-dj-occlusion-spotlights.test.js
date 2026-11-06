@@ -36,8 +36,8 @@ export async function run() {
 
         const targetY = sm.camTargetPos.y;
         assert.ok(
-          targetY >= 14.0,
-          `Camera elevation at 25m behind DJ (${targetY.toFixed(1)}m) must be >= 14.0m to look down over the DJ booth`
+          targetY >= 8.0 && targetY <= 12.0,
+          `Camera elevation at 25m behind DJ (${targetY.toFixed(1)}m) must be balanced between 8.0m and 12.0m to maintain consistent distance`
         );
       }
     },
@@ -71,18 +71,19 @@ export async function run() {
         const env = new ClubEnvironment();
 
         // Top edge of the dance floor: Row 0
-        const topRowZ = FLOOR_GRID_CONFIG.startZ !== undefined ? FLOOR_GRID_CONFIG.startZ : -5.0;
+        const halfRows = (FLOOR_GRID_CONFIG.rows - 1) / 2;
+        const topRowZ = -halfRows * FLOOR_GRID_CONFIG.tileSpacing; // e.g. -8.8m
         const halfTileSize = FLOOR_GRID_CONFIG.tileSize / 2;
-        const floorTopEdge = topRowZ - halfTileSize; // e.g. -5.75m
+        const floorTopEdge = topRowZ - halfTileSize; // e.g. -9.55m
 
         // DJ booth table front edge
-        // DJ booth is positioned at Z = -6.5m, table depth is 1.6m (extends +0.8m forward to -5.7m)
-        const djBoothZ = -6.5;
-        const djTableFrontEdge = djBoothZ + 0.8; // -5.7m
+        // DJ booth is positioned at Z = -10.25m, table depth is 1.4m (extends +0.7m forward to -9.55m)
+        const djBoothZ = -10.25;
+        const djTableFrontEdge = djBoothZ + 0.7; // -9.55m
 
         const clearance = Math.abs(djTableFrontEdge - floorTopEdge);
         assert.ok(
-          clearance <= 0.3,
+          clearance <= 0.1,
           `DJ booth front edge (${djTableFrontEdge.toFixed(2)}m) must be flush with floor top edge (${floorTopEdge.toFixed(2)}m), clearance was ${clearance.toFixed(2)}m`
         );
       }
@@ -122,8 +123,8 @@ export async function run() {
               `Aim X (${aim.x.toFixed(2)}) must stay within floor bounds [-7.5, 7.5]`
             );
             assert.ok(
-              aim.z >= -5.1 && aim.z <= 9.6,
-              `Aim Z (${aim.z.toFixed(2)}) must stay within floor bounds [-5.0, 9.5]`
+              aim.z >= -7.6 && aim.z <= 7.6,
+              `Aim Z (${aim.z.toFixed(2)}) must stay within floor bounds [-7.5, 7.5]`
             );
           }
         }

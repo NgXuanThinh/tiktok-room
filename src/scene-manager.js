@@ -12,7 +12,7 @@ export const ORBIT_CONFIG = {
 
 export const FULL_VENUE_ORBIT_CONFIG = {
   radius: 10.0,
-  target: { x: 0, y: 1.4, z: -2.5 },
+  target: { x: 0, y: 1.4, z: 0 },
   elevationY: 5.0,
   fov: 68,
   minRadius: 6.0,
@@ -43,8 +43,8 @@ export const calculateOrbitPosition = getOrbitCameraPosition;
 export const CAMERA_PRESETS = {
   orbit: {
     name: 'Cinematic Orbit',
-    pos: new THREE.Vector3(0, 5.0, 7.5),
-    target: new THREE.Vector3(0, 1.4, -2.5),
+    pos: new THREE.Vector3(0, 5.0, 10.0),
+    target: new THREE.Vector3(0, 1.4, 0),
     fov: 68,
     isOrbit: true
   },
@@ -266,7 +266,7 @@ export class SceneManager {
       }
     }
 
-    // Full-venue orbit rotation centered at venue midpoint (0, 1.4, -2.5) with dynamic radius and elevation scaling
+    // Full-venue orbit rotation centered EXACTLY at dance floor center (0, 1.4, 0)
     if (this.currentPreset.isOrbit) {
       this.orbitTheta += 0.10 * deltaTime;
       const target = FULL_VENUE_ORBIT_CONFIG.target;
@@ -274,12 +274,13 @@ export class SceneManager {
       const x = target.x + r * Math.sin(this.orbitTheta);
       const z = target.z + r * Math.cos(this.orbitTheta);
 
-      // Dynamic elevation scaling:
-      // When camera swings behind the DJ booth (cos(theta) < 0), elevate Y smoothly up to 16-22m so camera looks down over the DJ booth onto the whole floor!
-      const behindFactor = Math.max(0, -Math.cos(this.orbitTheta)); // 0 in front, 1 directly behind DJ
-      const radiusRatio = r / 10.0;
-      const baseElev = FULL_VENUE_ORBIT_CONFIG.elevationY * radiusRatio;
-      const y = baseElev + behindFactor * (r * 0.40);
+      // Balanced, natural elevation:
+      // At r = 10m: base elevation is 5.0m
+      // At r = 25m: base elevation is 8.0m
+      // When behind the DJ (cos(theta) < 0), slight gentle lift of +1.5m to comfortably clear the DJ
+      const behindFactor = Math.max(0, -Math.cos(this.orbitTheta));
+      const baseElev = 5.0 + (r - 10.0) * 0.20;
+      const y = baseElev + behindFactor * 1.5;
 
       this.camTargetPos.set(
         x,

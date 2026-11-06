@@ -67,8 +67,8 @@ export async function run() {
         assert.ok(Array.isArray(slots), 'Slots must be an array');
         assert.ok(slots.length > 50, 'Slots must cover the floor grid');
 
-        // Slot 0 must be closest to the center of the dance floor (0, 0, 0.5)
-        const centerZ = 0.5;
+        // Slot 0 must be closest to the center of the dance floor (0, 0, 0)
+        const centerZ = 0;
         let prevDist = 0;
         for (let i = 0; i < Math.min(slots.length, 30); i++) {
           const s = slots[i];

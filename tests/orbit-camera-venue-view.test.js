@@ -33,7 +33,7 @@ export async function run() {
         assert.ok(target, 'Target coordinates must be defined');
         assert.strictEqual(target.x, 0, 'Target focus X must be 0 (center axis)');
         assert.strictEqual(target.y, 1.4, 'Target focus Y must be 1.4m (elevation midpoint)');
-        assert.strictEqual(target.z, -2.5, 'Target focus Z must be -2.5m (spatial venue midpoint between dance floor and DJ)');
+        assert.strictEqual(target.z, 0, 'Target focus Z must be 0m (exact center of the dance floor)');
       }
     },
     {

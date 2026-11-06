@@ -113,7 +113,7 @@ export function generateDanceFloorSlots(config = FLOOR_GRID_CONFIG) {
   const halfRows = (cfg.rows - 1) / 2;
   const halfCols = (cfg.cols - 1) / 2;
   const spacing = cfg.tileSpacing || 1.6;
-  const centerZ = cfg.centerZ !== undefined ? cfg.centerZ : 0.5;
+  const centerZ = cfg.centerZ !== undefined ? cfg.centerZ : 0;
 
   for (let r = 0; r < cfg.rows; r++) {
     for (let c = 0; c < cfg.cols; c++) {
