@@ -1,0 +1,35 @@
+{
+  "name": "tiktok-live-bar",
+  "version": "1.0.0",
+  "description": "Containerized real-time 3D interactive TikTok LIVE bar & dance floor web application",
+  "type": "module",
+  "main": "server/server.js",
+  "scripts": {
+    "dev": "node server/server.js",
+    "start": "node server/server.js",
+    "build": "vite build",
+    "preview": "vite preview",
+    "mock": "node server/mock-simulator.js",
+    "test": "node tests/full-system.test.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "lru-cache": "^10.4.3",
+    "three": "^0.168.0",
+    "tiktok-live-connector": "^2.5.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "vite": "^5.4.11"
+  },
+  "keywords": [
+    "tiktok-live",
+    "threejs",
+    "webgl",
+    "interactive-stream",
+    "dance-floor",
+    "obs-overlay"
+  ],
+  "author": "",
+  "license": "MIT"
+}

@@ -1,0 +1,16 @@
+services:
+  tiktok-live-bar:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tiktok-live-bar
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+      - TIKTOK_USERNAME=${TIKTOK_USERNAME:-}
+    volumes:
+      - ./public/music:/app/public/music
+
