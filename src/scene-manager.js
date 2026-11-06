@@ -1,11 +1,35 @@
 // src/scene-manager.js - Three.js WebGL scene lifecycle, 4 lerped camera presets, alpha/chroma modes
 import * as THREE from 'three';
 
+export const ORBIT_CONFIG = {
+  radius: 8.5,
+  orbitRadius: 8.5,
+  minPhi: 0.45, // ~25.8 deg
+  maxPhi: 1.30, // ~74.5 deg
+  targetY: 1.2,
+  target: { x: 0, y: 1.2, z: 0 }
+};
+
+/**
+ * Calculates orbit camera spherical coordinates clamped within room boundaries.
+ */
+export function getOrbitCameraPosition(theta, phi = 0.85, radius = ORBIT_CONFIG.radius) {
+  const clampedPhi = Math.max(ORBIT_CONFIG.minPhi, Math.min(ORBIT_CONFIG.maxPhi, phi));
+  const r = Math.min(radius, ORBIT_CONFIG.radius);
+  const rawY = ORBIT_CONFIG.target.y + r * Math.cos(clampedPhi);
+  return {
+    x: r * Math.sin(clampedPhi) * Math.sin(theta),
+    y: Math.min(8.5, Math.max(2.0, rawY)),
+    z: r * Math.sin(clampedPhi) * Math.cos(theta)
+  };
+}
+export const calculateOrbitPosition = getOrbitCameraPosition;
+
 export const CAMERA_PRESETS = {
   orbit: {
     name: 'Cinematic Orbit',
-    pos: new THREE.Vector3(0, 8, 14),
-    target: new THREE.Vector3(0, 1, 0),
+    pos: new THREE.Vector3(0, 5.5, 8.5),
+    target: new THREE.Vector3(0, 1.2, 0),
     fov: 50,
     isOrbit: true
   },
@@ -46,8 +70,9 @@ export class SceneManager {
     this.camCurrentLook = new THREE.Vector3().copy(this.currentPreset.target);
 
     this.orbitTheta = 0;
-    this.orbitRadius = 14;
-    this.orbitHeight = 8;
+    this.orbitPhi = 0.85;
+    this.orbitRadius = ORBIT_CONFIG.radius;
+    this.orbitTargetY = ORBIT_CONFIG.targetY;
 
     this.isAlpha = false;
     this.isChromaGreen = false;
@@ -93,9 +118,13 @@ export class SceneManager {
     this.renderer.toneMappingExposure = 1.1;
     this.container.appendChild(this.renderer.domElement);
 
-    // Ambient Lighting
-    const ambientLight = new THREE.AmbientLight(0x222233, 1.2);
+    // Ambient Lighting (boosted for rich club visibility)
+    const ambientLight = new THREE.AmbientLight(0x333344, 1.6);
     this.scene.add(ambientLight);
+
+    // Hemisphere Fill Light (sky/ground contrast)
+    const hemiLight = new THREE.HemisphereLight(0x4466aa, 0x111122, 1.2);
+    this.scene.add(hemiLight);
 
     // Directional Key Light
     const dirLight = new THREE.DirectionalLight(0xffeedd, 1.5);
@@ -167,12 +196,16 @@ export class SceneManager {
   }
 
   update(deltaTime = 0.016, bassPunch = 0) {
-    // Cinematic orbit rotation calculation
+    // Cinematic orbit rotation calculation with spherical clamping & floor focus lock
     if (this.currentPreset.isOrbit) {
-      this.orbitTheta += 0.12 * deltaTime;
-      this.camTargetPos.x = Math.sin(this.orbitTheta) * this.orbitRadius;
-      this.camTargetPos.z = Math.cos(this.orbitTheta) * this.orbitRadius;
-      this.camTargetPos.y = this.orbitHeight + (bassPunch > 50 ? Math.sin(this.orbitTheta * 4) * 0.15 : 0);
+      this.orbitTheta += 0.10 * deltaTime;
+      const pos = getOrbitCameraPosition(this.orbitTheta, this.orbitPhi, this.orbitRadius);
+      this.camTargetPos.set(
+        pos.x,
+        pos.y + (bassPunch > 50 ? Math.sin(this.orbitTheta * 4) * 0.15 : 0),
+        pos.z
+      );
+      this.camLookTarget.set(ORBIT_CONFIG.target.x, ORBIT_CONFIG.target.y, ORBIT_CONFIG.target.z);
     }
 
     // Exponential Dual-Vector Lerp: P_t = P_{t-1} + (P_target - P_{t-1}) * (1 - e^{-lambda * dt})

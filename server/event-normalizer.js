@@ -1,5 +1,59 @@
 // server/event-normalizer.js - Pure event normalization & gift tier calculation
 
+export const SLIME_COLORS = {
+  green: { name: 'green', hex: '#00FF66', threeColor: 0x00ff66 },
+  red: { name: 'red', hex: '#FF2A6D', threeColor: 0xff2a6d },
+  blue: { name: 'blue', hex: '#00F0FF', threeColor: 0x00f0ff },
+  yellow: { name: 'yellow', hex: '#FFE600', threeColor: 0xffe600 }
+};
+
+const COLOR_ALIASES = {
+  green: 'green',
+  xanhla: 'green',
+  xanh_la: 'green',
+  'xanh lá': 'green',
+  emerald: 'green',
+  red: 'red',
+  do: 'red',
+  'đỏ': 'red',
+  rose: 'red',
+  blue: 'blue',
+  xanh: 'blue',
+  xanhduong: 'blue',
+  'xanh_duong': 'blue',
+  'xanh dương': 'blue',
+  cyan: 'blue',
+  yellow: 'yellow',
+  vang: 'yellow',
+  'vàng': 'yellow',
+  gold: 'yellow'
+};
+
+/**
+ * Parses chat commands like !color <name>, strictly allowing the 4 canonical colors and aliases.
+ * Explicitly rejects hex codes (#...) and arbitrary colors.
+ * @param {string} comment
+ * @returns {object|null}
+ */
+export function parseColorCommand(comment) {
+  if (!comment || typeof comment !== 'string') return null;
+  const match = comment.trim().match(/^!color\s+(.+)$/i);
+  if (!match) return null;
+
+  const rawInput = match[1].trim().toLowerCase();
+
+  // Reject hex codes (e.g. #FF0000, #00ff55, #123, 0xff0000, 123456, #aabbccdd)
+  if (/^(#|0x)?[0-9a-f]{3,8}$/i.test(rawInput) && !COLOR_ALIASES[rawInput]) {
+    return null;
+  }
+
+  const resolved = COLOR_ALIASES[rawInput];
+  if (resolved && SLIME_COLORS[resolved]) {
+    return SLIME_COLORS[resolved];
+  }
+  return null;
+}
+
 const BANNED_WORDS = [
   'scam',
   'cheat',
@@ -47,9 +101,15 @@ function extractUser(raw) {
  */
 export function normalizeChat(raw) {
   const rawComment = raw.comment || raw.data?.comment || '';
-  return {
+  const parsedCommand = parseColorCommand(rawComment);
+  const data = {
     comment: sanitizeComment(rawComment)
   };
+  if (parsedCommand) {
+    data.command = 'color';
+    data.color = parsedCommand;
+  }
+  return data;
 }
 
 /**
