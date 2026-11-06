@@ -29,9 +29,27 @@ export class UiOverlay {
     this.adminDrawerEl = document.getElementById('admin-drawer');
     this.adminToggleBtn = document.getElementById('admin-toggle-btn');
     this.tiktokStatusEl = document.getElementById('tiktok-status-badge');
+    this.audioUnlockBannerEl = document.getElementById('audio-unlock-banner');
   }
 
   bindEvents() {
+    // 1-Click Audio Unlock Prompt
+    const unlockAudioHandler = async () => {
+      if (this.audioSystem) {
+        await this.audioSystem.unlockAudio();
+      }
+      if (this.audioUnlockBannerEl) {
+        this.audioUnlockBannerEl.style.opacity = '0';
+        setTimeout(() => {
+          this.audioUnlockBannerEl.style.display = 'none';
+        }, 400);
+      }
+      window.removeEventListener('click', unlockAudioHandler);
+      window.removeEventListener('keydown', unlockAudioHandler);
+    };
+    window.addEventListener('click', unlockAudioHandler);
+    window.addEventListener('keydown', unlockAudioHandler);
+
     // Hotkeys: 'H' or 'Tab' toggles Admin Drawer
     window.addEventListener('keydown', (e) => {
       if (e.key === 'h' || e.key === 'H' || e.key === 'Tab') {

@@ -1,14 +1,98 @@
-// src/avatar-manager.js - Procedural kinematics, billboard badges, 120s culling, VIP pinning
+// src/avatar-manager.js - 3D Slimes with Squash & Stretch kinematics, strict 4 colors, VIP tiers, and culling
 import * as THREE from 'three';
 
 export const DANCE_STYLES = ['bounce', 'wave', 'spin', 'jump', 'shuffle', 'sway'];
 
+export const SLIME_COLORS = {
+  green: { name: 'green', hex: '#00FF66', threeColor: 0x00ff66 },
+  red: { name: 'red', hex: '#FF2A6D', threeColor: 0xff2a6d },
+  blue: { name: 'blue', hex: '#00F0FF', threeColor: 0x00f0ff },
+  yellow: { name: 'yellow', hex: '#FFE600', threeColor: 0xffe600 }
+};
+
+const COLOR_ALIASES = {
+  green: 'green',
+  xanhla: 'green',
+  xanh_la: 'green',
+  'xanh lá': 'green',
+  emerald: 'green',
+  red: 'red',
+  do: 'red',
+  'đỏ': 'red',
+  rose: 'red',
+  blue: 'blue',
+  xanh: 'blue',
+  xanhduong: 'blue',
+  'xanh_duong': 'blue',
+  'xanh dương': 'blue',
+  cyan: 'blue',
+  yellow: 'yellow',
+  vang: 'yellow',
+  'vàng': 'yellow',
+  gold: 'yellow'
+};
+
+export function parseColorCommand(comment) {
+  if (!comment || typeof comment !== 'string') return null;
+  const match = comment.trim().match(/^!color\s+(.+)$/i);
+  if (!match) return null;
+
+  const rawInput = match[1].trim().toLowerCase();
+  if (/^(#|0x)?[0-9a-f]{3,8}$/i.test(rawInput) && !COLOR_ALIASES[rawInput]) {
+    return null;
+  }
+
+  const resolved = COLOR_ALIASES[rawInput];
+  if (resolved && SLIME_COLORS[resolved]) {
+    return SLIME_COLORS[resolved];
+  }
+  return null;
+}
+
+export const SLIME_VIP_CONFIG = {
+  tier1: { scale: 1.0, hasSuperBounce: true },
+  tier2: { scale: 1.2, hasSunglasses: true, hasAura: true },
+  tier3: { scale: 1.4, hasCrown: true, isVipPodium: true },
+  tier4: { scale: 1.6, hasAngelWings: true, levitateY: 3.2, triggersFrenzy: true }
+};
+
+// User Constraint: Slime does NOT have rosy cheeks/blush. Keep face minimal (glossy blinking eyes + smile, no blush).
+export const SLIME_FACE_CONFIG = {
+  hasBlush: false,
+  hasEyes: true,
+  hasSmile: true,
+  blushColor: null,
+  blinkIntervalSeconds: 3.5,
+  blinkDurationSeconds: 0.15
+};
+
 /**
- * Computes 6 procedural dance kinematics styles parametrically.
- * Avoids heavy FBX skeletal skinning while sustaining 60 FPS.
- * @param {string} style - One of 'bounce', 'wave', 'spin', 'jump', 'shuffle', 'sway'
- * @param {number} phase - Current angular phase (radians)
- * @returns {object} Kinematic parameters { posY, rotY, rotZ, armL, armR, legL, legR }
+ * Computes volume-conserving mathematical Squash & Stretch kinematics for 3D Slimes at 128 BPM.
+ */
+export function getSlimeKinematics(bpmPhase, isBouncing = false) {
+  const sinVal = Math.sin(bpmPhase);
+  let scaleY, scaleXZ, jumpY;
+
+  if (sinVal < 0) {
+    // Downbeat: Squash on floor impact
+    const squashFactor = Math.abs(sinVal);
+    scaleY = 1.0 - squashFactor * 0.25; // squashes down to 0.75
+    scaleXZ = 1.0 + squashFactor * 0.15; // expands horizontally to 1.15
+    jumpY = 0;
+  } else {
+    // Upbeat: Stretch on jump ascent
+    const stretchFactor = sinVal;
+    scaleY = 1.0 + stretchFactor * 0.25; // stretches up to 1.25
+    scaleXZ = 1.0 - stretchFactor * 0.10; // pinches horizontally to 0.90
+    jumpY = stretchFactor * (isBouncing ? 0.75 : 0.35);
+  }
+
+  const volumeRatio = scaleXZ * scaleXZ * scaleY;
+  return { scaleY, scaleXZ, jumpY, volumeRatio };
+}
+
+/**
+ * Computes 6 procedural dance kinematics styles (for backwards compatibility).
  */
 export function getDanceKinematics(style, phase) {
   const p = Number.isFinite(phase) ? phase : 0;
@@ -110,7 +194,6 @@ export class AvatarOccupancyManager {
       return avatar;
     }
 
-    // Check capacity bounds before adding new
     if (this.avatars.size >= this.maxCapacity) {
       let oldestKey = null;
       let oldestTime = Infinity;
@@ -180,67 +263,112 @@ export class AvatarOccupancyManager {
   }
 }
 
-// --- Three.js Shared Geometries & Material Pool for Crowd Rendering ---
-const torsoGeom = new THREE.BoxGeometry(0.5, 0.7, 0.3);
-const headGeom = new THREE.BoxGeometry(0.35, 0.35, 0.35);
-const limbGeom = new THREE.BoxGeometry(0.14, 0.5, 0.14);
+// --- 3D Slime Mesh Construction & Materials ---
+const COLOR_KEYS = ['green', 'red', 'blue', 'yellow'];
+
+function createSlimeGeometry() {
+  const geom = new THREE.SphereGeometry(0.55, 32, 24);
+  const pos = geom.attributes.position;
+  for (let i = 0; i < pos.count; i++) {
+    const y = pos.getY(i);
+    if (y < 0) {
+      pos.setY(i, y * 0.25); // Flatten bottom to rest on floor
+    }
+  }
+  geom.computeVertexNormals();
+  return geom;
+}
+
+const sharedSlimeGeometry = createSlimeGeometry();
 const crownGeom = new THREE.ConeGeometry(0.2, 0.25, 5);
 
-const COLOR_PALETTES = [
-  0xff007f, 0x00f2fe, 0x7f00ff, 0xffe600, 0x43e97b, 0xf5576c, 0x38f9d7, 0xfa709a
-];
+export function createSlimeFaceTexture(isSmiling = true) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+
+  ctx.clearRect(0, 0, 128, 128);
+
+  // Glossy Eyes
+  ctx.fillStyle = '#050508';
+  ctx.beginPath();
+  ctx.ellipse(44, 52, 8, 12, 0, 0, Math.PI * 2);
+  ctx.ellipse(84, 52, 8, 12, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // White Specular Catchlights
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.arc(42, 48, 3, 0, Math.PI * 2);
+  ctx.arc(82, 48, 3, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Cute Minimal Smile (NO ROSY CHEEKS/BLUSH)
+  if (isSmiling) {
+    ctx.strokeStyle = '#050508';
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.arc(64, 62, 10, 0.2 * Math.PI, 0.8 * Math.PI);
+    ctx.stroke();
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  return texture;
+}
 
 /**
- * Creates 3D low-poly clubber mesh with modular limbs and billboard badge.
+ * Creates 3D Slime mesh with organic jelly material, glossy eyes, and TikTok billboard.
  */
 export function createAvatarMesh(userData) {
   const group = new THREE.Group();
 
-  // Color selection based on hash
+  // Deterministically assign one of the 4 canonical colors
   let hash = 0;
   const name = userData.username || 'User';
   for (let i = 0; i < name.length; i++) hash = (hash << 5) - hash + name.charCodeAt(i);
-  const color = COLOR_PALETTES[Math.abs(hash) % COLOR_PALETTES.length];
+  const colorKey = COLOR_KEYS[Math.abs(hash) % COLOR_KEYS.length];
+  const colorSpec = SLIME_COLORS[colorKey];
 
-  const bodyMat = new THREE.MeshStandardMaterial({
-    color,
-    roughness: 0.4,
-    metalness: 0.2
+  // Slime Jelly Material
+  const slimeMat = new THREE.MeshStandardMaterial({
+    color: colorSpec.threeColor,
+    roughness: 0.15,
+    metalness: 0.1,
+    transparent: true,
+    opacity: 0.92,
+    emissive: colorSpec.threeColor,
+    emissiveIntensity: 0.2
   });
-  const skinMat = new THREE.MeshStandardMaterial({
-    color: 0xffd1a4,
-    roughness: 0.5
-  });
 
-  // Torso
-  const torso = new THREE.Mesh(torsoGeom, bodyMat);
-  torso.position.y = 0.9;
-  group.add(torso);
+  const slimeBody = new THREE.Mesh(sharedSlimeGeometry, slimeMat);
+  slimeBody.position.y = 0.35;
+  group.add(slimeBody);
 
-  // Head
-  const head = new THREE.Mesh(headGeom, skinMat);
-  head.position.y = 1.45;
-  group.add(head);
+  // Facial features: glossy black eyes + white specular highlight
+  const eyeGeom = new THREE.SphereGeometry(0.06, 16, 16);
+  const eyeMat = new THREE.MeshBasicMaterial({ color: 0x0a0a0f });
 
-  // Arms
-  const armL = new THREE.Mesh(limbGeom, skinMat);
-  armL.position.set(-0.35, 0.85, 0);
-  group.add(armL);
+  const eyeL = new THREE.Mesh(eyeGeom, eyeMat);
+  eyeL.position.set(-0.16, 0.45, 0.46);
+  group.add(eyeL);
 
-  const armR = new THREE.Mesh(limbGeom, skinMat);
-  armR.position.set(0.35, 0.85, 0);
-  group.add(armR);
+  const eyeR = new THREE.Mesh(eyeGeom, eyeMat);
+  eyeR.position.set(0.16, 0.45, 0.46);
+  group.add(eyeR);
 
-  // Legs
-  const legL = new THREE.Mesh(limbGeom, bodyMat);
-  legL.position.set(-0.16, 0.25, 0);
-  group.add(legL);
+  // Specular dots
+  const specGeom = new THREE.SphereGeometry(0.02, 8, 8);
+  const specMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+  const specL = new THREE.Mesh(specGeom, specMat);
+  specL.position.set(-0.14, 0.47, 0.51);
+  group.add(specL);
+  const specR = new THREE.Mesh(specGeom, specMat);
+  specR.position.set(0.18, 0.47, 0.51);
+  group.add(specR);
 
-  const legR = new THREE.Mesh(limbGeom, bodyMat);
-  legR.position.set(0.16, 0.25, 0);
-  group.add(legR);
-
-  // 3D Golden Crown for VIPs
+  // 3D Golden Crown for VIPs (Tier 3+)
   const crownMat = new THREE.MeshStandardMaterial({
     color: 0xffd700,
     metalness: 0.9,
@@ -248,33 +376,89 @@ export function createAvatarMesh(userData) {
     emissive: 0x443300
   });
   const crown = new THREE.Mesh(crownGeom, crownMat);
-  crown.position.set(0, 1.8, 0);
+  crown.position.set(0, 0.88, 0);
   crown.visible = !!userData.isPinned;
   group.add(crown);
 
-  // 2D Canvas Billboard for profile picture and username
+  // Cyberpunk Sunglasses for Tier 2 VIP
+  const shadesGroup = new THREE.Group();
+  const shadesMat = new THREE.MeshBasicMaterial({ color: 0x00f2fe });
+  const shadesLens = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.12, 0.05), shadesMat);
+  shadesLens.position.set(0, 0.46, 0.52);
+  shadesGroup.add(shadesLens);
+  shadesGroup.visible = false;
+  group.add(shadesGroup);
+
+  // Angel Light Wings for Tier 4 King Slime
+  const wingsGroup = new THREE.Group();
+  const wingGeom = new THREE.BoxGeometry(0.8, 0.35, 0.05);
+  const wingMat = new THREE.MeshBasicMaterial({
+    color: 0xffffff,
+    transparent: true,
+    opacity: 0.75,
+    blending: THREE.AdditiveBlending
+  });
+  const wingL = new THREE.Mesh(wingGeom, wingMat);
+  wingL.position.set(-0.6, 0.5, -0.2);
+  wingL.rotation.z = Math.PI / 8;
+  wingsGroup.add(wingL);
+  const wingR = new THREE.Mesh(wingGeom, wingMat);
+  wingR.position.set(0.6, 0.5, -0.2);
+  wingR.rotation.z = -Math.PI / 8;
+  wingsGroup.add(wingR);
+  wingsGroup.visible = false;
+  group.add(wingsGroup);
+
+  // Overhead 2D Canvas Billboard for profile picture and username
   const billboard = createBillboardSprite(userData);
-  billboard.position.set(0, 2.1, 0);
+  billboard.position.set(0, 1.3, 0);
   group.add(billboard);
 
   group.userData = {
     ...userData,
-    torso,
-    head,
-    armL,
-    armR,
-    legL,
-    legR,
+    isSlime: true,
+    slimeBody,
+    slimeMat,
+    colorKey,
+    eyeL,
+    eyeR,
+    specL,
+    specR,
     crown,
+    shadesGroup,
+    wingsGroup,
     billboard,
-    danceStyle: DANCE_STYLES[Math.floor(Math.random() * DANCE_STYLES.length)],
     phaseOffset: Math.random() * Math.PI * 2,
     targetScale: 1.0,
     currentScale: 1.0,
-    isVipSolo: false
+    isVipSolo: false,
+    isSuperBounce: false,
+    lastBlinkTime: Math.random() * 3.0,
+    torso: { position: { y: 0.9 }, rotation: { z: 0 } },
+    head: { position: { y: 1.45 } },
+    armL: { position: { y: 0.85 }, rotation: { x: 0 } },
+    armR: { position: { y: 0.85 }, rotation: { x: 0 } },
+    legL: { rotation: { x: 0 } },
+    legR: { rotation: { x: 0 } }
   };
 
   return group;
+}
+
+/**
+ * Changes Slime color to one of the 4 canonical colors.
+ */
+export function setSlimeColor(slimeGroup, colorKey) {
+  if (!slimeGroup || !colorKey) return;
+  const col = SLIME_COLORS[colorKey];
+  if (!col) return;
+
+  const mat = slimeGroup.userData?.slimeMat;
+  if (mat) {
+    mat.color.setHex(col.threeColor);
+    mat.emissive.setHex(col.threeColor);
+    slimeGroup.userData.colorKey = col.name;
+  }
 }
 
 /**
@@ -289,16 +473,14 @@ export function createBillboardSprite(userData) {
   const redraw = (img = null) => {
     ctx.clearRect(0, 0, 256, 128);
 
-    // Draw background bubble
     ctx.fillStyle = 'rgba(10, 10, 25, 0.75)';
     ctx.beginPath();
     ctx.roundRect(16, 16, 224, 72, 16);
     ctx.fill();
-    ctx.strokeStyle = userData.isPinned ? '#ffd700' : '#00f2fe';
+    ctx.strokeStyle = userData.isPinned ? '#ffd700' : '#00FF66';
     ctx.lineWidth = 3;
     ctx.stroke();
 
-    // Draw user initials/photo
     ctx.save();
     ctx.beginPath();
     ctx.arc(52, 52, 26, 0, Math.PI * 2);
@@ -306,7 +488,7 @@ export function createBillboardSprite(userData) {
     if (img) {
       ctx.drawImage(img, 26, 26, 52, 52);
     } else {
-      ctx.fillStyle = '#ff007f';
+      ctx.fillStyle = '#00FF66';
       ctx.fill();
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 20px sans-serif';
@@ -316,7 +498,6 @@ export function createBillboardSprite(userData) {
     }
     ctx.restore();
 
-    // Username
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 18px sans-serif';
     ctx.textAlign = 'left';
@@ -324,8 +505,7 @@ export function createBillboardSprite(userData) {
     const cleanName = (userData.username || 'Viewer').slice(0, 12);
     ctx.fillText(cleanName, 88, 44);
 
-    // Badge / coins
-    ctx.fillStyle = userData.isPinned ? '#ffd700' : '#4facfe';
+    ctx.fillStyle = userData.isPinned ? '#ffd700' : '#00F0FF';
     ctx.font = '14px sans-serif';
     const coinText = userData.totalCoins ? `★ ${userData.totalCoins}` : 'Viewer';
     ctx.fillText(coinText, 88, 64);
@@ -339,7 +519,6 @@ export function createBillboardSprite(userData) {
   const sprite = new THREE.Sprite(spriteMat);
   sprite.scale.set(1.8, 0.9, 1.0);
 
-  // Async load image via avatar proxy
   if (userData.avatarUrl || userData.username) {
     const img = new Image();
     img.crossOrigin = 'anonymous';

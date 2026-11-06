@@ -325,3 +325,27 @@ body, html {
   font-size: 13px;
   font-weight: bold;
 }
+
+/* Audio Unlock Prompt Banner */
+.audio-unlock-pill {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 14px 28px;
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  color: #ffffff;
+  cursor: pointer;
+  border: 1px solid #00f2fe;
+  box-shadow: 0 0 24px rgba(0, 242, 254, 0.4);
+  animation: promptGlow 1.5s infinite alternate ease-in-out;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  z-index: 50;
+}
+
+@keyframes promptGlow {
+  0% { transform: translateX(-50%) scale(1.0); box-shadow: 0 0 16px rgba(0, 242, 254, 0.3); }
+  100% { transform: translateX(-50%) scale(1.03); box-shadow: 0 0 28px rgba(0, 242, 254, 0.7); }
+}

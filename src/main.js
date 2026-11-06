@@ -6,9 +6,14 @@ import { AudioSystem } from './audio-system.js';
 import {
   AvatarOccupancyManager,
   getDanceKinematics,
+  getSlimeKinematics,
   createAvatarMesh,
+  parseColorCommand,
+  setSlimeColor,
+  SLIME_COLORS,
   DANCE_STYLES
 } from './avatar-manager.js';
+import { unlockAudio } from './audio-system.js';
 import { UiOverlay } from './ui-overlay.js';
 
 // --- System Initialization ---
@@ -47,8 +52,8 @@ const uiOverlay = new UiOverlay({
 });
 
 // User audio autoplay trigger on first interaction
-window.addEventListener('click', () => audioSystem.init(), { once: true });
-window.addEventListener('keydown', () => audioSystem.init(), { once: true });
+window.addEventListener('click', () => unlockAudio(audioSystem), { once: true });
+window.addEventListener('keydown', () => unlockAudio(audioSystem), { once: true });
 
 // --- WebSocket Event Handlers ---
 ws.onopen = () => {
@@ -85,6 +90,12 @@ function handleLiveEvent(evt) {
       const comment = evt.data?.comment || '';
       const mesh = getOrCreateAvatarMesh(user, 0);
 
+      // Handle chat command for 3D Slime colors (!color <name>)
+      const colorSpec = parseColorCommand(comment);
+      if (colorSpec) {
+        setSlimeColor(mesh, colorSpec.name);
+      }
+
       // Handle chat command dance styles
       if (comment.startsWith('!dance')) {
         const styleNum = parseInt(comment.replace('!dance', '').trim(), 10);
@@ -93,10 +104,12 @@ function handleLiveEvent(evt) {
         }
       } else if (comment === '!jump') {
         mesh.userData.danceStyle = 'jump';
+        mesh.userData.isSuperBounce = true;
       } else if (comment === '!wave') {
         mesh.userData.danceStyle = 'wave';
       } else if (comment === '!cheer') {
         mesh.userData.danceStyle = 'jump';
+        mesh.userData.isSuperBounce = true;
       }
       break;
     }
@@ -130,16 +143,38 @@ function handleLiveEvent(evt) {
       const origin = mesh.position.clone();
       clubEnvironment.triggerFireworks(tier, origin);
 
-      // VIP Promotion on Tier 3 / 4
-      if (tier >= 3) {
+      // Slime VIP Promotion & Tier Scaling
+      if (tier >= 4) {
+        // Tier 4: King Slime (1.6x scale, Angel Wings, Levitation Y=3.2, Frenzy)
         mesh.userData.isPinned = true;
         mesh.userData.isVipSolo = true;
-        mesh.userData.targetScale = 1.45; // Giant scaling
-        mesh.position.set(0, 0.82, -3.5); // Move to VIP podium
+        mesh.userData.targetScale = 1.6;
+        mesh.userData.isSuperBounce = true;
+        mesh.userData.levitateY = 3.2;
+        if (mesh.userData.crown) mesh.userData.crown.visible = true;
+        if (mesh.userData.wingsGroup) mesh.userData.wingsGroup.visible = true;
+        if (mesh.userData.shadesGroup) mesh.userData.shadesGroup.visible = true;
+        mesh.position.set(0, 3.2, -3.5);
+        sceneManager.setCameraPreset('vip');
+        uiOverlay.triggerFrenzy(15);
+      } else if (tier === 3) {
+        // Tier 3: VIP Podium (1.4x scale, Crown, Super Bounce)
+        mesh.userData.isPinned = true;
+        mesh.userData.isVipSolo = true;
+        mesh.userData.targetScale = 1.4;
+        mesh.userData.isSuperBounce = true;
+        mesh.userData.levitateY = 0.82;
+        mesh.position.set(0, 0.82, -3.5);
         if (mesh.userData.crown) mesh.userData.crown.visible = true;
         sceneManager.setCameraPreset('vip');
       } else if (tier === 2) {
+        // Tier 2: Cyber Slime (1.2x scale, Sunglasses)
         mesh.userData.targetScale = 1.2;
+        mesh.userData.isSuperBounce = true;
+        if (mesh.userData.shadesGroup) mesh.userData.shadesGroup.visible = true;
+      } else {
+        // Tier 1: Super Bounce
+        mesh.userData.isSuperBounce = true;
       }
       break;
     }
@@ -207,34 +242,70 @@ function animate() {
     const style = uiOverlay.isFrenzy ? 'jump' : data.danceStyle;
     const phase = time * bpmSpeed * frenzyMultiplier + (data.phaseOffset || 0);
 
-    const k = getDanceKinematics(style, phase);
+    if (data.isSlime && data.slimeBody) {
+      // 3D Slime Squash & Stretch Kinematics
+      const isBouncing = data.isSuperBounce || style === 'jump' || uiOverlay.isFrenzy;
+      const k = getSlimeKinematics(phase, isBouncing);
 
-    // Apply kinematics to limbs and body
-    if (data.torso) {
-      data.torso.position.y = 0.9 + k.posY;
-      data.torso.rotation.z = k.rotZ;
-    }
-    if (data.head) {
-      data.head.position.y = 1.45 + k.posY;
-    }
-    if (data.armL) {
-      data.armL.position.y = 0.85 + k.posY;
-      data.armL.rotation.x = k.armL;
-    }
-    if (data.armR) {
-      data.armR.position.y = 0.85 + k.posY;
-      data.armR.rotation.x = k.armR;
-    }
-    if (data.legL) {
-      data.legL.rotation.x = k.legL;
-    }
-    if (data.legR) {
-      data.legR.rotation.x = k.legR;
+      data.slimeBody.scale.set(k.scaleXZ, k.scaleY, k.scaleXZ);
+      data.slimeBody.position.y = 0.35 * k.scaleY + k.jumpY;
+
+      // King Slime Levitation Y-lerp
+      const targetBaseY = data.levitateY !== undefined ? data.levitateY : 0;
+      mesh.position.y = THREE.MathUtils.lerp(mesh.position.y, targetBaseY, 0.05);
+
+      // Blinking Eyes (Glossy eyes close briefly every ~3.5s)
+      const blinkCycle = (time + (data.phaseOffset || 0)) % 3.5;
+      const isBlinking = blinkCycle < 0.15;
+      if (data.eyeL && data.eyeR) {
+        data.eyeL.scale.y = isBlinking ? 0.1 : 1.0;
+        data.eyeR.scale.y = isBlinking ? 0.1 : 1.0;
+      }
+      if (data.specL && data.specR) {
+        data.specL.visible = !isBlinking;
+        data.specR.visible = !isBlinking;
+      }
+
+      // Slime accessories follow body stretch & jump
+      if (data.crown && data.crown.visible) {
+        data.crown.position.y = 0.88 * k.scaleY + k.jumpY;
+      }
+      if (data.shadesGroup && data.shadesGroup.visible) {
+        data.shadesGroup.position.y = (k.scaleY - 1.0) * 0.2 + k.jumpY;
+      }
+      if (data.wingsGroup && data.wingsGroup.visible) {
+        data.wingsGroup.position.y = (k.scaleY - 1.0) * 0.2 + k.jumpY;
+        data.wingsGroup.rotation.y = Math.sin(time * 6) * 0.25; // Gentle flutter
+      }
+    } else {
+      // Humanoid fallback kinematics
+      const k = getDanceKinematics(style, phase);
+      if (data.torso) {
+        data.torso.position.y = 0.9 + k.posY;
+        data.torso.rotation.z = k.rotZ;
+      }
+      if (data.head) {
+        data.head.position.y = 1.45 + k.posY;
+      }
+      if (data.armL) {
+        data.armL.position.y = 0.85 + k.posY;
+        data.armL.rotation.x = k.armL;
+      }
+      if (data.armR) {
+        data.armR.position.y = 0.85 + k.posY;
+        data.armR.rotation.x = k.armR;
+      }
+      if (data.legL) {
+        data.legL.rotation.x = k.legL;
+      }
+      if (data.legR) {
+        data.legR.rotation.x = k.legR;
+      }
     }
 
     // Spin or Y rotation
     if (style === 'spin') {
-      mesh.rotation.y = k.rotY;
+      mesh.rotation.y = Math.sin(phase * 0.5) * Math.PI;
     } else {
       mesh.rotation.y = THREE.MathUtils.lerp(mesh.rotation.y, 0, 0.1);
     }

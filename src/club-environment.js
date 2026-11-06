@@ -38,10 +38,28 @@ export class ClubEnvironment {
     this.createVipPodium();
     this.createDjBooth();
     this.createWallsAndNeon();
+    this.createAccentLights();
     this.createMovingHeads();
     this.createLaserBeams();
     this.createFireworksSystem();
     this.createFlyingHeartsSystem();
+  }
+
+  /**
+   * Dedicated warm accent lights for DJ console and Bar lounge.
+   */
+  createAccentLights() {
+    // DJ Console Overhead Spotlight
+    const djSpot = new THREE.SpotLight(0x00f2fe, 3.5, 12, Math.PI / 5, 0.4);
+    djSpot.position.set(0, 5.0, -6.0);
+    djSpot.target.position.set(0, 1.6, -6.5);
+    this.scene.add(djSpot);
+    this.scene.add(djSpot.target);
+
+    // Warm Amber PointLight for Bar Lounge
+    const barLight = new THREE.PointLight(0xffaa44, 2.5, 12);
+    barLight.position.set(-7.5, 3.5, 0);
+    this.scene.add(barLight);
   }
 
   /**
@@ -361,36 +379,37 @@ export class ClubEnvironment {
     this.scene.add(this.heartParticles);
   }
 
-  triggerFireworks(tier = 1, origin = new THREE.Vector3(0, 0, 0)) {
+  triggerFireworks(tier = 1, origin = new THREE.Vector3(0, 1.5, -3.5)) {
     const posAttr = this.fireworksPoints.geometry.attributes.position;
     const colAttr = this.fireworksPoints.geometry.attributes.color;
 
-    const countToSpawn = tier === 1 ? 150 : tier === 2 ? 400 : 1200;
+    const countToSpawn = tier === 1 ? 120 : tier === 2 ? 300 : tier === 3 ? 600 : 900;
     let spawned = 0;
 
+    // Focused cylindrical fountain over VIP podium / donor Slime (R <= 2.5m)
     for (let i = 0; i < this.fireworksData.length && spawned < countToSpawn; i++) {
       const p = this.fireworksData[i];
       if (!p.active) {
         p.active = true;
         p.life = 0;
-        p.maxLife = 1.0 + Math.random() * 1.5;
+        p.maxLife = 1.0 + Math.random() * 1.2;
 
-        // Spherical distribution
-        const theta = Math.random() * Math.PI * 2;
-        const phi = Math.acos(Math.random() * 2 - 1);
-        const speed = (tier >= 3 ? 6.0 : 3.5) * (0.5 + Math.random() * 0.8);
-
-        p.vx = Math.sin(phi) * Math.cos(theta) * speed;
-        p.vy = Math.cos(phi) * speed + (tier >= 2 ? 2.5 : 1.0);
-        p.vz = Math.sin(phi) * Math.sin(theta) * speed;
+        const angle = Math.random() * Math.PI * 2;
+        const spreadRadius = (Math.random() * 1.2) * (tier >= 3 ? 1.5 : 1.0); // R <= 2.5m
+        p.vx = Math.cos(angle) * spreadRadius;
+        p.vz = Math.sin(angle) * spreadRadius;
+        p.vy = 3.5 + Math.random() * 2.5 + (tier >= 3 ? 1.5 : 0);
 
         const idx = i * 3;
-        posAttr.array[idx] = origin.x;
-        posAttr.array[idx + 1] = Math.max(1.0, origin.y);
-        posAttr.array[idx + 2] = origin.z;
+        posAttr.array[idx] = origin.x + (Math.random() - 0.5) * 0.4;
+        posAttr.array[idx + 1] = Math.max(1.2, origin.y);
+        posAttr.array[idx + 2] = origin.z + (Math.random() - 0.5) * 0.4;
 
-        // Color
-        const col = NEON_PALETTE[Math.floor(Math.random() * NEON_PALETTE.length)];
+        // Color (Gold/Yellow for VIP, neon palette otherwise)
+        const col = tier >= 3
+          ? (Math.random() < 0.6 ? new THREE.Color(0xffd700) : NEON_PALETTE[Math.floor(Math.random() * NEON_PALETTE.length)])
+          : NEON_PALETTE[Math.floor(Math.random() * NEON_PALETTE.length)];
+
         colAttr.array[idx] = col.r;
         colAttr.array[idx + 1] = col.g;
         colAttr.array[idx + 2] = col.b;

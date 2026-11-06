@@ -6,12 +6,18 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const suites = [
+  // Baseline Suites (task_tiktok_live_bar)
   { name: 'event-normalizer', path: './event-normalizer.test.js' },
   { name: 'rate-limiter', path: './rate-limiter.test.js' },
   { name: 'avatar-proxy', path: './avatar-proxy.test.js' },
   { name: 'kinematics-culling', path: './kinematics-culling.test.js' },
   { name: 'audio-sfx', path: './audio-sfx.test.js' },
-  { name: 'integration-e2e', path: './integration-e2e.test.js' }
+  { name: 'integration-e2e', path: './integration-e2e.test.js' },
+  // New Feature Suites (task_fix_slime_visuals_audio)
+  { name: 'slime-color-palette', path: './slime-color-palette.test.js' },
+  { name: 'camera-orbit-bounds', path: './camera-orbit-bounds.test.js' },
+  { name: 'slime-kinematics', path: './slime-kinematics.test.js' },
+  { name: 'procedural-audio-loop', path: './procedural-audio-loop.test.js' }
 ];
 
 async function runAll() {
