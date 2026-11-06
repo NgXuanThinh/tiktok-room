@@ -306,9 +306,10 @@ export class ClubEnvironment {
       [7.0, 9.0, 7.0]
     ];
 
-    const coneGeom = new THREE.CylinderGeometry(0.12, 1.8, 16, 16, 1, true);
-    coneGeom.rotateX(Math.PI / 2);
-    coneGeom.translate(0, 0, 8); // Tip at (0,0,0), base at (0,0,16)
+    // Visual cone: narrow aperture at ceiling fixture (Z = 0, r = 0.10m), wide pool on floor (Z = 16, r = 2.4m)
+    const coneGeom = new THREE.CylinderGeometry(0.1, 2.4, 16, 16, 1, true);
+    coneGeom.rotateX(-Math.PI / 2);
+    coneGeom.translate(0, 0, 8); // Apex at (0,0,0), wide base at (0,0,16)
 
     for (let i = 0; i < positions.length; i++) {
       const p = positions[i];
@@ -378,8 +379,8 @@ export class ClubEnvironment {
    * 6 Additive Laser Cones with AdditiveBlending and depthWrite: false.
    */
   createLaserBeams() {
-    const beamGeom = new THREE.CylinderGeometry(0.04, 0.08, 16, 8);
-    beamGeom.translate(0, 8, 0);
+    const beamGeom = new THREE.CylinderGeometry(0.03, 0.1, 16, 8);
+    beamGeom.translate(0, -8, 0); // Apex at ceiling mount (0,0,0), fans downward into club
 
     const laserMat = new THREE.MeshBasicMaterial({
       color: 0x00f2fe,

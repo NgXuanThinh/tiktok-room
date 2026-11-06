@@ -5,7 +5,7 @@ export async function run() {
   const suite = 'orbit-dj-occlusion-spotlights';
   const results = {
     suite,
-    total: 6,
+    total: 7,
     passed: 0,
     failed: 0,
     cases: []
@@ -141,6 +141,41 @@ export async function run() {
             `Fog density (${density}) must be <= 0.015 so at 25m distance the scene is not pitch black`
           );
         }
+      }
+    },
+    {
+      name: 'test_moving_heads_cone_radii_top_small_floor_large',
+      fn: () => {
+        const env = new ClubEnvironment();
+        assert.ok(env.movingHeads.length >= 4, 'Moving heads must exist');
+        const firstHead = env.movingHeads[0].group;
+        let coneMesh = null;
+        firstHead.traverse((child) => {
+          if (child.isMesh && child.geometry && child.geometry.attributes && child.geometry.attributes.position) {
+            coneMesh = child;
+          }
+        });
+        assert.ok(coneMesh, 'Moving head must contain visual cone mesh');
+        const pos = coneMesh.geometry.attributes.position;
+        let rAtCeiling = 0, rAtFloor = 0;
+        for (let i = 0; i < pos.count; i++) {
+          const z = pos.getZ(i);
+          const r = Math.hypot(pos.getX(i), pos.getY(i));
+          if (Math.abs(z - 0) < 0.05) rAtCeiling = Math.max(rAtCeiling, r);
+          if (Math.abs(z - 16) < 0.05) rAtFloor = Math.max(rAtFloor, r);
+        }
+        assert.ok(
+          rAtCeiling < 0.25,
+          `Cone radius at ceiling fixture (${rAtCeiling.toFixed(2)}m) must be small (< 0.25m)`
+        );
+        assert.ok(
+          rAtFloor > 1.8,
+          `Cone radius at floor distance (${rAtFloor.toFixed(2)}m) must be large (> 1.8m)`
+        );
+        assert.ok(
+          rAtCeiling < rAtFloor,
+          `Cone must expand from ceiling to floor (rCeiling: ${rAtCeiling.toFixed(2)}m < rFloor: ${rAtFloor.toFixed(2)}m)`
+        );
       }
     }
   ];
