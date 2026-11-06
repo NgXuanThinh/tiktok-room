@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TikTok LIVE 3D Interactive Bar</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <!-- 3D WebGL Canvas Mount -->
+  <div id="canvas-container"></div>
+
+  <!-- HUD Stream Overlay (OBS Optimized) -->
+  <div id="hud-overlay">
+    <div class="top-hud">
+      <!-- Top 3 Donors Leaderboard -->
+      <div class="glass-panel leaderboard-card">
+        <div class="leaderboard-title">
+          <span>★</span> TOP DONORS
+        </div>
+        <div id="leaderboard-list" class="leaderboard-list">
+          <div class="leader-item">
+            <div class="rank-badge rank-1">#1</div>
+            <img class="leader-avatar" src="/api/avatar?name=Top1" alt="Top1" />
+            <span class="leader-name">Waiting for Donors...</span>
+            <span class="leader-coins">★ 0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hype Meter & Frenzy Mode Gauge -->
+      <div class="glass-panel hype-container">
+        <div class="hype-header">
+          <span>HYPE METER</span>
+          <span id="hype-text">0%</span>
+        </div>
+        <div class="hype-bar-bg">
+          <div id="hype-fill" class="hype-bar-fill"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Center Gift Alert Pop-in Banner -->
+    <div id="gift-banner" class="glass-panel gift-banner">
+      <img id="banner-avatar" class="banner-avatar" src="/api/avatar?name=Gifter" alt="Gifter" />
+      <div>
+        <div id="banner-title" class="banner-text-title">User sent Gift!</div>
+        <div id="banner-sub" class="banner-text-sub">100 Coins (1x)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Streamer Toggle Pill -->
+  <button id="admin-toggle-btn" class="glass-panel hud-interactive btn btn-secondary">
+    ⚙ ADMIN (H)
+  </button>
+
+  <!-- Streamer Admin Drawer -->
+  <div id="admin-drawer" class="glass-panel hud-interactive">
+    <div class="admin-header">
+      <div class="admin-title">STREAMER ADMIN PANEL</div>
+      <div id="tiktok-status-badge" style="font-size: 11px; font-weight: bold; color: #ff007f;">Disconnected</div>
+    </div>
+
+    <!-- TikTok Connection -->
+    <div class="admin-section">
+      <div class="admin-label">TikTok LIVE Connection</div>
+      <div class="admin-input-group">
+        <input id="tiktok-username-input" class="admin-input" type="text" placeholder="@username" />
+        <button id="btn-tiktok-connect" class="btn">Connect</button>
+      </div>
+      <button id="btn-tiktok-disconnect" class="btn btn-secondary">Disconnect</button>
+    </div>
+
+    <!-- Camera Presets -->
+    <div class="admin-section">
+      <div class="admin-label">Camera Angle Presets (Keys 1-4)</div>
+      <div class="btn-grid">
+        <button class="btn btn-secondary" data-camera="orbit">1. Orbit</button>
+        <button class="btn btn-secondary" data-camera="dj">2. DJ Front</button>
+        <button class="btn btn-secondary" data-camera="top">3. Top-Down</button>
+        <button class="btn btn-secondary" data-camera="vip">4. VIP Stage</button>
+      </div>
+    </div>
+
+    <!-- OBS Broadcasting Settings -->
+    <div class="admin-section">
+      <div class="admin-label">OBS Transparency & Background</div>
+      <div class="btn-grid">
+        <button id="btn-alpha" class="btn btn-secondary">Alpha Toggle</button>
+        <button id="btn-chroma" class="btn btn-secondary">Chroma Green (F2)</button>
+      </div>
+    </div>
+
+    <!-- Audio & SFX Controls -->
+    <div class="admin-section">
+      <div class="admin-label">Club Audio & SFX</div>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 12px;">Vol:</span>
+        <input id="volume-slider" type="range" min="0" max="1" step="0.05" value="0.8" style="flex: 1;" />
+      </div>
+      <button id="btn-mute-sfx" class="btn btn-secondary">Mute SFX</button>
+    </div>
+
+    <!-- Mock Simulator Triggers -->
+    <div class="admin-section">
+      <div class="admin-label">Instant Mock Test Buttons</div>
+      <div class="btn-grid">
+        <button id="mock-likes" class="btn btn-secondary">+10 Likes</button>
+        <button id="mock-chat" class="btn btn-secondary">Simulate Chat</button>
+        <button id="mock-gift-tier1" class="btn btn-secondary">Rose (T1)</button>
+        <button id="mock-gift-tier2" class="btn btn-secondary">Perfume (T2)</button>
+        <button id="mock-gift-tier3" class="btn btn-danger">Lion (T3)</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
