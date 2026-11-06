@@ -1,0 +1,11 @@
+{
+  "name": "multi-agent-orchestrator",
+  "displayName": "Multi-Agent Engineering Orchestrator",
+  "version": "6.2.0",
+  "description": "Host-native multi-agent software engineering orchestrator (Architecture v6.2). Features dynamic agent selection with absorption presets (Quick, Bugfix, Feature, Dependency), mechanical per-turn git guards, evidence-backed Devil's Advocate reviews, and sequential red-to-green testing.",
+  "suggestedPrompts": [
+    "@[multi-agent-orchestrator] Fix memory leak in socket connection",
+    "@[multi-agent-orchestrator] Implement OAuth2 login with Google and GitHub",
+    "@[multi-agent-orchestrator] Refactor payment service with contract verification"
+  ]
+}
