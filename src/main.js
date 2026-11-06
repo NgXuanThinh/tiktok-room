@@ -109,16 +109,16 @@ export class VipPodiumScheduler {
 // Spatial dance floor grid slots: Generated radially from dance floor center outwards
 export function generateDanceFloorSlots(config = FLOOR_GRID_CONFIG) {
   const slots = [];
-  const cfg = config || { rows: 12, cols: 12, tileSpacing: 1.8 };
+  const cfg = config || { rows: 12, cols: 12, tileSpacing: 1.6 };
   const halfRows = (cfg.rows - 1) / 2;
   const halfCols = (cfg.cols - 1) / 2;
-  const spacing = cfg.tileSpacing || 1.8;
-  const centerZ = 0.5;
+  const spacing = cfg.tileSpacing || 1.6;
+  const centerZ = cfg.centerZ !== undefined ? cfg.centerZ : 0.5;
 
   for (let r = 0; r < cfg.rows; r++) {
     for (let c = 0; c < cfg.cols; c++) {
       const x = (c - halfCols) * spacing;
-      const z = (r - halfRows) * spacing + centerZ;
+      const z = cfg.startZ !== undefined ? (cfg.startZ + r * spacing) : ((r - halfRows) * spacing + centerZ);
       // Reserve space for VIP podium around (0, 0, -3.5)
       if (Math.hypot(x, z - (-3.5)) < 2.4) continue;
       // Distance to dance floor center (0, 0, 0.5)
@@ -343,8 +343,8 @@ function animate() {
   // 1. Analyze 3-Band Audio Spectrum
   const bands = audioSystem.getBands();
 
-  // 2. Update Club Environment Visuals (Floor pulse, vinyls, lights, lasers, particles)
-  clubEnvironment.update(delta, bands);
+  // 2. Update Club Environment Visuals (Floor pulse, vinyls, lights, lasers, particles, back-wall occlusion)
+  clubEnvironment.update(delta, bands, sceneManager.camera);
 
   // 3. Update VIP Podium Scheduler
   vipScheduler.update(

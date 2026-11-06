@@ -25,7 +25,9 @@ const suites = [
   { name: 'vip-podium-scheduler', path: './vip-podium-scheduler.test.js' },
   { name: 'custom-mock-person', path: './custom-mock-person.test.js' },
   // User Feedback Refinements (camera zoom, floor expansion, radial spawn, spot lighting, no viewer)
-  { name: 'camera-zoom-spotlights-floor', path: './camera-zoom-spotlights-floor.test.js' }
+  { name: 'camera-zoom-spotlights-floor', path: './camera-zoom-spotlights-floor.test.js' },
+  // Radical Fixes (orbit 25m occlusion prevention, 100% floor spot lighting, DJ booth top edge)
+  { name: 'orbit-dj-occlusion-spotlights', path: './orbit-dj-occlusion-spotlights.test.js' }
 ];
 
 async function runAll() {

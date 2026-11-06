@@ -18,25 +18,26 @@ export const FLOOR_EMISSIVE_CONFIG = {
 export const FLOOR_GRID_CONFIG = {
   rows: 12,
   cols: 12,
-  tileSize: 1.6,
-  tileSpacing: 1.8,
+  tileSize: 1.5,
+  tileSpacing: 1.6,
+  startZ: -5.0,
   get count() { return this.rows * this.cols; }
 };
 
 export function clampSpotlightToFloor(target = { x: 0, y: 0, z: 0 }) {
-  const minX = -8.5;
-  const maxX = 8.5;
-  const minZ = -7.5;
+  const minX = -7.5;
+  const maxX = 7.5;
+  const minZ = -5.0;
   const maxZ = 9.5;
   return {
     x: Math.max(minX, Math.min(maxX, Number(target?.x || 0))),
-    y: 0,
+    y: Number(target?.y || 0),
     z: Math.max(minZ, Math.min(maxZ, Number(target?.z || 0)))
   };
 }
 
 export const BACK_WALL_CONFIG = {
-  z: -15.5
+  z: -18.5
 };
 
 const NEON_PALETTE = [
@@ -119,13 +120,13 @@ export class ClubEnvironment {
 
     const dummy = new THREE.Object3D();
     const halfCols = (FLOOR_GRID_CONFIG.cols - 1) / 2;
-    const halfRows = (FLOOR_GRID_CONFIG.rows - 1) / 2;
+    const startZ = FLOOR_GRID_CONFIG.startZ !== undefined ? FLOOR_GRID_CONFIG.startZ : -5.0;
 
     let idx = 0;
     for (let r = 0; r < FLOOR_GRID_CONFIG.rows; r++) {
       for (let c = 0; c < FLOOR_GRID_CONFIG.cols; c++) {
         const x = (c - halfCols) * FLOOR_GRID_CONFIG.tileSpacing;
-        const z = (r - halfRows) * FLOOR_GRID_CONFIG.tileSpacing + 0.5;
+        const z = startZ + r * FLOOR_GRID_CONFIG.tileSpacing;
         dummy.position.set(x, -0.1, z);
         dummy.updateMatrix();
         this.floorMesh.setMatrixAt(idx, dummy.matrix);
@@ -272,12 +273,16 @@ export class ClubEnvironment {
    * Nightclub boundary walls and 3D Neon sign.
    */
   createWallsAndNeon() {
-    const wallMat = new THREE.MeshStandardMaterial({ color: 0x070710, roughness: 0.9 });
+    const wallMat = new THREE.MeshStandardMaterial({
+      color: 0x070710,
+      roughness: 0.9,
+      side: THREE.FrontSide
+    });
     
-    // Back Wall (Deepened to Z = -15.5m and widened for full-venue orbit camera clearance)
-    const backWall = new THREE.Mesh(new THREE.BoxGeometry(36, 16, 0.5), wallMat);
-    backWall.position.set(0, 7, BACK_WALL_CONFIG.z);
-    this.scene.add(backWall);
+    // Back Wall (Deepened to Z = -18.5m and widened for full-venue orbit camera clearance)
+    this.backWall = new THREE.Mesh(new THREE.BoxGeometry(40, 18, 0.5), wallMat);
+    this.backWall.position.set(0, 8, BACK_WALL_CONFIG.z);
+    this.scene.add(this.backWall);
 
     // Neon Logo Bar
     const neonBarMat = new THREE.MeshStandardMaterial({
@@ -285,9 +290,9 @@ export class ClubEnvironment {
       emissive: 0xff007f,
       emissiveIntensity: 2.5
     });
-    const neonBar = new THREE.Mesh(new THREE.BoxGeometry(10, 0.5, 0.2), neonBarMat);
-    neonBar.position.set(0, 8.5, BACK_WALL_CONFIG.z + 0.3);
-    this.scene.add(neonBar);
+    this.neonBar = new THREE.Mesh(new THREE.BoxGeometry(10, 0.5, 0.2), neonBarMat);
+    this.neonBar.position.set(0, 9.5, BACK_WALL_CONFIG.z + 0.3);
+    this.scene.add(this.neonBar);
   }
 
   /**
@@ -295,14 +300,15 @@ export class ClubEnvironment {
    */
   createMovingHeads() {
     const positions = [
-      [-8, 9, -7],
-      [8, 9, -7],
-      [-8, 9, 8],
-      [8, 9, 8]
+      [-6.5, 9.5, -4.5],
+      [6.5, 9.5, -4.5],
+      [-6.5, 9.5, 11.5],
+      [6.5, 9.5, 11.5]
     ];
 
-    const coneGeom = new THREE.CylinderGeometry(0.1, 1.8, 12, 16, 1, true);
-    coneGeom.translate(0, -6, 0);
+    const coneGeom = new THREE.CylinderGeometry(0.12, 1.8, 16, 16, 1, true);
+    coneGeom.rotateX(Math.PI / 2);
+    coneGeom.translate(0, 0, 8); // Tip at (0,0,0), base at (0,0,16)
 
     for (let i = 0; i < positions.length; i++) {
       const p = positions[i];
@@ -313,7 +319,7 @@ export class ClubEnvironment {
       const coneMat = new THREE.MeshBasicMaterial({
         color: col,
         transparent: true,
-        opacity: 0.25,
+        opacity: 0.28,
         blending: THREE.AdditiveBlending,
         depthWrite: false,
         side: THREE.DoubleSide
@@ -321,8 +327,12 @@ export class ClubEnvironment {
       const cone = new THREE.Mesh(coneGeom, coneMat);
       headGroup.add(cone);
 
-      const spot = new THREE.SpotLight(col, 5.0, 24, Math.PI / 6, 0.5);
+      const spot = new THREE.SpotLight(col, 5.0, 32, Math.PI / 6, 0.4);
       headGroup.add(spot);
+
+      const spotTarget = new THREE.Object3D();
+      this.scene.add(spotTarget);
+      spot.target = spotTarget;
 
       this.scene.add(headGroup);
       this.movingHeads.push({
@@ -332,7 +342,8 @@ export class ClubEnvironment {
         speed: 1.0 + i * 0.2,
         isFocused: false,
         focusTarget: null,
-        focusTimer: 0
+        focusTimer: 0,
+        currentAim: null
       });
     }
   }
@@ -521,22 +532,30 @@ export class ClubEnvironment {
     posAttr.needsUpdate = true;
   }
 
-  update(delta, bands = {}) {
+  update(delta, bands = {}, camera = null) {
     this.time += delta;
     const bass = bands.bass || 0;
     const mids = bands.mids || 0;
     const treble = bands.treble || 0;
 
+    // 0. Auto-clip Back Wall and Neon Bar when camera is behind them (prevent orbit occlusion)
+    const camZ = camera?.position?.z !== undefined ? camera.position.z : 0;
+    const isBehindWall = camZ < (BACK_WALL_CONFIG.z + 1.0);
+    if (this.backWall) this.backWall.visible = !isBehindWall;
+    if (this.neonBar) this.neonBar.visible = !isBehindWall;
+
     // 1. LED Floor wave pulse based on Bass with vibrant purple palette & minimum emissive glow
     this.wavePhase += delta * (2.0 + bass * 0.05);
     const colorHolder = new THREE.Color();
     const halfCols = (FLOOR_GRID_CONFIG.cols - 1) / 2;
-    const halfRows = (FLOOR_GRID_CONFIG.rows - 1) / 2;
+    const startZ = FLOOR_GRID_CONFIG.startZ !== undefined ? FLOOR_GRID_CONFIG.startZ : -5.0;
     let idx = 0;
     for (let r = 0; r < FLOOR_GRID_CONFIG.rows; r++) {
       for (let c = 0; c < FLOOR_GRID_CONFIG.cols; c++) {
-        const distFromCenter = Math.sqrt((c - halfCols) ** 2 + (r - halfRows) ** 2);
-        const wave = Math.sin(this.wavePhase - distFromCenter * 0.6);
+        const x = (c - halfCols) * FLOOR_GRID_CONFIG.tileSpacing;
+        const z = startZ + r * FLOOR_GRID_CONFIG.tileSpacing;
+        const distFromCenter = Math.hypot(x, z - 3.8);
+        const wave = Math.sin(this.wavePhase - distFromCenter * 0.4);
         const intensity = Math.max(
           FLOOR_EMISSIVE_CONFIG.minPulseBrightness,
           (wave + 1) * 0.5 * (1.0 + (bands.bassFlux || 0) * 0.03)
@@ -562,7 +581,7 @@ export class ClubEnvironment {
       this.djMascotHand.rotation.z = Math.sin(this.time * 6.0) * 0.3;
     }
 
-    // 3. Moving Heads with floor clamping and tiered donate spot focusing
+    // 3. Moving Heads locked 100% to floor surface targets via lookAt and spot.target
     for (let i = 0; i < this.movingHeads.length; i++) {
       const mh = this.movingHeads[i];
       if (mh.isFocused) {
@@ -573,26 +592,38 @@ export class ClubEnvironment {
         }
       }
 
-      let targetPos;
+      let rawTarget;
       if (mh.isFocused && mh.focusTarget) {
-        targetPos = mh.focusTarget;
+        rawTarget = mh.focusTarget;
       } else {
-        const ambientX = Math.sin(this.time * mh.speed * 0.7 + i * 1.5) * 6.5;
-        const ambientZ = Math.cos(this.time * mh.speed * 0.5 + i * 1.2) * 6.5 + 0.5;
-        targetPos = clampSpotlightToFloor({ x: ambientX, y: 0, z: ambientZ });
+        // Distinct, smooth floor trajectories for each moving head strictly on dance floor
+        if (i === 0) {
+          rawTarget = { x: -3.0 + 3.0 * Math.sin(this.time * 0.85), y: 0, z: 1.0 + 4.0 * Math.cos(this.time * 0.95) };
+        } else if (i === 1) {
+          rawTarget = { x: 3.0 + 3.0 * Math.cos(this.time * 0.90 + 1.0), y: 0, z: 1.0 + 4.0 * Math.sin(this.time * 0.80 + 0.5) };
+        } else if (i === 2) {
+          rawTarget = { x: 4.0 * Math.sin(this.time * 0.75 + 2.0), y: 0, z: 5.5 + 3.5 * Math.cos(this.time * 1.0) };
+        } else {
+          rawTarget = { x: 4.0 * Math.cos(this.time * 0.80 + 3.0), y: 0, z: 5.5 + 3.5 * Math.sin(this.time * 0.90 + 1.5) };
+        }
       }
 
-      const dx = targetPos.x - mh.group.position.x;
-      const dy = (targetPos.y || 0) - mh.group.position.y;
-      const dz = targetPos.z - mh.group.position.z;
-      const targetPan = Math.atan2(dx, dz);
-      const horizDist = Math.hypot(dx, dz);
-      const targetTilt = -Math.atan2(dy, horizDist) - Math.PI / 2;
+      const clamped = clampSpotlightToFloor(rawTarget);
+      const targetVec = new THREE.Vector3(clamped.x, clamped.y || 0, clamped.z);
 
-      const lerpSpeed = mh.isFocused ? 6.0 : 2.5;
-      mh.group.rotation.y += (targetPan - mh.group.rotation.y) * Math.min(1.0, delta * lerpSpeed);
-      mh.group.rotation.x += (targetTilt - mh.group.rotation.x) * Math.min(1.0, delta * lerpSpeed);
-      mh.spot.intensity = (mh.isFocused ? 7.5 : 4.0) + (bands.midsFlux || 0) * 0.05;
+      if (!mh.currentAim) mh.currentAim = targetVec.clone();
+      const aimSpeed = mh.isFocused ? 6.0 : 2.5;
+      mh.currentAim.lerp(targetVec, Math.min(1.0, delta * aimSpeed));
+
+      // Point the 3D visual cone mesh directly at floor target
+      mh.group.lookAt(mh.currentAim.x, mh.currentAim.y, mh.currentAim.z);
+
+      // Point Three.js SpotLight directly at floor target
+      if (mh.spot && mh.spot.target) {
+        mh.spot.target.position.copy(mh.currentAim);
+      }
+
+      mh.spot.intensity = (mh.isFocused ? 8.0 : 4.5) + (bands.midsFlux || 0) * 0.05;
     }
 
     // 4. Laser Beams Strobe & Angle driven by Treble

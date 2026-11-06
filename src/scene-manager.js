@@ -117,7 +117,7 @@ export class SceneManager {
       this.scene.background = new THREE.Color(0x00ff00);
     } else {
       this.scene.background = new THREE.Color(0x0a0a14);
-      this.scene.fog = new THREE.FogExp2(0x0a0a14, 0.025);
+      this.scene.fog = new THREE.FogExp2(0x0a0a14, 0.010);
     }
 
     // Camera
@@ -233,7 +233,7 @@ export class SceneManager {
       this.scene.background = null;
     } else {
       this.scene.background = new THREE.Color(0x0a0a14);
-      this.scene.fog = new THREE.FogExp2(0x0a0a14, 0.025);
+      this.scene.fog = new THREE.FogExp2(0x0a0a14, 0.010);
     }
   }
 
@@ -273,8 +273,14 @@ export class SceneManager {
       const r = this.orbitRadius || FULL_VENUE_ORBIT_CONFIG.radius;
       const x = target.x + r * Math.sin(this.orbitTheta);
       const z = target.z + r * Math.cos(this.orbitTheta);
-      // Elevation scales gracefully with radius to always maintain a clear downward look angle over the DJ booth
-      const y = Math.max(FULL_VENUE_ORBIT_CONFIG.elevationY, (r / 10.0) * 5.0);
+
+      // Dynamic elevation scaling:
+      // When camera swings behind the DJ booth (cos(theta) < 0), elevate Y smoothly up to 16-22m so camera looks down over the DJ booth onto the whole floor!
+      const behindFactor = Math.max(0, -Math.cos(this.orbitTheta)); // 0 in front, 1 directly behind DJ
+      const radiusRatio = r / 10.0;
+      const baseElev = FULL_VENUE_ORBIT_CONFIG.elevationY * radiusRatio;
+      const y = baseElev + behindFactor * (r * 0.40);
+
       this.camTargetPos.set(
         x,
         y + (bassPunch > 50 ? Math.sin(this.orbitTheta * 4) * 0.15 : 0),
