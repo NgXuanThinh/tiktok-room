@@ -5,7 +5,7 @@ export async function run() {
   const suite = 'camera-zoom-spotlights-floor';
   const results = {
     suite,
-    total: 6,
+    total: 7,
     passed: 0,
     failed: 0,
     cases: []
@@ -65,20 +65,35 @@ export async function run() {
         assert.ok(typeof generateDanceFloorSlots === 'function', 'generateDanceFloorSlots must be exported');
         const slots = generateDanceFloorSlots(FLOOR_GRID_CONFIG);
         assert.ok(Array.isArray(slots), 'Slots must be an array');
-        assert.ok(slots.length > 50, 'Slots must cover the floor grid');
+        assert.strictEqual(slots.length, 140, 'Slots must cover the 140 dance floor tiles (144 minus 4 center VIP tiles)');
 
-        // Slot 0 must be closest to the center of the dance floor (0, 0, 0)
-        const centerZ = 0;
-        let prevDist = 0;
-        for (let i = 0; i < Math.min(slots.length, 30); i++) {
-          const s = slots[i];
-          const dist = Math.hypot(s.x, s.z - centerZ);
-          assert.ok(
-            dist >= prevDist - 0.001,
-            `Slot ${i} distance (${dist.toFixed(2)}) must be >= previous slot distance (${prevDist.toFixed(2)}) for center-outward order`
-          );
-          prevDist = dist;
+        // The 4 center tiles (< 1.7m) must be preserved for VIP podium
+        for (const s of slots) {
+          const dist = Math.hypot(s.x, s.z);
+          assert.ok(dist >= 1.7, `Slot at (${s.x}, ${s.z}) must not overlap the 4 center VIP tiles (dist: ${dist.toFixed(2)}m >= 1.7m)`);
         }
+
+        // Ring 1 (first 12 slots) must circle 360 degrees around the podium in polar angle order
+        const ring1 = slots.slice(0, 12);
+        for (let i = 0; i < ring1.length; i++) {
+          const s = ring1[i];
+          const dist = Math.hypot(s.x, s.z);
+          assert.ok(dist <= 3.5, `Ring 1 slot ${i} distance (${dist.toFixed(2)}m) must be <= 3.5m`);
+          if (i > 0) {
+            const prevAngle = (Math.atan2(ring1[i - 1].z, ring1[i - 1].x) + 2 * Math.PI) % (2 * Math.PI);
+            const currAngle = (Math.atan2(s.z, s.x) + 2 * Math.PI) % (2 * Math.PI);
+            assert.ok(currAngle >= prevAngle, `Ring 1 slots must rotate sequentially around the podium`);
+          }
+        }
+
+        // Ring 2 (next 20 slots) must expand further outward than Ring 1
+        const ring2 = slots.slice(12, 32);
+        const avgDist1 = ring1.reduce((sum, s) => sum + Math.hypot(s.x, s.z), 0) / ring1.length;
+        const avgDist2 = ring2.reduce((sum, s) => sum + Math.hypot(s.x, s.z), 0) / ring2.length;
+        assert.ok(
+          avgDist2 > avgDist1,
+          `Ring 2 average distance (${avgDist2.toFixed(2)}m) must be greater than Ring 1 (${avgDist1.toFixed(2)}m)`
+        );
       }
     },
     {
@@ -138,9 +153,31 @@ export async function run() {
         assert.strictEqual(focusedCount, 2, 'Tier 2 must focus exactly 2 spotlights');
 
         // Tier 3/4 (Whale/Lion): All 4 spotlights focused on VIP podium
-        env.focusSpotlights(3, { x: 0, y: 0.8, z: -3.5 }, 15.0);
+        env.focusSpotlights(3, { x: 0, y: 0.8, z: 0 }, 15.0);
         focusedCount = env.movingHeads.filter(h => h.isFocused).length;
         assert.strictEqual(focusedCount, 4, 'Tier 3+ (Lion/Whale) must focus all 4 spotlights');
+      }
+    },
+    {
+      name: 'test_vip_podium_centered_four_tiles',
+      fn: () => {
+        const env = new ClubEnvironment();
+        assert.ok(env.vipPodiumGroup, 'vipPodiumGroup must exist');
+        assert.strictEqual(env.vipPodiumGroup.position.x, 0, 'Podium X must be centered at 0');
+        assert.strictEqual(env.vipPodiumGroup.position.z, 0, 'Podium Z must be centered at 0');
+
+        let baseMesh = null;
+        env.vipPodiumGroup.traverse((child) => {
+          if (child.isMesh && child.geometry?.parameters?.radiusBottom) {
+            baseMesh = child;
+          }
+        });
+        assert.ok(baseMesh, 'VIP podium base mesh must exist');
+        const rBottom = baseMesh.geometry.parameters.radiusBottom;
+        assert.ok(
+          rBottom <= 1.6 && rBottom >= 1.2,
+          `VIP podium radius (${rBottom}m) must comfortably fit within the 4 center tiles (<= 1.6m)`
+        );
       }
     }
   ];

@@ -21,7 +21,7 @@ import { UiOverlay } from './ui-overlay.js';
  * Sequential VIP stage scheduler ensuring single whale occupancy for 15s with FIFO queuing.
  */
 export class VipPodiumScheduler {
-  constructor({ duration = 15.0, podiumPos = { x: 0, y: 0.82, z: -3.5 } } = {}) {
+  constructor({ duration = 15.0, podiumPos = { x: 0, y: 0.55, z: 0 } } = {}) {
     this.duration = duration;
     this.podiumPos = podiumPos;
     this.activeWhale = null; // { user, mesh, tier, returnSlot, remainingTime }
@@ -71,7 +71,7 @@ export class VipPodiumScheduler {
       item.mesh.userData.levitateY = 3.2;
       if (item.mesh.position) item.mesh.position.y = 3.2;
     } else {
-      const targetY = this.podiumPos.y !== undefined ? this.podiumPos.y : 0.82;
+      const targetY = this.podiumPos.y !== undefined ? this.podiumPos.y : 0.55;
       item.mesh.userData.levitateY = targetY;
       if (item.mesh.position) item.mesh.position.y = targetY;
     }
@@ -108,7 +108,7 @@ export class VipPodiumScheduler {
 
 // Spatial dance floor grid slots: Generated radially from dance floor center outwards
 export function generateDanceFloorSlots(config = FLOOR_GRID_CONFIG) {
-  const slots = [];
+  const rawTiles = [];
   const cfg = config || { rows: 12, cols: 12, tileSpacing: 1.6 };
   const halfRows = (cfg.rows - 1) / 2;
   const halfCols = (cfg.cols - 1) / 2;
@@ -119,21 +119,37 @@ export function generateDanceFloorSlots(config = FLOOR_GRID_CONFIG) {
     for (let c = 0; c < cfg.cols; c++) {
       const x = (c - halfCols) * spacing;
       const z = cfg.startZ !== undefined ? (cfg.startZ + r * spacing) : ((r - halfRows) * spacing + centerZ);
-      // Reserve space for VIP podium around (0, 0, -3.5)
-      if (Math.hypot(x, z - (-3.5)) < 2.4) continue;
-      // Distance to dance floor center (0, 0, 0.5)
-      const distToCenter = Math.hypot(x, z - centerZ);
-      slots.push({
+      const relZ = z - centerZ;
+
+      // Exclude the 4 center tiles reserved for the VIP podium stage (radius < 1.7m around center (0, 0, centerZ))
+      if (Math.hypot(x, relZ) < 1.7) continue;
+
+      // Concentric ring layer from podium perimeter (Ring 1 = 12 tiles, Ring 2 = 20, Ring 3 = 28, Ring 4 = 36, Ring 5 = 44)
+      const maxCoord = Math.max(Math.abs(x), Math.abs(relZ));
+      const ring = Math.round((maxCoord - 0.8) / spacing);
+
+      // Polar angle around the center VIP podium [0, 2*PI)
+      const angle = (Math.atan2(relZ, x) + 2 * Math.PI) % (2 * Math.PI);
+      const distToCenter = Math.hypot(x, relZ);
+
+      rawTiles.push({
         pos: new THREE.Vector3(x, 0, z),
+        ring,
+        angle,
         distToCenter
       });
     }
   }
 
-  // Strict center-outward radial sorting:
-  // Slots closest to center come FIRST, expanding outward in concentric rings
-  slots.sort((a, b) => a.distToCenter - b.distToCenter);
-  return slots.map((s) => s.pos);
+  // Sort slots in concentric rings revolving 360° around the center VIP podium:
+  // Primary key: ring layer (Ring 1 -> Ring 2 -> Ring 3 ... expanding outward)
+  // Secondary key: polar angle (clockwise circular sequence around the podium)
+  rawTiles.sort((a, b) => {
+    if (a.ring !== b.ring) return a.ring - b.ring;
+    return a.angle - b.angle;
+  });
+
+  return rawTiles.map((t) => t.pos);
 }
 
 // Only run WebGL client and WebSocket connection in browser environments
@@ -147,7 +163,7 @@ function initClientApp() {
   const clubEnvironment = new ClubEnvironment(sceneManager.scene);
   const audioSystem = new AudioSystem();
   const occupancyManager = new AvatarOccupancyManager({ maxCapacity: 100, idleTimeoutMs: 120000 });
-  const vipScheduler = new VipPodiumScheduler({ duration: 15.0 });
+  const vipScheduler = new VipPodiumScheduler({ duration: 15.0, podiumPos: { x: 0, y: 0.55, z: 0 } });
 
   // Active avatar 3D meshes map: userId -> THREE.Group
   const avatarMeshes = new Map();
@@ -319,8 +335,11 @@ function getOrCreateAvatarMesh(userData, coins = 0) {
     // Assign slot on dance floor
     const slot = floorSlots[nextSlotIdx % floorSlots.length];
     nextSlotIdx++;
-    mesh.position.set(slot.x + (Math.random() - 0.5) * 0.4, 0, slot.z + (Math.random() - 0.5) * 0.4);
+    mesh.position.set(slot.x, 0, slot.z);
     mesh.userData.assignedSlot = mesh.position.clone();
+    // Slimes encircle and face inward toward the VIP podium at (0, 0, 0)
+    mesh.userData.baseAngleY = Math.atan2(-slot.x, -slot.z);
+    mesh.rotation.y = mesh.userData.baseAngleY;
 
     sceneManager.scene.add(mesh);
     avatarMeshes.set(userId, mesh);
@@ -435,7 +454,8 @@ function animate() {
     if (style === 'spin') {
       mesh.rotation.y = Math.sin(phase * 0.5) * Math.PI;
     } else {
-      mesh.rotation.y = THREE.MathUtils.lerp(mesh.rotation.y, 0, 0.1);
+      const targetRotY = data.isOnPodium ? 0 : (data.baseAngleY !== undefined ? data.baseAngleY : 0);
+      mesh.rotation.y = THREE.MathUtils.lerp(mesh.rotation.y, targetRotY, 0.1);
     }
 
     // Giant scaling lerp

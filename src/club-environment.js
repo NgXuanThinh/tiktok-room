@@ -148,20 +148,21 @@ export class ClubEnvironment {
    */
   createVipPodium() {
     const stageGroup = new THREE.Group();
-    stageGroup.position.set(0, 0.4, -3.5);
+    stageGroup.position.set(0, 0, 0);
 
-    // Main circular base
-    const baseGeom = new THREE.CylinderGeometry(2.2, 2.4, 0.8, 32);
+    // Main circular base fitting snugly over the 4 center tiles (2x2 grid = 3.2m x 3.2m)
+    const baseGeom = new THREE.CylinderGeometry(1.35, 1.5, 0.45, 32);
     const baseMat = new THREE.MeshStandardMaterial({
       color: 0x1a1a2e,
       metalness: 0.8,
       roughness: 0.2
     });
     const baseMesh = new THREE.Mesh(baseGeom, baseMat);
+    baseMesh.position.y = 0.225;
     stageGroup.add(baseMesh);
 
     // Gold decorative rim
-    const rimGeom = new THREE.TorusGeometry(2.3, 0.08, 16, 48);
+    const rimGeom = new THREE.TorusGeometry(1.38, 0.05, 16, 48);
     const rimMat = new THREE.MeshStandardMaterial({
       color: 0xffd700,
       metalness: 0.9,
@@ -170,11 +171,11 @@ export class ClubEnvironment {
     });
     const rimMesh = new THREE.Mesh(rimGeom, rimMat);
     rimMesh.rotation.x = Math.PI / 2;
-    rimMesh.position.y = 0.4;
+    rimMesh.position.y = 0.45;
     stageGroup.add(rimMesh);
 
     // Glowing stage top glass
-    const glassGeom = new THREE.CylinderGeometry(2.1, 2.1, 0.05, 32);
+    const glassGeom = new THREE.CylinderGeometry(1.32, 1.32, 0.04, 32);
     const glassMat = new THREE.MeshStandardMaterial({
       color: 0xff007f,
       emissive: 0x770033,
@@ -184,10 +185,11 @@ export class ClubEnvironment {
       opacity: 0.9
     });
     const glassMesh = new THREE.Mesh(glassGeom, glassMat);
-    glassMesh.position.y = 0.42;
+    glassMesh.position.y = 0.46;
     stageGroup.add(glassMesh);
 
     this.scene.add(stageGroup);
+    this.vipPodiumGroup = stageGroup;
   }
 
   /**
@@ -357,7 +359,7 @@ export class ClubEnvironment {
    */
   focusSpotlights(tier = 1, targetPosition = null, duration = 4.0) {
     const numSpots = tier >= 3 ? 4 : (tier === 2 ? 2 : 1);
-    const podiumTarget = { x: 0, y: 0.8, z: -3.5 };
+    const podiumTarget = { x: 0, y: 0.6, z: 0 };
     const clampedTarget = targetPosition ? clampSpotlightToFloor(targetPosition) : podiumTarget;
 
     for (let i = 0; i < this.movingHeads.length; i++) {
@@ -465,7 +467,7 @@ export class ClubEnvironment {
     this.scene.add(this.heartParticles);
   }
 
-  triggerFireworks(tier = 1, origin = new THREE.Vector3(0, 1.5, -3.5)) {
+  triggerFireworks(tier = 1, origin = new THREE.Vector3(0, 1.2, 0)) {
     const posAttr = this.fireworksPoints.geometry.attributes.position;
     const colAttr = this.fireworksPoints.geometry.attributes.color;
 

@@ -21,7 +21,7 @@ export const FULL_VENUE_ORBIT_CONFIG = {
 
 export const VIP_ZOOM_CONFIG = {
   durationSeconds: 5.0,
-  target: { x: 0, y: 2.0, z: -3.5 },
+  target: { x: 0, y: 2.0, z: 0 },
   fov: 35
 };
 
@@ -64,8 +64,8 @@ export const CAMERA_PRESETS = {
   },
   vip: {
     name: 'VIP Podium Zoom',
-    pos: new THREE.Vector3(3, 2.5, -2),
-    target: new THREE.Vector3(0, 2.0, -3.5),
+    pos: new THREE.Vector3(2.5, 2.0, 3.5),
+    target: new THREE.Vector3(0, 0.8, 0),
     fov: 35,
     isOrbit: false
   }

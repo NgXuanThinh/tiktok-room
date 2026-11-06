@@ -44,7 +44,7 @@ export async function run() {
         assert.strictEqual(scheduler.activeWhale.user.id, 'whale_1');
         assert.strictEqual(scheduler.queue.length, 0, 'Queue must be empty when only 1 whale enqueued');
         assert.strictEqual(mesh1.userData.isOnPodium, true, 'Whale 1 must be marked isOnPodium = true');
-        assert.strictEqual(mesh1.position.z, -3.5, 'Whale 1 must be positioned at podium Z (-3.5m)');
+        assert.strictEqual(mesh1.position.z, 0, 'Whale 1 must be positioned at center podium Z (0m)');
       }
     },
     {
@@ -112,7 +112,7 @@ export async function run() {
         assert.ok(scheduler.activeWhale, 'Whale 2 must now be active on podium');
         assert.strictEqual(scheduler.activeWhale.user.id, 'w2');
         assert.strictEqual(m2.userData.isOnPodium, true, 'Whale 2 must be marked isOnPodium');
-        assert.strictEqual(m2.position.z, -3.5, 'Whale 2 must be moved to podium Z');
+        assert.strictEqual(m2.position.z, 0, 'Whale 2 must be moved to center podium Z (0m)');
         assert.strictEqual(scheduler.queue.length, 0, 'Queue should now be empty');
       }
     },

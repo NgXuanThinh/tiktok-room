@@ -60,7 +60,7 @@ export async function run() {
         assert.strictEqual(VIP_ZOOM_CONFIG.durationSeconds, 5.0, 'VIP Zoom duration must be exactly 5.0 seconds');
         assert.strictEqual(VIP_ZOOM_CONFIG.target.x, 0);
         assert.strictEqual(VIP_ZOOM_CONFIG.target.y, 2.0);
-        assert.strictEqual(VIP_ZOOM_CONFIG.target.z, -3.5);
+        assert.strictEqual(VIP_ZOOM_CONFIG.target.z, 0);
       }
     },
     {
