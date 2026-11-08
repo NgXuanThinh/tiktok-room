@@ -63,10 +63,10 @@ export const CAMERA_PRESETS = {
     isOrbit: false
   },
   vip: {
-    name: 'VIP Podium Zoom',
-    pos: new THREE.Vector3(2.5, 2.0, 3.5),
-    target: new THREE.Vector3(0, 0.8, 0),
-    fov: 35,
+    name: 'VIP Lounge Zoom',
+    pos: new THREE.Vector3(-3.0, 5.0, 1.5),
+    target: new THREE.Vector3(-4.8, 0.9, -9.2),
+    fov: 68,
     isOrbit: false
   }
 };
@@ -94,6 +94,14 @@ export class SceneManager {
     this.isAlpha = false;
     this.isChromaGreen = false;
 
+    this.isLionTracking = false;
+    this.lionHeroMesh = null;
+    this.lionTimer = 0;
+    this.lionDuration = 7.6;
+    this.shakeTimer = 0;
+    this.shakeDuration = 0;
+    this.shakeIntensity = 0;
+
     this.init();
   }
 
@@ -105,19 +113,26 @@ export class SceneManager {
     // Check URL parameters for OBS broadcasting modes
     const search = hasWindow && window.location ? window.location.search : '';
     const urlParams = new URLSearchParams(search);
-    this.isAlpha = urlParams.get('alpha') === 'true';
     this.isChromaGreen = urlParams.get('chroma') === 'green';
+    this.isAlpha = urlParams.get('alpha') !== 'false'; // Default to transparent background (no pitch-black)
 
-    // Scene
+    // Scene: Dark as night ("tối như đêm") with twinkling starfield
     this.scene = new THREE.Scene();
-    if (this.isAlpha) {
-      this.scene.background = null;
-      if (typeof document !== 'undefined' && document.body) document.body.style.background = 'transparent';
-    } else if (this.isChromaGreen) {
+    if (this.isChromaGreen) {
       this.scene.background = new THREE.Color(0x00ff00);
+      this.scene.fog = null;
+    } else if (this.isAlpha) {
+      this.scene.background = null;
+      this.scene.fog = null;
+      if (typeof document !== 'undefined' && document.body) {
+        document.body.style.background = 'transparent';
+      }
     } else {
-      this.scene.background = new THREE.Color(0x0a0a14);
-      this.scene.fog = new THREE.FogExp2(0x0a0a14, 0.010);
+      this.scene.background = new THREE.Color(0x06060e);
+      this.scene.fog = null;
+      if (typeof document !== 'undefined' && document.body) {
+        document.body.style.background = '#06060e';
+      }
     }
 
     // Camera
@@ -125,17 +140,17 @@ export class SceneManager {
     this.camera.position.copy(this.camTargetPos);
     this.camera.lookAt(this.camCurrentLook);
 
-    // WebGL Renderer
+    // WebGL Renderer (configured with shadow-free high performance)
     if (typeof document !== 'undefined') {
       this.renderer = new THREE.WebGLRenderer({
         antialias: true,
-        alpha: this.isAlpha,
+        alpha: true,
         powerPreference: 'high-performance'
       });
       this.renderer.setSize(width, height);
       this.renderer.setPixelRatio(hasWindow ? Math.min(window.devicePixelRatio, 2.0) : 1.0);
       this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      this.renderer.toneMappingExposure = 1.1;
+      this.renderer.toneMappingExposure = 1.18;
       if (this.container && typeof this.container.appendChild === 'function') {
         this.container.appendChild(this.renderer.domElement);
       }
@@ -148,16 +163,16 @@ export class SceneManager {
       };
     }
 
-    // Ambient Lighting (boosted for rich club visibility)
-    const ambientLight = new THREE.AmbientLight(0x333344, 1.6);
+    // Atmospheric Night Lighting (dark night ambience with vivid neon contrast)
+    const ambientLight = new THREE.AmbientLight(0x282844, 1.4);
     this.scene.add(ambientLight);
 
     // Hemisphere Fill Light (sky/ground contrast)
-    const hemiLight = new THREE.HemisphereLight(0x4466aa, 0x111122, 1.2);
+    const hemiLight = new THREE.HemisphereLight(0x445577, 0x181828, 1.1);
     this.scene.add(hemiLight);
 
     // Directional Key Light
-    const dirLight = new THREE.DirectionalLight(0xffeedd, 1.5);
+    const dirLight = new THREE.DirectionalLight(0xffeedd, 1.4);
     dirLight.position.set(5, 12, 7);
     this.scene.add(dirLight);
 
@@ -183,7 +198,7 @@ export class SceneManager {
     }
   }
 
-  setCameraPreset(key, duration = null) {
+  setCameraPreset(key, duration = null, customTarget = null) {
     if (!CAMERA_PRESETS[key]) return;
 
     if (key === 'vip') {
@@ -197,8 +212,18 @@ export class SceneManager {
 
     this.currentPresetKey = key;
     this.currentPreset = CAMERA_PRESETS[key];
-    this.camTargetPos.copy(this.currentPreset.pos);
-    this.camLookTarget.copy(this.currentPreset.target);
+
+    if (key === 'vip' && customTarget) {
+      this.camLookTarget.copy(customTarget);
+      this.camTargetPos.set(
+        customTarget.x + (customTarget.x >= 0 ? -5.2 : 5.2),
+        customTarget.y + 5.2,
+        customTarget.z + 12.8
+      );
+    } else {
+      this.camTargetPos.copy(this.currentPreset.pos);
+      this.camLookTarget.copy(this.currentPreset.target);
+    }
 
     // Smooth FOV transition
     this.camera.fov = this.currentPreset.fov;
@@ -229,22 +254,21 @@ export class SceneManager {
     if (this.isChromaGreen) {
       this.scene.background = new THREE.Color(0x00ff00);
       this.scene.fog = null;
-    } else if (this.isAlpha) {
-      this.scene.background = null;
     } else {
-      this.scene.background = new THREE.Color(0x0a0a14);
-      this.scene.fog = new THREE.FogExp2(0x0a0a14, 0.010);
+      this.scene.background = null;
+      this.scene.fog = null;
+      if (typeof document !== 'undefined' && document.body) {
+        document.body.style.background = 'transparent';
+      }
     }
   }
 
   toggleAlpha() {
     this.isAlpha = !this.isAlpha;
-    if (this.isAlpha) {
-      this.scene.background = null;
+    this.scene.background = null;
+    this.scene.fog = null;
+    if (typeof document !== 'undefined' && document.body) {
       document.body.style.background = 'transparent';
-    } else {
-      this.scene.background = new THREE.Color(0x0a0a14);
-      document.body.style.background = '#0a0a14';
     }
   }
 
@@ -256,38 +280,92 @@ export class SceneManager {
     this.renderer.setSize(width, height);
   }
 
+  triggerCameraShake(intensity = 0.35, duration = 1.0) {
+    this.shakeIntensity = intensity;
+    this.shakeTimer = duration;
+    this.shakeDuration = duration;
+  }
+
+  startLionTracking(heroMesh, duration = 7.6) {
+    if (!heroMesh) return;
+    if (this.currentPresetKey !== 'vip' && !this.isLionTracking) {
+      this.previousPresetKey = this.currentPresetKey || 'orbit';
+    }
+    this.isLionTracking = true;
+    this.lionHeroMesh = heroMesh;
+    this.lionTimer = duration;
+    this.lionDuration = duration;
+    if (this.camera) {
+      this.camera.fov = 68;
+      this.camera.updateProjectionMatrix();
+    }
+    this.triggerCameraShake(0.35, 1.0);
+  }
+
   update(deltaTime = 0.016, bassPunch = 0) {
-    // VIP zoom auto-revert countdown timer
-    if (this.currentPresetKey === 'vip' && this.vipTimer > 0) {
-      this.vipTimer -= deltaTime;
-      if (this.vipTimer <= 0) {
-        this.vipTimer = 0;
+    // 1. Dynamic Cinematic King Framing for Lion Celebration (Full 360-degree Orbit around donator)
+    if (this.isLionTracking && this.lionHeroMesh) {
+      this.lionTimer -= deltaTime;
+      const elapsed = Math.max(0, this.lionDuration - this.lionTimer);
+      const hero = this.lionHeroMesh;
+      const slimeY = hero.userData?.controller?.rootNode?.position?.y || hero.position.y || 0;
+
+      // Track focus midway so both floor aura and soaring king remain framed
+      const targetFocusY = THREE.MathUtils.lerp(0.8, 2.8, Math.min(1.0, slimeY / 3.8));
+      this.camLookTarget.x = THREE.MathUtils.lerp(this.camLookTarget.x, hero.position.x, 0.1);
+      this.camLookTarget.y = THREE.MathUtils.lerp(this.camLookTarget.y, targetFocusY, 0.1);
+      this.camLookTarget.z = THREE.MathUtils.lerp(this.camLookTarget.z, hero.position.z, 0.1);
+
+      // Smooth 360-degree orbit around the donator (~1.25 full turns across 7.6s)
+      const orbitTheta = elapsed * 1.05;
+      // Orbit radius expands from 11.5m up to 16.5m to capture full shockwaves, golden beam, and signature props
+      const orbitRadius = THREE.MathUtils.lerp(11.5, 16.5, Math.min(1.0, slimeY / 3.6));
+      // Camera elevation ascends to capture soaring king + glowing golden light pillar
+      const targetCamY = THREE.MathUtils.lerp(4.0, 7.2, Math.min(1.0, slimeY / 3.8));
+
+      const targetCamX = hero.position.x + Math.sin(orbitTheta) * orbitRadius;
+      const targetCamZ = hero.position.z + Math.cos(orbitTheta) * orbitRadius;
+
+      this.camTargetPos.set(targetCamX, targetCamY, targetCamZ);
+
+      if (this.lionTimer <= 0) {
+        this.isLionTracking = false;
+        this.lionHeroMesh = null;
         this.revertVipCamera();
       }
-    }
+    } else {
+      // VIP zoom auto-revert countdown timer
+      if (this.currentPresetKey === 'vip' && this.vipTimer > 0) {
+        this.vipTimer -= deltaTime;
+        if (this.vipTimer <= 0) {
+          this.vipTimer = 0;
+          this.revertVipCamera();
+        }
+      }
 
-    // Full-venue orbit rotation centered EXACTLY at dance floor center (0, 1.4, 0)
-    if (this.currentPreset.isOrbit) {
-      this.orbitTheta += 0.10 * deltaTime;
-      const target = FULL_VENUE_ORBIT_CONFIG.target;
-      const r = this.orbitRadius || FULL_VENUE_ORBIT_CONFIG.radius;
-      const x = target.x + r * Math.sin(this.orbitTheta);
-      const z = target.z + r * Math.cos(this.orbitTheta);
+      // Full-venue orbit rotation centered EXACTLY at dance floor center (0, 1.4, 0)
+      if (this.currentPreset.isOrbit) {
+        this.orbitTheta += 0.10 * deltaTime;
+        const target = FULL_VENUE_ORBIT_CONFIG.target;
+        const r = this.orbitRadius || FULL_VENUE_ORBIT_CONFIG.radius;
+        const x = target.x + r * Math.sin(this.orbitTheta);
+        const z = target.z + r * Math.cos(this.orbitTheta);
 
-      // Balanced, natural elevation:
-      // At r = 10m: base elevation is 5.0m
-      // At r = 25m: base elevation is 8.0m
-      // When behind the DJ (cos(theta) < 0), slight gentle lift of +1.5m to comfortably clear the DJ
-      const behindFactor = Math.max(0, -Math.cos(this.orbitTheta));
-      const baseElev = 5.0 + (r - 10.0) * 0.20;
-      const y = baseElev + behindFactor * 1.5;
+        // Balanced, natural elevation:
+        // At r = 10m: base elevation is 5.0m
+        // At r = 25m: base elevation is 8.0m
+        // When behind the DJ (cos(theta) < 0), slight gentle lift of +1.5m to comfortably clear the DJ
+        const behindFactor = Math.max(0, -Math.cos(this.orbitTheta));
+        const baseElev = 5.0 + (r - 10.0) * 0.20;
+        const y = baseElev + behindFactor * 1.5;
 
-      this.camTargetPos.set(
-        x,
-        y + (bassPunch > 50 ? Math.sin(this.orbitTheta * 4) * 0.15 : 0),
-        z
-      );
-      this.camLookTarget.set(target.x, target.y, target.z);
+        this.camTargetPos.set(
+          x,
+          y + (bassPunch > 50 ? Math.sin(this.orbitTheta * 4) * 0.15 : 0),
+          z
+        );
+        this.camLookTarget.set(target.x, target.y, target.z);
+      }
     }
 
     // Exponential Dual-Vector Lerp: P_t = P_{t-1} + (P_target - P_{t-1}) * (1 - e^{-lambda * dt})
@@ -298,8 +376,14 @@ export class SceneManager {
     this.camCurrentLook.lerp(this.camLookTarget, lerpFactor);
     this.camera.lookAt(this.camCurrentLook);
 
-    // Subtle bass camera shake
-    if (bassPunch > 60) {
+    // Procedural Camera Shake decay (for gifts and impacts)
+    if (this.shakeTimer > 0) {
+      this.shakeTimer -= deltaTime;
+      const decay = Math.max(0, this.shakeTimer / this.shakeDuration) * this.shakeIntensity;
+      this.camera.position.x += (Math.random() - 0.5) * decay;
+      this.camera.position.y += (Math.random() - 0.5) * decay;
+    } else if (bassPunch > 60) {
+      // Subtle bass camera shake
       this.camera.position.y += (Math.random() - 0.5) * 0.04;
     }
 

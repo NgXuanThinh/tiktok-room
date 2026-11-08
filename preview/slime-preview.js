@@ -2,10 +2,12 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { createCyberSlime, SLIME_PALETTES } from './slime-model.js?v=20261106_1645';
+import { GiftPropsManager } from './gift-props.js';
 
 // 1. Scene, Camera, Renderer Setup
 const container = document.getElementById('canvas-container');
 const scene = new THREE.Scene();
+const giftProps = new GiftPropsManager(scene);
 scene.background = new THREE.Color(0x0c0b16);
 scene.fog = new THREE.FogExp2(0x0c0b16, 0.035);
 
@@ -65,7 +67,7 @@ podium.position.y = 0.04;
 scene.add(podium);
 
 const neonRingGeom = new THREE.TorusGeometry(1.56, 0.022, 10, 32);
-const neonRingMat = new THREE.MeshBasicMaterial({ color: 0x00f2fe });
+const neonRingMat = new THREE.MeshBasicMaterial({ color: 0xffd700 }); // Always Gold
 const neonRing = new THREE.Mesh(neonRingGeom, neonRingMat);
 neonRing.rotation.x = Math.PI / 2;
 neonRing.position.y = 0.082;
@@ -88,6 +90,31 @@ const goldenBeam = new THREE.Mesh(beamGeom, beamMat);
 goldenBeam.position.set(0, 6, 0);
 goldenBeam.visible = false;
 scene.add(goldenBeam);
+
+// White Pillar of Light for High Tier Gifts (Quà cao cấp: Ánh sáng trắng chiếu xuống)
+const whiteBeamMat = new THREE.MeshBasicMaterial({
+  color: 0xffffff,
+  transparent: true,
+  opacity: 0,
+  side: THREE.DoubleSide,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false
+});
+const whiteBeam = new THREE.Mesh(beamGeom, whiteBeamMat);
+whiteBeam.position.set(0, 6, 0);
+whiteBeam.visible = false;
+scene.add(whiteBeam);
+let whiteBeamTimer = 0;
+let isWhiteBeamActive = false;
+
+function triggerWhiteLightBeam(targetX = 0, targetZ = 0, duration = 1.5) {
+  whiteBeam.position.x = targetX;
+  whiteBeam.position.z = targetZ;
+  whiteBeam.visible = true;
+  whiteBeamMat.opacity = 0.82;
+  whiteBeamTimer = duration;
+  isWhiteBeamActive = true;
+}
 
 // Golden Stardust Fireworks Particles
 const particleCount = 120;
@@ -135,7 +162,7 @@ function triggerFireworks(originY = 4.2, originX = 0, originZ = 0, customColor =
 // ----------------------------------------------------
 // 5. DYNAMIC AVATARS WITH SOURCE EFFECTS & BILLBOARD LABELS
 // ----------------------------------------------------
-const paletteKeys = Object.keys(SLIME_PALETTES);
+const paletteKeys = ['cyan', 'magenta', 'lime'];
 const activeAvatars = [];
 let currentGlobalPalette = 'cyan';
 let currentGlobalTier = 1;
@@ -144,6 +171,7 @@ let isPaused = false;
 let currentBpm = 128;
 let bassPunch = 0;
 let isLabelsVisible = true; // Option Bật / Tắt Billboard Labels
+let autoTierUpOnDonate = false; // Tách biệt Tier Shape và Donate Effect: Mặc định không đổi shape khi donate
 
 // Realistic Viewer Profiles (Tham chiếu TikTok LIVE Bar)
 const MOCK_VIEWER_PROFILES = [
@@ -256,11 +284,11 @@ export function showcaseAllTiers() {
   neonRing.visible = false;
 
   const tierConfigs = [
-    { tier: 1, x: -6.0, pal: 'cyan',    title: '⚪ TIE 1', desc: 'Bán Cầu (Free Tier)' },
-    { tier: 2, x: -3.0, pal: 'magenta', title: '✨ TIE 2', desc: 'Chubby Mochi' },
-    { tier: 3, x:  0.0, pal: 'lime',    title: '🍡 TIE 3', desc: 'Chubby + Mochi 2 bên' },
-    { tier: 4, x:  3.0, pal: 'violet',  title: '😈 TIE 4', desc: 'Mochi + Sừng + Đuôi' },
-    { tier: 5, x:  6.0, pal: 'gold',    title: '👑 TIE 5', desc: 'Mochi + Sừng + Đuôi + Halo + Vòng Chân' }
+    { tier: 1, x: -6.0, pal: 'cyan',    title: '⚪ TIE 1', desc: 'Bán Cầu (Nhún nhảy default)' },
+    { tier: 2, x: -3.0, pal: 'magenta', title: '✨ TIE 2', desc: 'Chubby Mochi (Nhún nhảy default)' },
+    { tier: 3, x:  0.0, pal: 'lime',    title: '🍡 TIE 3', desc: 'Chubby + Mochi (Xoay tròn 360°)' },
+    { tier: 4, x:  3.0, pal: 'cyan',    title: '😈 TIE 4', desc: 'Mochi + Sừng + Đuôi (Xoay & Lộn vòng)' },
+    { tier: 5, x:  6.0, pal: 'magenta', title: '👑 TIE 5', desc: 'Halo + Vòng Chân (VIP Max - Xoay & Lộn)' }
   ];
 
   tierConfigs.forEach((cfg, idx) => {
@@ -363,7 +391,7 @@ const lionBanner = document.getElementById('lion-banner');
 let lionFxTimer = 0;
 let isLionActive = false;
 
-function triggerLionCelebrationEvent(targetAvatar = null) {
+function triggerLionCelebrationEvent(targetAvatar = null, upgradeTier = false) {
   if (activeAvatars.length === 0) return;
   isLionActive = true;
   lionFxTimer = 7.6;
@@ -375,7 +403,7 @@ function triggerLionCelebrationEvent(targetAvatar = null) {
 
   // Trigger on the target avatar (hoặc Avatar #0 in center)
   const heroAvatar = targetAvatar || activeAvatars[0];
-  heroAvatar.triggerLionCelebration();
+  heroAvatar.triggerLionCelebration(upgradeTier);
 
   // Position beam at heroAvatar position
   goldenBeam.position.x = heroAvatar.mesh.position.x;
@@ -397,7 +425,7 @@ function triggerLionCelebrationEvent(targetAvatar = null) {
     triggerFireworks(4.8, heroAvatar.mesh.position.x, heroAvatar.mesh.position.z);
   }, 3800);
 }
-lionBtn.addEventListener('click', triggerLionCelebrationEvent);
+lionBtn.addEventListener('click', () => triggerLionCelebrationEvent(null, autoTierUpOnDonate));
 
 // ----------------------------------------------------
 // 7. USER INTERFACE BINDINGS
@@ -646,7 +674,7 @@ function showGiftToast(username, gift) {
   }, isUltra ? 4500 : 2800);
 }
 
-function triggerDonation(giftKey, targetAvatar = null) {
+function triggerDonation(giftKey, targetAvatar = null, forceTierUp = null) {
   const gift = DONATE_GIFTS[giftKey] || DONATE_GIFTS.rose;
   if (activeAvatars.length === 0) return;
 
@@ -666,39 +694,50 @@ function triggerDonation(giftKey, targetAvatar = null) {
 
   // Accumulate coins & update billboard
   av.updateBillboard(gift.coins);
-  av.setTier(gift.tier);
 
-  // Sync tier button UI if single avatar
-  if (activeAvatars.length === 1) {
-    currentGlobalTier = gift.tier;
-    document.querySelectorAll('.tier-btn').forEach(b => {
-      b.classList.toggle('active', parseInt(b.dataset.tier, 10) === gift.tier);
-    });
+  // Tách biệt giữa Tier Shape và Donate Effect:
+  // Chỉ thay đổi shape khi autoTierUpOnDonate là true hoặc forceTierUp là true!
+  const shouldUpgradeTier = (forceTierUp !== null) ? Boolean(forceTierUp) : autoTierUpOnDonate;
+  if (shouldUpgradeTier) {
+    av.setTier(gift.tier);
+
+    // Sync tier button UI if single avatar
+    if (activeAvatars.length === 1) {
+      currentGlobalTier = gift.tier;
+      document.querySelectorAll('.tier-btn').forEach(b => {
+        b.classList.toggle('active', parseInt(b.dataset.tier, 10) === gift.tier);
+      });
+    }
   }
 
   const origin = av.mesh.position.clone();
 
+  // Trigger 3D Signature Prop (Jet, Cyber Panther, TikTok Galaxy Universe, etc.)
+  giftProps.trigger(giftKey, origin, gift.coins || 1);
+
   // Tier-specific celebratory visual FX
   if (gift.cat === 'small') {
-    // Mini bounce kick
-    av.state.bpmPhase = Math.PI * 0.5;
+    // Quà nhỏ: Nhảy lên cao trong 1s (1 xu) hoặc 3 lần liên tiếp (5 xu)
+    av.triggerDonateAnimation('small', shouldUpgradeTier, gift.tier, gift.coins || 1);
     bassPunch = 0.8;
   } else if (gift.cat === 'medium') {
-    // Super bounce + sparkles
-    av.state.bpmPhase = Math.PI * 0.5;
-    bassPunch = 1.2;
-    triggerFireworks(origin.y + 2.2, origin.x, origin.z, gift.color);
+    // Quà trung: Nhảy lên cao trong 1s + xoay vòng tròn 0.5s rồi rớt xuống
+    av.triggerDonateAnimation('medium', shouldUpgradeTier, gift.tier, gift.coins || 20);
+    bassPunch = 1.1;
+    triggerFireworks(origin.y + 2.4, origin.x, origin.z, gift.color);
   } else if (gift.cat === 'high') {
-    // Fireworks burst + high energy
+    // Quà cao cấp: Có ánh sáng trắng chiếu xuống + hiệu ứng như quà trung
+    av.triggerDonateAnimation('high', shouldUpgradeTier, gift.tier, gift.coins || 500);
+    triggerWhiteLightBeam(origin.x, origin.z, 1.5);
+    bassPunch = 1.3;
     triggerFireworks(origin.y + 2.8, origin.x, origin.z, gift.color);
     setTimeout(() => {
-      triggerFireworks(origin.y + 3.6, origin.x, origin.z, 0xff0874);
+      triggerFireworks(origin.y + 3.6, origin.x, origin.z, 0xffffff);
     }, 300);
-    bassPunch = 1.4;
   } else if (gift.cat === 'ultra') {
-    // Ultra Luxury Whale Celebration!
+    // Quà xa xỉ: Như không đổi
     triggerCameraShake(0.35, 1.0);
-    triggerLionCelebrationEvent(av);
+    triggerLionCelebrationEvent(av, shouldUpgradeTier);
     setTimeout(() => {
       triggerFireworks(origin.y + 4.8, origin.x - 1.5, origin.z, gift.color);
     }, 1500);
@@ -805,6 +844,60 @@ document.querySelectorAll('.tier-btn').forEach(btn => {
   });
 });
 
+// Dance Moves & Choreography Controls
+let autoDanceEnabled = true;
+const toggleAutoDance = document.getElementById('toggle-auto-dance');
+if (toggleAutoDance) {
+  toggleAutoDance.checked = autoDanceEnabled;
+  toggleAutoDance.addEventListener('change', (e) => {
+    autoDanceEnabled = e.target.checked;
+    activeAvatars.forEach(av => av.setAutoDanceRoutine(autoDanceEnabled));
+  });
+}
+
+const btnDanceSpin = document.getElementById('btn-dance-spin');
+if (btnDanceSpin) {
+  btnDanceSpin.addEventListener('click', () => {
+    let triggeredCount = 0;
+    activeAvatars.forEach(av => {
+      const res = av.triggerDanceMove('spin');
+      if (res?.success) triggeredCount++;
+    });
+    if (triggeredCount === 0 && activeAvatars.length > 0) {
+      showGiftToast('Điệu Nhảy', { name: 'Tier 1 & 2 chỉ có thể nhún nhảy default! Chuyển sang Tier 3+ để Xoay Tròn 360°.', icon: '🔄', coins: 0 });
+    }
+  });
+}
+
+const btnDanceFlip = document.getElementById('btn-dance-flip');
+if (btnDanceFlip) {
+  btnDanceFlip.addEventListener('click', () => {
+    let triggeredCount = 0;
+    activeAvatars.forEach(av => {
+      const res = av.triggerDanceMove('flip');
+      if (res?.success) triggeredCount++;
+    });
+    if (triggeredCount === 0 && activeAvatars.length > 0) {
+      showGiftToast('Điệu Nhảy', { name: 'Chỉ Tier 4 & 5 mới có thể Lộn Vòng! Chuyển sang Tier 4 hoặc 5.', icon: '🤸', coins: 0 });
+    }
+  });
+}
+
+const btnDanceBounce = document.getElementById('btn-dance-bounce');
+if (btnDanceBounce) {
+  btnDanceBounce.addEventListener('click', () => {
+    activeAvatars.forEach(av => av.triggerDanceMove('bounce'));
+  });
+}
+
+const btnDanceShuffle = document.getElementById('btn-dance-shuffle');
+if (btnDanceShuffle) {
+  btnDanceShuffle.addEventListener('click', () => {
+    activeAvatars.forEach(av => av.shuffleDanceMove());
+    showGiftToast('Vũ Đạo', { name: '🎲 Đã xáo trộn ngẫu hứng vũ đạo cho toàn bộ nhân vật!', icon: '✨', coins: 0 });
+  });
+}
+
 // Palettes
 document.querySelectorAll('.palette-btn').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -812,9 +905,37 @@ document.querySelectorAll('.palette-btn').forEach(btn => {
     btn.classList.add('active');
     currentGlobalPalette = btn.dataset.palette;
     activeAvatars.forEach(av => av.setPalette(currentGlobalPalette));
-    neonRingMat.color.setHex(SLIME_PALETTES[currentGlobalPalette].shellColor);
+    neonRingMat.color.setHex(0xffd700); // Always Gold
   });
 });
+
+// Option & Test Panel: Tách biệt Tier Shape và Donate Effect
+const toggleTierUp = document.getElementById('toggle-tier-up');
+if (toggleTierUp) {
+  toggleTierUp.checked = autoTierUpOnDonate;
+  toggleTierUp.addEventListener('change', (e) => {
+    autoTierUpOnDonate = e.target.checked;
+  });
+}
+
+const btnTestKeepShape = document.getElementById('btn-test-keep-shape');
+if (btnTestKeepShape) {
+  btnTestKeepShape.addEventListener('click', () => {
+    if (activeAvatars.length > 0) {
+      activeAvatars[0].setTier(1);
+      currentGlobalTier = 1;
+      document.querySelectorAll('.tier-btn').forEach(b => b.classList.toggle('active', b.dataset.tier === '1'));
+    }
+    triggerDonation('pegasus', null, false);
+  });
+}
+
+const btnTestLevelUp = document.getElementById('btn-test-level-up');
+if (btnTestLevelUp) {
+  btnTestLevelUp.addEventListener('click', () => {
+    triggerDonation('pegasus', null, true);
+  });
+}
 
 // BPM Slider
 const bpmSlider = document.getElementById('bpm-slider');
@@ -959,6 +1080,19 @@ function animate() {
     }
   }
 
+  // Handle White Light Beam for High Tier Gifts (Quà cao cấp: Ánh sáng trắng)
+  if (isWhiteBeamActive) {
+    whiteBeamTimer -= deltaTime;
+    whiteBeam.rotation.y += 1.4 * deltaTime;
+    if (whiteBeamTimer < 0.45) {
+      whiteBeamMat.opacity = Math.max(0, whiteBeamMat.opacity - deltaTime * 1.8);
+    }
+    if (whiteBeamTimer <= 0) {
+      isWhiteBeamActive = false;
+      whiteBeam.visible = false;
+    }
+  }
+
   // Update Fireworks Particles
   if (particleMat.opacity > 0.01) {
     const pos = particleGeom.attributes.position;
@@ -996,7 +1130,15 @@ function animate() {
   }
 
   controls.update();
+  giftProps.update(deltaTime);
   renderer.render(scene, camera);
 }
 
 animate();
+
+export {
+  triggerDonation,
+  triggerLionCelebrationEvent,
+  autoTierUpOnDonate,
+  activeAvatars
+};

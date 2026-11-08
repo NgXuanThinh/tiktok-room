@@ -104,12 +104,14 @@ export async function run() {
 
         const mockGroup = {
           userData: {
+            colorKey: 'pink',
             slimeMat: {
+              _color: 0xff2a85,
               color: { setHex: (val) => { mockGroup.userData.slimeMat._color = val; } },
               emissive: { setHex: (val) => { mockGroup.userData.slimeMat._emissive = val; } },
-              emissiveIntensity: 0,
-              metalness: 0,
-              roughness: 0
+              emissiveIntensity: 0.5,
+              metalness: 0.1,
+              roughness: 0.2
             },
             crown: { visible: false },
             auraRing: { visible: false },
@@ -120,10 +122,8 @@ export async function run() {
         applyWhaleSlimeAesthetics(mockGroup, 3);
 
         assert.strictEqual(mockGroup.userData.isWhale, true, 'isWhale must be set to true');
-        assert.strictEqual(mockGroup.userData.slimeMat._color, 0xFFD700, 'Color must be Golden (#FFD700)');
-        assert.strictEqual(mockGroup.userData.slimeMat._emissive, 0x553300, 'Emissive must be warm gold (0x553300)');
-        assert.strictEqual(mockGroup.userData.slimeMat.metalness, 0.6, 'Metalness must be 0.6');
-        assert.strictEqual(mockGroup.userData.slimeMat.roughness, 0.15, 'Roughness must be 0.15');
+        assert.strictEqual(mockGroup.userData.colorKey, 'pink', 'Must preserve original avatar colorKey');
+        assert.strictEqual(mockGroup.userData.slimeMat._color, 0xff2a85, 'Must keep original avatar color without forcing gold');
       }
     },
     {

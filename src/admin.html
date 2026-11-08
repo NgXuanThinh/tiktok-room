@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TikTok LIVE Bar — Streamer Admin Cockpit (Port 3001)</title>
+  <link rel="stylesheet" href="/src/style.css" />
+  <style>
+    body {
+      background: radial-gradient(circle at 50% 20%, #150d2a 0%, #080511 100%);
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+      box-sizing: border-box;
+      overflow-y: auto;
+    }
+    .cockpit-container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .cockpit-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      margin-bottom: 20px;
+      border-radius: 16px;
+      background: rgba(20, 15, 35, 0.75);
+      border: 1px solid rgba(0, 242, 254, 0.3);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+    .cockpit-title {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      background: linear-gradient(135deg, #00f2fe, #4facfe, #d946ef);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .status-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 20px;
+      background: rgba(10, 10, 20, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #ff4757;
+      box-shadow: 0 0 8px #ff4757;
+      transition: all 0.3s ease;
+    }
+    .status-dot.connected {
+      background: #00ff88;
+      box-shadow: 0 0 10px #00ff88;
+    }
+    .cockpit-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 20px;
+    }
+    .card {
+      background: rgba(18, 14, 32, 0.7);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .card-title {
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: #00f2fe;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 8px;
+      margin: 0;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #8c90b0;
+    }
+    .btn-group-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+      gap: 8px;
+    }
+    .log-box {
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 10px;
+      font-family: monospace;
+      font-size: 11px;
+      color: #a0aec0;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+    .log-item {
+      margin-bottom: 4px;
+      word-break: break-all;
+    }
+    .log-item.sent { color: #00f2fe; }
+    .log-item.recv { color: #a78bfa; }
+    .log-item.err { color: #ff6b81; }
+  </style>
+</head>
+<body>
+  <div class="cockpit-container">
+    <!-- Header -->
+    <header class="cockpit-header">
+      <div class="cockpit-title">
+        <span>🎛️</span> TIKTOK LIVE BAR — ADMIN CONTROL COCKPIT
+      </div>
+      <div class="status-group">
+        <div class="status-pill">
+          <div id="ws-indicator" class="status-dot"></div>
+          <span id="ws-status-text">WS 3D Room: Disconnected</span>
+        </div>
+        <div class="status-pill">
+          <span style="color: #ff007f;">●</span>
+          <span id="tiktok-status-text">TikTok: Disconnected</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="cockpit-grid">
+      <!-- COLUMN 1: Live Stream, Camera & Audio Controls -->
+      <div class="card">
+        <h2 class="card-title">📡 1. TikTok LIVE & Camera Angles</h2>
+
+        <!-- TikTok Connect -->
+        <div class="form-group">
+          <label class="form-label">TikTok LIVE Username:</label>
+          <div class="admin-input-group">
+            <input id="tiktok-username-input" class="admin-input" type="text" placeholder="@username" />
+            <button id="btn-tiktok-connect" class="btn">Connect</button>
+          </div>
+          <button id="btn-tiktok-disconnect" class="btn btn-secondary" style="margin-top: 4px;">Disconnect</button>
+        </div>
+
+        <!-- Camera Angles -->
+        <div class="form-group">
+          <label class="form-label">Camera Angle Presets:</label>
+          <div class="btn-group-row">
+            <button class="btn btn-secondary btn-cam" data-cam="orbit">1. Orbit</button>
+            <button class="btn btn-secondary btn-cam" data-cam="dj">2. DJ Front</button>
+            <button class="btn btn-secondary btn-cam" data-cam="top">3. Top-Down</button>
+            <button class="btn btn-secondary btn-cam" data-cam="vip">4. VIP Stage</button>
+          </div>
+        </div>
+
+        <!-- Camera Distance Zoom -->
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <label class="form-label">Camera Orbit Distance & Zoom:</label>
+            <span id="camera-distance-val" style="font-size: 12px; color: #00f2fe; font-weight: bold;">10.0m</span>
+          </div>
+          <input id="camera-distance-slider" type="range" min="6" max="25" step="0.5" value="10" style="width: 100%; accent-color: #00f2fe;" />
+          <div class="btn-group-row">
+            <button class="btn btn-secondary" id="btn-cam-close">Close (7m)</button>
+            <button class="btn btn-secondary" id="btn-cam-mid">Normal (10m)</button>
+            <button class="btn btn-secondary" id="btn-cam-wide">Wide (16m)</button>
+          </div>
+        </div>
+
+        <!-- OBS Settings -->
+        <div class="form-group">
+          <label class="form-label">OBS Canvas Settings:</label>
+          <div class="btn-group-row">
+            <button id="btn-alpha" class="btn btn-secondary">Toggle Alpha</button>
+            <button id="btn-chroma" class="btn btn-secondary">Chroma Green (F2)</button>
+          </div>
+        </div>
+
+        <!-- Sound & Music -->
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <label class="form-label">Club Audio & SFX:</label>
+            <span id="volume-val" style="font-size: 12px; color: #00ff88; font-weight: bold;">80%</span>
+          </div>
+          <input id="volume-slider" type="range" min="0" max="1" step="0.05" value="0.8" style="width: 100%; accent-color: #00ff88;" />
+          <div class="btn-group-row">
+            <button id="btn-mute-sfx" class="btn btn-secondary">Mute SFX</button>
+            <button id="btn-trigger-frenzy" class="btn btn-secondary" style="border-color: rgba(217, 70, 239, 0.6); color: #d946ef;">⚡ Frenzy Party (15s)</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- COLUMN 2: Avatar & Viewer Management -->
+      <div class="card">
+        <h2 class="card-title">👾 2. Avatar & Viewer Management</h2>
+
+        <!-- Custom Slime Spawner -->
+        <div class="form-group">
+          <label class="form-label">Tạo Slime Nhân Vật:</label>
+          <div class="admin-input-group">
+            <input id="mock-custom-username" class="admin-input" type="text" placeholder="Username" value="DaiGiaBinhDuong" />
+            <button id="btn-random-name" class="btn btn-secondary" title="Random Nickname" style="padding: 6px 12px;">🎲</button>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 6px;">
+            <select id="mock-custom-tier" class="admin-input" style="color: #00f2fe; font-weight: bold; padding: 6px 4px; font-size: 11px;">
+              <option value="1">Tier 1 (Bán Cầu)</option>
+              <option value="2">Tier 2 (Chubby)</option>
+              <option value="3">Tier 3 (Mochi 2 bên)</option>
+              <option value="4">Tier 4 (Sừng+Đuôi)</option>
+              <option value="5" selected>Tier 5 (VIP Max)</option>
+            </select>
+            <select id="mock-custom-level" class="admin-input" style="padding: 6px 4px; font-size: 11px;">
+              <option value="Lv.1">Lv.1</option>
+              <option value="Lv.10">Lv.10</option>
+              <option value="Lv.25">Lv.25</option>
+              <option value="Lv.50">Lv.50</option>
+              <option value="VIP">VIP</option>
+              <option value="TOP 1" selected>TOP 1</option>
+            </select>
+            <select id="mock-custom-color" class="admin-input" style="padding: 6px 4px; font-size: 11px;">
+              <option value="green">Green</option>
+              <option value="red">Red</option>
+              <option value="blue" selected>Blue</option>
+            </select>
+          </div>
+          <button id="btn-mock-spawn" class="btn" style="margin-top: 8px; justify-content: center; background: linear-gradient(135deg, #00f2fe, #4facfe); color: #000; font-weight: bold;">
+            ✨ Spawn Slime (Theo Tier & Màu)
+          </button>
+        </div>
+
+        <!-- Floor Avatars Control (Live Synced from Room) -->
+        <div class="form-group">
+          <label class="form-label">🎯 Mục Tiêu Đang Nhảy Trên Sàn (Tự Động Sync):</label>
+          <select id="mock-target-avatar" class="admin-input" style="width: 100%; color: #00f2fe; font-weight: bold;">
+            <option value="">-- Mục tiêu: Tạo mới / Custom Input --</option>
+          </select>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px;">
+            <button id="btn-mock-delete-target" class="btn btn-secondary" style="border-color: rgba(255, 71, 87, 0.6); color: #ff6b81;">
+              🗑️ Xóa Avatar Đang Chọn
+            </button>
+            <button id="btn-mock-clear-all" class="btn btn-secondary" style="border-color: rgba(255, 71, 87, 0.6); color: #ff6b81;">
+              🧹 Xóa Tất Cả Trên Sàn
+            </button>
+          </div>
+        </div>
+
+        <!-- Chat & Likes Simulator -->
+        <div class="form-group">
+          <label class="form-label">Tương Tác Chat & Thả Tim:</label>
+          <div class="admin-input-group">
+            <input id="mock-custom-chat" class="admin-input" type="text" placeholder="Nội dung chat..." />
+            <button id="btn-mock-chat" class="btn btn-secondary">Send Chat</button>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
+            <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; cursor: pointer;">
+              <input type="checkbox" id="mock-random-chat" checked style="accent-color: #00f2fe;" />
+              <span>Random Chat Vui Nhộn</span>
+            </label>
+            <div style="display: flex; gap: 6px;">
+              <button id="btn-mock-likes-10" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;">+10 Tim</button>
+              <button id="btn-mock-likes-50" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;">+50 Tim</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Real-Time Activity Log -->
+        <div class="form-group">
+          <label class="form-label">Console Hoạt Động:</label>
+          <div id="log-box" class="log-box">
+            <div class="log-item">Sẵn sàng kết nối WebSocket với Port 3000...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COLUMN 3: Gift & Donation Triggers -->
+      <div class="card">
+        <h2 class="card-title">🎁 3. Bảng Tặng Quà TikTok LIVE</h2>
+
+        <!-- Epic Lion Button -->
+        <button class="lion-btn" id="btn-mock-lion-epic">
+          🦁 VINH DANH LION (BAY LỘN VÒNG SIÊU XA XỈ)
+        </button>
+
+        <!-- Category Selector Tabs -->
+        <div class="gift-cat-tabs">
+          <div class="gift-cat-tab active" data-cat="small">Nhỏ (1-10🪙)</div>
+          <div class="gift-cat-tab" data-cat="medium">Trung (20-199🪙)</div>
+          <div class="gift-cat-tab" data-cat="high">Cao Cấp (500-5k🪙)</div>
+          <div class="gift-cat-tab" data-cat="ultra">Siêu Xa Xỉ 👑</div>
+        </div>
+
+        <!-- Container 1: Quà Nhỏ (1 - 10 xu) -->
+        <div class="gift-grid-container" data-cat="small">
+          <button class="donate-btn" data-gift="rose" data-tier="1" data-coins="1" data-name="Hoa hồng">🌹 Hoa hồng (1🪙)</button>
+          <button class="donate-btn" data-gift="gg" data-tier="1" data-coins="1" data-name="GG Game">⚡ GG Game (1🪙)</button>
+          <button class="donate-btn" data-gift="ice_cream" data-tier="1" data-coins="1" data-name="Kem ốc quế">🍦 Kem ốc quế (1🪙)</button>
+          <button class="donate-btn" data-gift="finger_heart" data-tier="1" data-coins="5" data-name="Finger Heart">💖 Bắn tim (5🪙)</button>
+          <button class="donate-btn" data-gift="panda" data-tier="1" data-coins="5" data-name="Gấu trúc">🐼 Gấu trúc (5🪙)</button>
+          <button class="donate-btn" data-gift="wave_hand" data-tier="1" data-coins="9" data-name="Sóng tay">👋 Sóng tay (9🪙)</button>
+          <button class="donate-btn" data-gift="conical_hat" data-tier="1" data-coins="10" data-name="Nón lá" style="grid-column: span 2;">👒 Nón lá (10🪙)</button>
+        </div>
+
+        <!-- Container 2: Quà Trung (20 - 199 xu) -->
+        <div class="gift-grid-container" data-cat="medium" style="display: none;">
+          <button class="donate-btn" data-gift="perfume" data-tier="2" data-coins="20" data-name="Nước hoa">🧴 Nước hoa (20🪙)</button>
+          <button class="donate-btn" data-gift="sunscreen" data-tier="2" data-coins="50" data-name="Kem chống nắng">🧴 Kem c.nắng (50🪙)</button>
+          <button class="donate-btn" data-gift="confetti" data-tier="2" data-coins="100" data-name="Pháo hoa giấy">🎊 Pháo giấy (100🪙)</button>
+          <button class="donate-btn" data-gift="rainbow" data-tier="2" data-coins="100" data-name="Cầu vồng">🌈 Cầu vồng (100🪙)</button>
+          <button class="donate-btn" data-gift="sunglasses" data-tier="2" data-coins="199" data-name="Kính râm Cyber" style="grid-column: span 2;">🕶️ Kính râm Cyber (199🪙)</button>
+        </div>
+
+        <!-- Container 3: Quà Cao Cấp (500 - 5.000 xu) -->
+        <div class="gift-grid-container" data-cat="high" style="display: none;">
+          <button class="donate-btn" data-gift="money_rain" data-tier="3" data-coins="500" data-name="Mưa tiền">💸 Mưa tiền (500🪙)</button>
+          <button class="donate-btn" data-gift="concert" data-tier="3" data-coins="500" data-name="Buổi hòa nhạc">🎸 Hòa nhạc (500🪙)</button>
+          <button class="donate-btn" data-gift="love_balloon" data-tier="3" data-coins="699" data-name="Bóng bay tình yêu">🎈 Bóng bay tình (699🪙)</button>
+          <button class="donate-btn" data-gift="disco_ball" data-tier="4" data-coins="1000" data-name="Quả cầu Disco">🪩 Cầu Disco (1.000🪙)</button>
+          <button class="donate-btn" data-gift="legend" data-tier="4" data-coins="1000" data-name="Huyền thoại">⚔️ Huyền thoại (1.000🪙)</button>
+          <button class="donate-btn" data-gift="drama_queen" data-tier="5" data-coins="5000" data-name="Drama Queen">👑 Drama Queen (5.000🪙)</button>
+        </div>
+
+        <!-- Container 4: Quà Siêu Xa Xỉ (6.000 - 44.999 xu) -->
+        <div class="gift-grid-container" data-cat="ultra" style="display: none;">
+          <button class="donate-btn" data-gift="jet" data-tier="5" data-coins="6000" data-name="Máy bay">✈️ Máy bay (6.000🪙)</button>
+          <button class="donate-btn" data-gift="panther" data-tier="5" data-coins="15000" data-name="Báo đen">🐆 Báo đen (15.000🪙)</button>
+          <button class="donate-btn" data-gift="tiger" data-tier="5" data-coins="19999" data-name="Hổ lửa">🐅 Hổ lửa (19.999🪙)</button>
+          <button class="donate-btn" data-gift="phoenix" data-tier="5" data-coins="25999" data-name="Phượng hoàng">🦅 Phượng hoàng (25.999🪙)</button>
+          <button class="donate-btn" data-gift="lion" data-tier="5" data-coins="29999" data-name="Sư tử">🦁 Sư tử (29.999🪙)</button>
+          <button class="donate-btn" data-gift="pegasus" data-tier="5" data-coins="42999" data-name="Ngựa thần">🦄 Ngựa thần (42.999🪙)</button>
+          <button class="donate-btn" data-gift="universe" data-tier="5" data-coins="44999" data-name="Vũ trụ TikTok" style="grid-column: span 2; background: linear-gradient(135deg, rgba(0, 242, 254, 0.3), rgba(121, 40, 202, 0.4)); border-color: #00f2fe; color: #fff; font-weight: 800;">
+            🪐 Vũ trụ TikTok (44.999🪙)
+          </button>
+        </div>
+
+        <!-- Continuous Donate Storm Toggle -->
+        <button id="btn-donate-storm" class="btn btn-secondary" style="width: 100%; justify-content: center; margin-top: 4px;">
+          🌧️ Bão Donate Liên Tục: OFF
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    // --- Streamer Admin Cockpit Controller ---
+    const logBox = document.getElementById('log-box');
+    function log(msg, type = 'info') {
+      const el = document.createElement('div');
+      el.className = `log-item ${type}`;
+      const time = new Date().toLocaleTimeString();
+      el.textContent = `[${time}] ${msg}`;
+      logBox.appendChild(el);
+      logBox.scrollTop = logBox.scrollHeight;
+    }
+
+    // Connect to WebSocket server directly on current host (Port 3001 adminServer or 3000 stream server)
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsHost = window.location.host;
+    const wsUrl = `${wsProtocol}//${wsHost}/ws`;
+
+    let ws = null;
+    let isConnected = false;
+    let spawnIdx = 0;
+    let activeAvatars = [];
+    let isDonateStormActive = false;
+    let donateStormInterval = null;
+
+    function connectWs() {
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        isConnected = true;
+        document.getElementById('ws-indicator').classList.add('connected');
+        document.getElementById('ws-status-text').textContent = 'WS 3D Room: Connected';
+        log(`Đã kết nối thành công tới 3D Room (${wsUrl})`, 'sent');
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+          if (msg.type === 'tiktok_status') {
+            const statusEl = document.getElementById('tiktok-status-text');
+            if (msg.data?.connected) {
+              statusEl.textContent = `TikTok: Connected (@${msg.data.username || ''})`;
+              statusEl.style.color = '#00ff88';
+            } else {
+              statusEl.textContent = 'TikTok: Disconnected';
+              statusEl.style.color = '#ff4757';
+            }
+          } else if (msg.type === 'active_avatars_list') {
+            updateActiveAvatarsDropdown(msg.data || []);
+          }
+        } catch (e) {}
+      };
+
+      ws.onclose = () => {
+        isConnected = false;
+        document.getElementById('ws-indicator').classList.remove('connected');
+        document.getElementById('ws-status-text').textContent = 'WS 3D Room: Disconnected';
+        log('Mất kết nối với 3D Room, đang thử kết nối lại sau 2s...', 'err');
+        setTimeout(connectWs, 2000);
+      };
+
+      ws.onerror = () => {
+        ws.close();
+      };
+    }
+    connectWs();
+
+    function sendWs(payload) {
+      if (!ws || ws.readyState !== WebSocket.OPEN) {
+        log('Chưa kết nối tới 3D Room, lệnh không thể gửi!', 'err');
+        return false;
+      }
+      ws.send(JSON.stringify(payload));
+      return true;
+    }
+
+    // --- Active Floor Avatars Dropdown ---
+    function updateActiveAvatarsDropdown(list = []) {
+      activeAvatars = list;
+      const select = document.getElementById('mock-target-avatar');
+      const prevVal = select.value;
+      select.innerHTML = '<option value="">-- Mục tiêu: Tạo mới / Custom Input --</option>';
+
+      list.forEach((av) => {
+        const opt = document.createElement('option');
+        opt.value = av.userId;
+        const rankTag = av.rank ? `[${av.rank}] ` : '';
+        opt.textContent = `🎯 ${rankTag}${av.nickname || av.username} (${av.level || 'Lv.1'}, T${av.tier || 1}, ${av.color})`;
+        select.appendChild(opt);
+      });
+
+      if (prevVal && list.some(a => a.userId === prevVal)) {
+        select.value = prevVal;
+      }
+    }
+
+    function getTargetUser() {
+      const select = document.getElementById('mock-target-avatar');
+      const selectedId = select.value;
+      if (selectedId) {
+        const found = activeAvatars.find(a => a.userId === selectedId);
+        if (found) {
+          return {
+            id: found.userId,
+            userId: found.userId,
+            uniqueId: found.userId,
+            username: found.username,
+            nickname: found.nickname || found.username,
+            level: found.level || 'Lv.1',
+            slimeColor: found.color || 'blue',
+            tier: found.tier || 1,
+            avatarUrl: found.avatarUrl || ''
+          };
+        }
+      }
+
+      // Fallback: get custom input
+      const usernameEl = document.getElementById('mock-custom-username');
+      const tierEl = document.getElementById('mock-custom-tier');
+      const levelEl = document.getElementById('mock-custom-level');
+      const colorEl = document.getElementById('mock-custom-color');
+
+      const baseName = usernameEl.value.trim() || 'DaiGiaBinhDuong';
+      const username = spawnIdx > 0 ? `${baseName}_${spawnIdx}` : baseName;
+      const tier = Number(tierEl.value || 1);
+      const level = levelEl.value || 'Lv.1';
+      const slimeColor = colorEl.value || 'blue';
+      const cleanId = username.toLowerCase().replace(/[^a-z0-9]/g, '_');
+      const id = cleanId.startsWith('custom_') ? cleanId : `custom_${cleanId}`;
+
+      return {
+        id,
+        userId: id,
+        uniqueId: id,
+        username,
+        nickname: username,
+        level,
+        slimeColor,
+        tier,
+        avatarUrl: ''
+      };
+    }
+
+    // --- DOM Event Bindings ---
+
+    // 1. TikTok Connect / Disconnect
+    document.getElementById('btn-tiktok-connect').addEventListener('click', () => {
+      const username = document.getElementById('tiktok-username-input').value.trim();
+      if (!username) return alert('Vui lòng nhập TikTok username!');
+      sendWs({ type: 'tiktok_connect', username });
+      log(`Yêu cầu kết nối TikTok: @${username}`, 'sent');
+    });
+
+    document.getElementById('btn-tiktok-disconnect').addEventListener('click', () => {
+      sendWs({ type: 'tiktok_disconnect' });
+      log('Yêu cầu ngắt kết nối TikTok LIVE', 'sent');
+    });
+
+    // 2. Camera Controls
+    document.querySelectorAll('.btn-cam').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const preset = btn.getAttribute('data-cam');
+        sendWs({ type: 'admin_command', command: 'set_camera', preset });
+        log(`Đổi góc camera: ${preset.toUpperCase()}`, 'sent');
+      });
+    });
+
+    const distSlider = document.getElementById('camera-distance-slider');
+    const distVal = document.getElementById('camera-distance-val');
+    distSlider.addEventListener('input', (e) => {
+      const val = parseFloat(e.target.value);
+      distVal.textContent = `${val.toFixed(1)}m`;
+      sendWs({ type: 'admin_command', command: 'set_distance', value: val });
+    });
+
+    document.getElementById('btn-cam-close').addEventListener('click', () => {
+      distSlider.value = 7;
+      distVal.textContent = '7.0m';
+      sendWs({ type: 'admin_command', command: 'set_distance', value: 7 });
+    });
+    document.getElementById('btn-cam-mid').addEventListener('click', () => {
+      distSlider.value = 10;
+      distVal.textContent = '10.0m';
+      sendWs({ type: 'admin_command', command: 'set_distance', value: 10 });
+    });
+    document.getElementById('btn-cam-wide').addEventListener('click', () => {
+      distSlider.value = 16;
+      distVal.textContent = '16.0m';
+      sendWs({ type: 'admin_command', command: 'set_distance', value: 16 });
+    });
+
+    // 3. OBS Transparency & Background
+    document.getElementById('btn-alpha').addEventListener('click', () => {
+      sendWs({ type: 'admin_command', command: 'toggle_alpha' });
+      log('Toggle Alpha Transparency OBS', 'sent');
+    });
+    document.getElementById('btn-chroma').addEventListener('click', () => {
+      sendWs({ type: 'admin_command', command: 'toggle_chroma' });
+      log('Toggle Chroma Key Green OBS (F2)', 'sent');
+    });
+
+    // 4. Audio Controls
+    const volSlider = document.getElementById('volume-slider');
+    const volVal = document.getElementById('volume-val');
+    volSlider.addEventListener('input', (e) => {
+      const val = parseFloat(e.target.value);
+      volVal.textContent = `${Math.round(val * 100)}%`;
+      sendWs({ type: 'admin_command', command: 'set_volume', value: val });
+    });
+    document.getElementById('btn-mute-sfx').addEventListener('click', () => {
+      sendWs({ type: 'admin_command', command: 'toggle_mute' });
+      log('Toggle Mute Sound Effects', 'sent');
+    });
+    document.getElementById('btn-trigger-frenzy').addEventListener('click', () => {
+      sendWs({ type: 'admin_command', command: 'trigger_frenzy' });
+      log('Trigger Frenzy Party Mode (15s)', 'sent');
+    });
+
+    // 5. Slime Spawner
+    const RANDOM_NAMES = [
+      'GamerPro99', 'CyberGirl', 'DaiGiaBinhDuong', 'BaoChuaTikTok',
+      'MeoConCute', 'PhuongHoangLua', 'SuTuVang', 'GiaCatLuong',
+      'ThanhNienChuyenCan', 'DanChoiThoi4.0', 'TrieuPhuCongNghe'
+    ];
+    document.getElementById('btn-random-name').addEventListener('click', () => {
+      const name = RANDOM_NAMES[Math.floor(Math.random() * RANDOM_NAMES.length)];
+      document.getElementById('mock-custom-username').value = name;
+    });
+
+    document.getElementById('btn-mock-spawn').addEventListener('click', () => {
+      spawnIdx++;
+      const user = getTargetUser();
+      sendWs({ type: 'mock_trigger', action: 'spawn', user });
+      log(`Spawn Slime: ${user.username} (${user.level}, T${user.tier}, ${user.slimeColor})`, 'sent');
+    });
+
+    document.getElementById('btn-mock-delete-target').addEventListener('click', () => {
+      const select = document.getElementById('mock-target-avatar');
+      const userId = select.value;
+      if (!userId) return alert('Vui lòng chọn avatar cần xóa trong danh sách!');
+      sendWs({ type: 'mock_trigger', action: 'delete_avatar', userId });
+      log(`Xóa avatar mục tiêu: ${userId}`, 'sent');
+    });
+
+    document.getElementById('btn-mock-clear-all').addEventListener('click', () => {
+      if (!confirm('Bạn có chắc chắn muốn xóa tất cả avatar trên sàn không?')) return;
+      sendWs({ type: 'mock_trigger', action: 'clear_avatars' });
+      log('Xóa toàn bộ avatar trên sàn', 'sent');
+    });
+
+    // 6. Chat & Likes
+    const CHAT_POOL = [
+      'Nhạc cháy quá DJ ơi! 🔥', 'Chào cả phòng nhé!', 'Slime nhìn cưng xỉu ❤️',
+      'Ủng hộ idol lên Top 1 nào!', 'Quẩy lên anh em ơi!', 'Bắn tim nhiệt tình nào!'
+    ];
+    document.getElementById('btn-mock-chat').addEventListener('click', () => {
+      const input = document.getElementById('mock-custom-chat');
+      const isRandom = document.getElementById('mock-random-chat').checked;
+      const comment = input.value.trim() || (isRandom ? CHAT_POOL[Math.floor(Math.random() * CHAT_POOL.length)] : 'Hello phòng nhảy!');
+      const user = getTargetUser();
+      sendWs({ type: 'mock_trigger', action: 'chat', comment, user });
+      log(`Chat: "${comment}" by ${user.username}`, 'sent');
+      input.value = '';
+    });
+
+    document.getElementById('btn-mock-likes-10').addEventListener('click', () => {
+      const user = getTargetUser();
+      sendWs({ type: 'mock_trigger', action: 'likes', count: 10, user });
+      log(`Thả tim: +10 likes từ ${user.username}`, 'sent');
+    });
+    document.getElementById('btn-mock-likes-50').addEventListener('click', () => {
+      const user = getTargetUser();
+      sendWs({ type: 'mock_trigger', action: 'likes', count: 50, user });
+      log(`Thả tim: +50 likes từ ${user.username}`, 'sent');
+    });
+
+    // 7. Gift Category Tabs & Donate Buttons
+    document.querySelectorAll('.gift-cat-tab').forEach((tab) => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.gift-cat-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        const cat = tab.getAttribute('data-cat');
+        document.querySelectorAll('.gift-grid-container').forEach((c) => {
+          c.style.display = c.getAttribute('data-cat') === cat ? 'grid' : 'none';
+        });
+      });
+    });
+
+    document.querySelectorAll('.donate-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const giftName = btn.getAttribute('data-name');
+        const giftKey = btn.getAttribute('data-gift') || giftName;
+        const tier = Number(btn.getAttribute('data-tier') || 1);
+        const coins = Number(btn.getAttribute('data-coins') || 1);
+        const user = getTargetUser();
+        sendWs({ type: 'mock_trigger', action: 'gift', giftName, giftKey, tier, coins, user });
+        log(`Tặng quà: ${giftName} (${coins}🪙) cho ${user.username}`, 'sent');
+      });
+    });
+
+    document.getElementById('btn-mock-lion-epic').addEventListener('click', () => {
+      const user = getTargetUser();
+      sendWs({ type: 'mock_trigger', action: 'gift', giftName: 'Sư tử', giftKey: 'lion', tier: 5, coins: 29999, user });
+      log(`👑 ĐẠI TIỆC LION CORONATION (29.999🪙) cho ${user.username}!`, 'sent');
+    });
+
+    // 8. Continuous Donate Storm
+    const stormBtn = document.getElementById('btn-donate-storm');
+    stormBtn.addEventListener('click', () => {
+      isDonateStormActive = !isDonateStormActive;
+      if (isDonateStormActive) {
+        stormBtn.textContent = '🌧️ Bão Donate Liên Tục: ON (Đang bắn...)';
+        stormBtn.style.color = '#00ff88';
+        stormBtn.style.borderColor = '#00ff88';
+        const buttons = Array.from(document.querySelectorAll('.donate-btn'));
+        donateStormInterval = setInterval(() => {
+          const randBtn = buttons[Math.floor(Math.random() * buttons.length)];
+          randBtn.click();
+        }, 1200);
+      } else {
+        stormBtn.textContent = '🌧️ Bão Donate Liên Tục: OFF';
+        stormBtn.style.color = '';
+        stormBtn.style.borderColor = '';
+        clearInterval(donateStormInterval);
+      }
+    });
+  </script>
+</body>
+</html>

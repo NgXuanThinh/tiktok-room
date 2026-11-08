@@ -27,7 +27,19 @@ const suites = [
   // User Feedback Refinements (camera zoom, floor expansion, radial spawn, spot lighting, no viewer)
   { name: 'camera-zoom-spotlights-floor', path: './camera-zoom-spotlights-floor.test.js' },
   // Radical Fixes (orbit 25m occlusion prevention, 100% floor spot lighting, DJ booth top edge)
-  { name: 'orbit-dj-occlusion-spotlights', path: './orbit-dj-occlusion-spotlights.test.js' }
+  { name: 'orbit-dj-occlusion-spotlights', path: './orbit-dj-occlusion-spotlights.test.js' },
+  // Preview Design Constraints (Chubby colors, Gold halo & foot ring, Eye reset, Donate tier separation)
+  { name: 'preview-design-constraints', path: './preview-design-constraints.test.js' },
+  // Main Stream Stage Lights Harmonization (Categorized donate lights, beams, organic AI dance)
+  { name: 'main-stream-stage-lights', path: './main-stream-stage-lights.test.js' },
+  // VIP In-Place Celebration, Differentiated Thrones & Anti-Flickering Swapping
+  { name: 'vip-inplace-celebration-swap', path: './vip-inplace-celebration-swap.test.js' },
+  // Camera 360 Orbit, Parabolic Leap Arc, Permanent Avatars & Random Slots
+  { name: 'camera-orbit-leap-vip-random', path: './camera-orbit-leap-vip-random.test.js' },
+  // Categorized Donation VFX Tiers (1 coin drop/jump, 5 coin 3-jumps, 1-5 orbiting rings, shockwave, mythic crown)
+  { name: 'donation-vfx-tiers', path: './donation-vfx-tiers.test.js' },
+  // 3D Signature Gift Props, Clean Honoring Alert & Short SFX
+  { name: 'gift-props-signatures', path: './gift-props-signatures.test.js' }
 ];
 
 async function runAll() {

@@ -65,16 +65,18 @@ export async function run() {
         assert.ok(typeof generateDanceFloorSlots === 'function', 'generateDanceFloorSlots must be exported');
         const slots = generateDanceFloorSlots(FLOOR_GRID_CONFIG);
         assert.ok(Array.isArray(slots), 'Slots must be an array');
-        assert.strictEqual(slots.length, 140, 'Slots must cover the 140 dance floor tiles (144 minus 4 center VIP tiles)');
+        assert.strictEqual(slots.length, 144, 'Slots must cover the 144 dance floor tiles including center tiles');
 
-        // The 4 center tiles (< 1.7m) must be preserved for VIP podium
-        for (const s of slots) {
+        // Ring 0: The 4 center tiles (dist ~ 1.13m < 1.7m)
+        const centerRing = slots.slice(0, 4);
+        assert.strictEqual(centerRing.length, 4, 'Must include 4 center tiles');
+        for (const s of centerRing) {
           const dist = Math.hypot(s.x, s.z);
-          assert.ok(dist >= 1.7, `Slot at (${s.x}, ${s.z}) must not overlap the 4 center VIP tiles (dist: ${dist.toFixed(2)}m >= 1.7m)`);
+          assert.ok(dist < 1.7, `Center slot at (${s.x}, ${s.z}) must be in center (< 1.7m)`);
         }
 
-        // Ring 1 (first 12 slots) must circle 360 degrees around the podium in polar angle order
-        const ring1 = slots.slice(0, 12);
+        // Ring 1 (next 12 slots) must circle 360 degrees around center
+        const ring1 = slots.slice(4, 16);
         for (let i = 0; i < ring1.length; i++) {
           const s = ring1[i];
           const dist = Math.hypot(s.x, s.z);
@@ -82,12 +84,12 @@ export async function run() {
           if (i > 0) {
             const prevAngle = (Math.atan2(ring1[i - 1].z, ring1[i - 1].x) + 2 * Math.PI) % (2 * Math.PI);
             const currAngle = (Math.atan2(s.z, s.x) + 2 * Math.PI) % (2 * Math.PI);
-            assert.ok(currAngle >= prevAngle, `Ring 1 slots must rotate sequentially around the podium`);
+            assert.ok(currAngle >= prevAngle, `Ring 1 slots must rotate sequentially around the center`);
           }
         }
 
         // Ring 2 (next 20 slots) must expand further outward than Ring 1
-        const ring2 = slots.slice(12, 32);
+        const ring2 = slots.slice(16, 36);
         const avgDist1 = ring1.reduce((sum, s) => sum + Math.hypot(s.x, s.z), 0) / ring1.length;
         const avgDist2 = ring2.reduce((sum, s) => sum + Math.hypot(s.x, s.z), 0) / ring2.length;
         assert.ok(
@@ -131,7 +133,7 @@ export async function run() {
         const clamped = clampSpotlightToFloor(rawTarget);
 
         assert.ok(clamped.x <= 9.0 && clamped.x >= -9.0, `Clamped X (${clamped.x}) must remain within floor bounds [-9.0, 9.0]`);
-        assert.ok(clamped.z <= 9.5 && clamped.z >= -7.5, `Clamped Z (${clamped.z}) must remain within floor bounds [-7.5, 9.5]`);
+        assert.ok(clamped.z <= 9.5 && clamped.z >= -11.0, `Clamped Z (${clamped.z}) must remain within floor and VIP bounds [-11.0, 9.5]`);
         assert.strictEqual(clamped.y, 0, 'Spotlight target must hit floor level Y=0');
       }
     },
@@ -152,10 +154,10 @@ export async function run() {
         focusedCount = env.movingHeads.filter(h => h.isFocused).length;
         assert.strictEqual(focusedCount, 2, 'Tier 2 must focus exactly 2 spotlights');
 
-        // Tier 3/4 (Whale/Lion): All 4 spotlights focused on VIP podium
+        // Tier 3/4 (Whale/Lion): All spotlights focused on donor
         env.focusSpotlights(3, { x: 0, y: 0.8, z: 0 }, 15.0);
         focusedCount = env.movingHeads.filter(h => h.isFocused).length;
-        assert.strictEqual(focusedCount, 4, 'Tier 3+ (Lion/Whale) must focus all 4 spotlights');
+        assert.strictEqual(focusedCount, env.movingHeads.length, 'Tier 3+ (Lion/Whale) must focus all spotlights');
       }
     },
     {
@@ -163,21 +165,17 @@ export async function run() {
       fn: () => {
         const env = new ClubEnvironment();
         assert.ok(env.vipPodiumGroup, 'vipPodiumGroup must exist');
-        assert.strictEqual(env.vipPodiumGroup.position.x, 0, 'Podium X must be centered at 0');
-        assert.strictEqual(env.vipPodiumGroup.position.z, 0, 'Podium Z must be centered at 0');
+        assert.strictEqual(env.vipPodiumGroup.position.x, 0, 'VIP group base X must be centered at 0');
+        assert.strictEqual(env.vipPodiumGroup.position.z, 0, 'VIP group base Z must be centered at 0');
 
-        let baseMesh = null;
+        // Center circular podium was replaced by dedicated elevated VIP lounges flanking the DJ booth
+        let hasVipPlatform = false;
         env.vipPodiumGroup.traverse((child) => {
-          if (child.isMesh && child.geometry?.parameters?.radiusBottom) {
-            baseMesh = child;
+          if (child.isMesh && child.position.y > 0.1) {
+            hasVipPlatform = true;
           }
         });
-        assert.ok(baseMesh, 'VIP podium base mesh must exist');
-        const rBottom = baseMesh.geometry.parameters.radiusBottom;
-        assert.ok(
-          rBottom <= 1.6 && rBottom >= 1.2,
-          `VIP podium radius (${rBottom}m) must comfortably fit within the 4 center tiles (<= 1.6m)`
-        );
+        assert.ok(hasVipPlatform, 'Elevated VIP lounge platforms must exist in vipPodiumGroup');
       }
     }
   ];

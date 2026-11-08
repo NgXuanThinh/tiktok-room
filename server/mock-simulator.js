@@ -6,7 +6,7 @@ export const MOCK_LEVELS = ['Lv.1', 'Lv.10', 'Lv.25', 'Lv.50', 'VIP', 'TOP 1'];
 export function createCustomMockUser(params = {}) {
   const username = params.username || 'DaiGiaBinhDuong';
   const level = params.level || 'TOP 1';
-  const slimeColor = params.slimeColor || 'yellow';
+  const slimeColor = params.slimeColor || 'blue';
   const cleanId = username.toLowerCase().replace(/[^a-z0-9]/g, '_');
   const id = cleanId.startsWith('custom_') ? cleanId : `custom_${cleanId}`;
 
@@ -57,10 +57,11 @@ const MOCK_GIFTS = [
   { giftId: 3, giftName: 'Panda', diamondCount: 99, repeatCount: 1, tier: 1 },
   { giftId: 10, giftName: 'Perfume', diamondCount: 100, repeatCount: 1, tier: 2 },
   { giftId: 11, giftName: 'Sunglasses', diamondCount: 199, repeatCount: 1, tier: 2 },
-  { giftId: 20, giftName: 'Lion', diamondCount: 500, repeatCount: 1, tier: 3 },
+  { giftId: 20, giftName: 'Money Rain', diamondCount: 500, repeatCount: 1, tier: 3 },
   { giftId: 21, giftName: 'Galaxy', diamondCount: 1000, repeatCount: 1, tier: 3 },
-  { giftId: 30, giftName: 'Universe', diamondCount: 2000, repeatCount: 1, tier: 4 },
-  { giftId: 31, giftName: 'TikTok Live Falcon', diamondCount: 5000, repeatCount: 1, tier: 4 }
+  { giftId: 30, giftName: 'Lion', diamondCount: 29999, repeatCount: 1, tier: 4 },
+  { giftId: 31, giftName: 'Universe', diamondCount: 2000, repeatCount: 1, tier: 4 },
+  { giftId: 32, giftName: 'TikTok Live Falcon', diamondCount: 5000, repeatCount: 1, tier: 4 }
 ];
 
 export class MockSimulator {
@@ -96,18 +97,20 @@ export class MockSimulator {
     return evt;
   }
 
-  simulateGift(tier = 1, customGiftName = null, customCoins = null, user = null) {
+  simulateGift(tier = 1, customGiftName = null, customCoins = null, user = null, customGiftKey = null) {
     const u = user || this.getRandomViewer();
     let giftSpec = MOCK_GIFTS.find((g) => g.tier === tier);
     if (!giftSpec) giftSpec = MOCK_GIFTS[0];
 
     const diamondCount = customCoins !== null ? Number(customCoins) : giftSpec.diamondCount;
     const giftName = customGiftName || giftSpec.giftName;
+    const giftKey = customGiftKey || giftSpec.giftKey || giftName;
 
     const evt = normalizeTikTokEvent('gift', {
       ...u,
       giftId: giftSpec.giftId,
       giftName,
+      giftKey,
       diamondCount,
       repeatCount: 1
     });
@@ -118,9 +121,11 @@ export class MockSimulator {
   simulateSpawn(user = null) {
     const u = user || this.getRandomViewer();
     const color = u.slimeColor || 'green';
+    const tier = u.tier !== undefined ? Number(u.tier) : 1;
     const evt = normalizeTikTokEvent('chat', {
       ...u,
-      comment: `!color ${color}`
+      tier,
+      comment: `!color ${color} !tier ${tier}`
     });
     this.onEvent(evt);
     return evt;

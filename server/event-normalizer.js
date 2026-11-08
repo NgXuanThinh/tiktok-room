@@ -96,6 +96,7 @@ function extractUser(raw) {
   };
   if (raw.level || userObj.level) res.level = raw.level || userObj.level;
   if (raw.slimeColor || userObj.slimeColor) res.slimeColor = raw.slimeColor || userObj.slimeColor;
+  if (raw.tier !== undefined || userObj.tier !== undefined) res.tier = Number(raw.tier !== undefined ? raw.tier : userObj.tier);
   return res;
 }
 
@@ -125,6 +126,7 @@ export function normalizeChat(raw) {
 export function normalizeGift(raw) {
   const giftId = Number(raw.giftId || 0);
   const giftName = String(raw.giftName || raw.data?.giftName || 'Gift');
+  const giftKey = String(raw.giftKey || raw.data?.giftKey || raw.giftName || '');
   const diamondCount = Math.max(0, Number(raw.diamondCount || raw.coins || raw.coinCount || 0));
   const repeatCount = Math.max(1, Number(raw.repeatCount || 1));
   const totalCoins = diamondCount * repeatCount;
@@ -143,6 +145,7 @@ export function normalizeGift(raw) {
   return {
     giftId,
     giftName,
+    giftKey,
     diamondCount,
     repeatCount,
     totalCoins,

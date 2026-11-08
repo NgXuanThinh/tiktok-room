@@ -1,0 +1,19 @@
+# Dockerfile for TikTok LIVE 3D Slime Preview Sandbox
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy dependency manifests
+COPY package*.json ./
+
+# Install all dependencies (including devDependencies for Vite)
+RUN npm install
+
+# Copy preview configuration and preview source files
+COPY vite.preview.config.js ./
+COPY preview/ ./preview/
+
+EXPOSE 5175
+
+# Start Vite preview dev server
+CMD ["npm", "run", "preview:slime"]

@@ -60,6 +60,7 @@ export function calculateAudioFlux(current, avg, smoothing = 0.85) {
 
 /**
  * Zero-dependency procedural sound synthesizers configuration.
+ * Strictly limited to 1-2s duration with exponential clickless decay envelopes.
  */
 export const SFX_CONFIGS = {
   coin: {
@@ -67,14 +68,14 @@ export const SFX_CONFIGS = {
     frequencies: [1318, 1567],
     freq1: 1318,
     freq2: 1567,
-    duration: 0.12,
+    duration: 0.15,
     decayTarget: 0.0001
   },
   airhorn: {
     type: 'sawtooth',
     pitchRampStart: 880,
     pitchRampEnd: 1760,
-    duration: 0.5,
+    duration: 1.1,
     decayTarget: 0.0001
   },
   boom: {
@@ -82,10 +83,33 @@ export const SFX_CONFIGS = {
     lowPassCutoff: 40,
     duration: 0.8,
     decayTarget: 0.0001
+  },
+  bassBoom: {
+    type: 'noise',
+    lowPassCutoff: 50,
+    duration: 1.4,
+    decayTarget: 0.0001
+  },
+  jetSwoosh: {
+    type: 'noise',
+    lowPassCutoff: 300,
+    duration: 1.5,
+    decayTarget: 0.0001
+  },
+  fanfare: {
+    type: 'sine',
+    frequencies: [523.25, 659.25, 783.99, 1046.50],
+    duration: 1.2,
+    decayTarget: 0.0001
   }
 };
 
 export function synthesizeSfxParams(name) {
+  const key = String(name || '').toLowerCase();
+  if (key === 'airhorn') return SFX_CONFIGS.airhorn;
+  if (key === 'boom' || key === 'bassboom') return SFX_CONFIGS.bassBoom;
+  if (key === 'jetswoosh') return SFX_CONFIGS.jetSwoosh;
+  if (key === 'fanfare') return SFX_CONFIGS.fanfare;
   return SFX_CONFIGS[name] || SFX_CONFIGS.coin;
 }
 
@@ -363,7 +387,7 @@ export class AudioSystem {
         gain.gain.exponentialRampToValueAtTime(config.decayTarget, t + config.duration);
 
         osc.connect(gain);
-        gain.connect(this.ctx.destination);
+        gain.connect(this.gainNode || this.ctx.destination);
         osc.start(t);
         osc.stop(t + config.duration);
       }
@@ -378,7 +402,7 @@ export class AudioSystem {
       gain.gain.exponentialRampToValueAtTime(config.decayTarget, t + config.duration);
 
       osc.connect(gain);
-      gain.connect(this.ctx.destination);
+      gain.connect(this.gainNode || this.ctx.destination);
       osc.start(t);
       osc.stop(t + config.duration);
     } else if (config.type === 'noise') {
@@ -403,7 +427,7 @@ export class AudioSystem {
 
       noise.connect(filter);
       filter.connect(gain);
-      gain.connect(this.ctx.destination);
+      gain.connect(this.gainNode || this.ctx.destination);
 
       noise.start(t);
       noise.stop(t + config.duration);

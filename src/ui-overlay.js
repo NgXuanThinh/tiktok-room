@@ -1,4 +1,136 @@
 // src/ui-overlay.js - Responsive OBS HUD overlay & Streamer Admin Drawer
+const RANDOM_NICKNAMES = [
+  'DaiGiaBinhDuong',
+  'QuangLinhVlog',
+  'HaLinhOfficial',
+  'CyberSlime_007',
+  'PartyQueen_99',
+  'RaveMaster_X',
+  'TiktokVIP_VN',
+  'RichKid_Saigon',
+  'DJ_FanCung',
+  'BeHeoKute',
+  'Chubby_Mochi'
+];
+
+const RANDOM_COMMENTS = [
+  'Quẩy lên nào anh em ơi! 🔥',
+  '!dance 1',
+  '!dance 2',
+  '!dance 3',
+  '!dance 4',
+  '!dance 5',
+  '!dance 6',
+  '!jump',
+  '!cheer',
+  '!wave',
+  'DJ đánh căng đét! 🎧',
+  'Drop the bass! 🔊',
+  'Slime cute xỉu 😍',
+  'Thả tim rực rỡ phòng live ❤️',
+  'Sàn nhảy hôm nay cháy quá 💃🕺',
+  'Nhạc chất quá idol ơi! 🎵',
+  'Hóng Top 1 donate hôm nay 👑'
+];
+
+export const GIFT_LOGOS = {
+  // Small Tier (1 - 19 coins)
+  rose: '🌹',
+  hoa_hong: '🌹',
+  finger_heart: '🫰',
+  ban_tim: '🫰',
+  tiktok: '🎵',
+  ice_cream: '🍦',
+  kem: '🍦',
+  coffee: '☕',
+  ca_phe: '☕',
+  lucky_cat: '🐱',
+  meo_may_man: '🐱',
+  panda: '🐼',
+  gau_truc: '🐼',
+  weights: '🏋️',
+  ta_don: '🏋️',
+  donut: '🍩',
+  banh_donut: '🍩',
+
+  // Medium Tier (20 - 499 coins)
+  sunglasses: '🕶️',
+  kinh_ngau: '🕶️',
+  conical_hat: '👒',
+  non_la: '👒',
+  rainbow: '🌈',
+  cau_vong: '🌈',
+  disco_ball: '🪩',
+  qua_cau_disco: '🪩',
+  money_gun: '💸',
+  sung_ban_tien: '💸',
+  electric_guitar: '🎸',
+  dan_dien: '🎸',
+  love_balloons: '🎈',
+  bong_bay: '🎈',
+  paper_crane: '🕊️',
+  hac_giay: '🕊️',
+  origami: '🕊️',
+  magic_mirror: '🪞',
+  guong_than: '🪞',
+  perfume: '🌸',
+  nuoc_hoa: '🌸',
+  crown: '👑',
+  vuong_mien: '👑',
+
+  // High Tier (500 - 4999 coins)
+  jet: '✈️',
+  may_bay: '✈️',
+  plane: '✈️',
+  private_jet: '✈️',
+  may_bay_phan_luc: '✈️',
+  excalibur: '⚔️',
+  guom_anh_sang: '⚔️',
+  sword: '⚔️',
+  thanh_kiem: '⚔️',
+  sports_car: '🏎️',
+  sieu_xe: '🏎️',
+  ferrari: '🏎️',
+  yacht: '🛥️',
+  du_thuyen: '🛥️',
+  castle: '🏰',
+  lau_dai: '🏰',
+  diamond: '💎',
+  kim_cuong: '💎',
+  meteor_shower: '☄️',
+  mua_sao_bang: '☄️',
+  amusement_park: '🎡',
+  cong_vien: '🎡',
+  space_shuttle: '🚀',
+  tau_vu_tru: '🚀',
+
+  // Ultra Tier (>= 5000 coins)
+  golden_lion: '🦁',
+  su_tu_vang: '🦁',
+  lion: '🦁',
+  su_tu: '🦁',
+  phoenix: '🦅',
+  phuong_hoang: '🦅',
+  firebird: '🦅',
+  pegasus: '🦄',
+  ngua_than: '🦄',
+  unicorn: '🦄',
+  universe: '🪐',
+  vu_tru: '🪐',
+  galaxy: '🌌',
+  ngan_ha: '🌌',
+  cyber_beast: '🐅',
+  quai_thu: '🐅',
+  dragon: '🐉',
+  rong_than: '🐉'
+};
+
+export function getGiftLogo(giftKeyOrName) {
+  if (!giftKeyOrName) return '🎁';
+  const clean = String(giftKeyOrName).toLowerCase().trim().replace(/[\s-]+/g, '_');
+  return GIFT_LOGOS[clean] || '🎁';
+}
+
 export class UiOverlay {
   constructor(options = {}) {
     this.ws = options.ws || null;
@@ -13,6 +145,10 @@ export class UiOverlay {
 
     this.topDonors = [];
     this.adminOpen = false;
+    this.mockSpawnCount = 0;
+    this.activeFloorAvatars = [];
+    this.isDonateStormActive = false;
+    this.donateStormInterval = null;
 
     this.initElements();
     this.bindEvents();
@@ -25,6 +161,7 @@ export class UiOverlay {
     this.giftBannerEl = document.getElementById('gift-banner');
     this.bannerAvatarEl = document.getElementById('banner-avatar');
     this.bannerTitleEl = document.getElementById('banner-title');
+    this.bannerLogoEl = document.getElementById('banner-logo');
     this.bannerSubEl = document.getElementById('banner-sub');
     this.adminDrawerEl = document.getElementById('admin-drawer');
     this.adminToggleBtn = document.getElementById('admin-toggle-btn');
@@ -150,58 +287,184 @@ export class UiOverlay {
       });
     }
 
+    // Random Nickname Generator Button
+    const randNameBtn = document.getElementById('btn-random-name');
+    if (randNameBtn) {
+      randNameBtn.addEventListener('click', () => {
+        const usernameEl = document.getElementById('mock-custom-username');
+        if (usernameEl) {
+          const rand = RANDOM_NICKNAMES[Math.floor(Math.random() * RANDOM_NICKNAMES.length)];
+          usernameEl.value = rand;
+        }
+      });
+    }
+
     // Custom Mock Person Buttons
     this.bindMockButton('btn-mock-spawn', () => {
-      const user = this.getCustomMockUser();
+      this.mockSpawnCount++;
+      const user = this.getCustomMockUser(this.mockSpawnCount);
       if (this.ws) this.ws.send(JSON.stringify({ type: 'mock_trigger', action: 'spawn', user }));
     });
-    this.bindMockButton('btn-mock-rose', () => {
-      const user = this.getCustomMockUser();
-      if (this.ws) this.ws.send(JSON.stringify({ type: 'mock_trigger', action: 'gift', tier: 1, giftName: 'Rose', coins: 1, user }));
+
+    this.bindMockButton('btn-mock-delete-target', () => {
+      const targetSelect = document.getElementById('mock-target-avatar');
+      const targetUserId = targetSelect?.value;
+      if (targetUserId) {
+        if (this.ws) this.ws.send(JSON.stringify({ type: 'mock_trigger', action: 'delete_avatar', userId: targetUserId }));
+        window.dispatchEvent(new CustomEvent('app_delete_avatar', { detail: { userId: targetUserId } }));
+      }
     });
-    this.bindMockButton('btn-mock-perfume', () => {
-      const user = this.getCustomMockUser();
-      if (this.ws) this.ws.send(JSON.stringify({ type: 'mock_trigger', action: 'gift', tier: 2, giftName: 'Perfume', coins: 100, user }));
+
+    this.bindMockButton('btn-mock-clear-all', () => {
+      if (this.ws) this.ws.send(JSON.stringify({ type: 'mock_trigger', action: 'clear_avatars' }));
+      window.dispatchEvent(new CustomEvent('app_clear_avatars'));
     });
-    this.bindMockButton('btn-mock-lion', () => {
-      const user = this.getCustomMockUser();
-      if (this.ws) this.ws.send(JSON.stringify({ type: 'mock_trigger', action: 'gift', tier: 3, giftName: 'Lion', coins: 500, user }));
-    });
+
     this.bindMockButton('btn-mock-chat', () => {
-      const user = this.getCustomMockUser();
-      if (this.ws) this.ws.send(JSON.stringify({ type: 'mock_trigger', action: 'chat', comment: 'Let us party with VIP!', user }));
+      const user = this.getTargetUser();
+      const chatInput = document.getElementById('mock-custom-chat');
+      const randomChatToggle = document.getElementById('mock-random-chat');
+      let comment = chatInput?.value?.trim();
+      if (!comment || (randomChatToggle && randomChatToggle.checked && !comment)) {
+        comment = RANDOM_COMMENTS[Math.floor(Math.random() * RANDOM_COMMENTS.length)];
+      }
+      if (this.ws) this.ws.send(JSON.stringify({ type: 'mock_trigger', action: 'chat', comment, user }));
     });
+
     this.bindMockButton('btn-mock-likes', () => {
-      const user = this.getCustomMockUser();
+      const user = this.getTargetUser();
       if (this.ws) this.ws.send(JSON.stringify({ type: 'mock_trigger', action: 'likes', count: 10, user }));
     });
 
-    // Mock Testing Buttons
-    this.bindMockButton('mock-likes', () => {
-      if (this.ws) this.ws.send(JSON.stringify({ type: 'mock_trigger', action: 'likes', count: 10 }));
+    // Epic Lion Coronation Button
+    this.bindMockButton('btn-mock-lion-epic', () => {
+      const user = this.getTargetUser();
+      if (this.ws) {
+        this.ws.send(JSON.stringify({
+          type: 'mock_trigger',
+          action: 'gift',
+          tier: 4,
+          giftName: 'Lion',
+          coins: 29999,
+          user
+        }));
+      }
     });
-    this.bindMockButton('mock-chat', () => {
-      if (this.ws) this.ws.send(JSON.stringify({ type: 'mock_trigger', action: 'chat' }));
+
+    // Preview-style Gift Category Tabs
+    document.querySelectorAll('.gift-cat-tab').forEach((tab) => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.gift-cat-tab').forEach((t) => t.classList.remove('active'));
+        tab.classList.add('active');
+        const cat = tab.dataset.cat;
+        document.querySelectorAll('.gift-grid-container').forEach((grid) => {
+          grid.style.display = (grid.dataset.cat === cat) ? 'grid' : 'none';
+        });
+      });
     });
-    this.bindMockButton('mock-gift-tier1', () => {
-      if (this.ws) this.ws.send(JSON.stringify({ type: 'mock_trigger', action: 'gift', tier: 1 }));
+
+    // Preview-style Donate Buttons Listener
+    document.querySelectorAll('.donate-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const user = this.getTargetUser();
+        const tier = Number(btn.dataset.tier || 1);
+        const giftName = btn.dataset.name || 'Gift';
+        const coins = Number(btn.dataset.coins || 1);
+        if (this.ws) {
+          this.ws.send(JSON.stringify({
+            type: 'mock_trigger',
+            action: 'gift',
+            tier,
+            giftName,
+            coins,
+            user
+          }));
+        }
+      });
     });
-    this.bindMockButton('mock-gift-tier2', () => {
-      if (this.ws) this.ws.send(JSON.stringify({ type: 'mock_trigger', action: 'gift', tier: 2 }));
-    });
-    this.bindMockButton('mock-gift-tier3', () => {
-      if (this.ws) this.ws.send(JSON.stringify({ type: 'mock_trigger', action: 'gift', tier: 3 }));
-    });
+
+    // Continuous Donate Storm Toggle Button
+    const stormBtn = document.getElementById('btn-donate-storm');
+    if (stormBtn) {
+      stormBtn.addEventListener('click', () => {
+        this.isDonateStormActive = !this.isDonateStormActive;
+        if (this.isDonateStormActive) {
+          stormBtn.textContent = '🌧️ Bão Donate: ĐANG XẢ (BẤM DỪNG)';
+          stormBtn.style.background = 'linear-gradient(135deg, #ff0874, #ffd700)';
+          stormBtn.style.color = '#000';
+          stormBtn.style.fontWeight = 'bold';
+
+          const quickGifts = [
+            { tier: 1, name: 'Hoa hồng', coins: 1 },
+            { tier: 1, name: 'Finger Heart', coins: 5 },
+            { tier: 2, name: 'Pháo giấy', coins: 100 },
+            { tier: 2, name: 'Kính râm Cyber', coins: 199 },
+            { tier: 3, name: 'Mưa tiền', coins: 500 },
+            { tier: 4, name: 'Quả cầu Disco', coins: 1000 },
+            { tier: 4, name: 'Lion', coins: 29999 }
+          ];
+
+          this.donateStormInterval = setInterval(() => {
+            if (!this.ws) return;
+            const target = (this.activeFloorAvatars && this.activeFloorAvatars.length > 0)
+              ? this.activeFloorAvatars[Math.floor(Math.random() * this.activeFloorAvatars.length)]
+              : this.getTargetUser();
+            const g = quickGifts[Math.floor(Math.random() * quickGifts.length)];
+            this.ws.send(JSON.stringify({
+              type: 'mock_trigger',
+              action: 'gift',
+              tier: g.tier,
+              giftName: g.name,
+              coins: g.coins,
+              user: target
+            }));
+          }, 650);
+        } else {
+          stormBtn.textContent = '🌧️ Bão Donate Liên Tục: OFF';
+          stormBtn.style.background = '';
+          stormBtn.style.color = '';
+          stormBtn.style.fontWeight = '';
+          if (this.donateStormInterval) {
+            clearInterval(this.donateStormInterval);
+            this.donateStormInterval = null;
+          }
+        }
+      });
+    }
   }
 
-  getCustomMockUser() {
+  getTargetUser() {
+    const targetSelect = document.getElementById('mock-target-avatar');
+    if (targetSelect && targetSelect.value && this.activeFloorAvatars) {
+      const found = this.activeFloorAvatars.find((a) => String(a.userId) === String(targetSelect.value));
+      if (found) {
+        return {
+          id: found.userId,
+          userId: found.userId,
+          uniqueId: found.userId,
+          username: found.username,
+          nickname: found.nickname || found.username,
+          level: found.level || 'Lv.1',
+          slimeColor: found.color || 'blue',
+          tier: found.tier || 1,
+          avatarUrl: found.avatarUrl || ''
+        };
+      }
+    }
+    return this.getCustomMockUser(this.mockSpawnCount);
+  }
+
+  getCustomMockUser(spawnIdx = 0) {
     const usernameEl = document.getElementById('mock-custom-username');
+    const tierEl = document.getElementById('mock-custom-tier');
     const levelEl = document.getElementById('mock-custom-level');
     const colorEl = document.getElementById('mock-custom-color');
 
-    const username = usernameEl?.value?.trim() || 'DaiGiaBinhDuong';
-    const level = levelEl?.value || 'TOP 1';
-    const slimeColor = colorEl?.value || 'yellow';
+    const baseName = usernameEl?.value?.trim() || 'DaiGiaBinhDuong';
+    const username = spawnIdx > 0 ? `${baseName}_${spawnIdx}` : baseName;
+    const tier = Number(tierEl?.value || 1);
+    const level = levelEl?.value || 'Lv.1';
+    const slimeColor = colorEl?.value || 'blue';
     const cleanId = username.toLowerCase().replace(/[^a-z0-9]/g, '_');
     const id = cleanId.startsWith('custom_') ? cleanId : `custom_${cleanId}`;
 
@@ -211,10 +474,31 @@ export class UiOverlay {
       uniqueId: id,
       username,
       nickname: username,
+      tier,
       level,
       slimeColor,
       avatarUrl: ''
     };
+  }
+
+  updateActiveAvatars(avatarList = []) {
+    this.activeFloorAvatars = avatarList;
+    const select = document.getElementById('mock-target-avatar');
+    if (!select) return;
+
+    const currentVal = select.value;
+    select.innerHTML = '<option value="">-- Mục tiêu: Tạo mới / Custom Input --</option>';
+
+    avatarList.forEach((av, idx) => {
+      const opt = document.createElement('option');
+      opt.value = av.userId;
+      const rankTag = av.rank ? ` [${av.rank}]` : '';
+      opt.textContent = `[#${idx + 1}] @${av.username} (Tier ${av.tier || 1}, ${av.level || 'Lv.1'})${rankTag}`;
+      if (String(av.userId) === String(currentVal)) {
+        opt.selected = true;
+      }
+      select.appendChild(opt);
+    });
   }
 
   bindMockButton(id, fn) {
@@ -257,6 +541,10 @@ export class UiOverlay {
     }
   }
 
+  triggerFrenzy(duration = 15) {
+    this.triggerFrenzyMode();
+  }
+
   triggerFrenzyMode() {
     this.isFrenzy = true;
     if (this.hypeTextEl) this.hypeTextEl.textContent = 'FRENZY MODE!';
@@ -283,34 +571,62 @@ export class UiOverlay {
     if (!this.giftBannerEl) return;
     const user = giftEvent.user || {};
     const data = giftEvent.data || {};
+    const giftName = data.giftName || 'Quà';
+    const coins = Number(data.totalCoins || data.diamondCount || data.coins || 1);
+    const donorName = user.nickname || user.username || 'Khách';
 
+    // Format clean non-fluff text strictly: "[Nickname] tặng [Tên quà]"
     if (this.bannerTitleEl) {
-      this.bannerTitleEl.textContent = `${user.nickname || user.username} sent ${data.giftName || 'Gift'}!`;
+      this.bannerTitleEl.textContent = `${donorName} tặng ${giftName}`;
     }
+
+    // Gift Logo
+    const giftKey = data.giftKey || giftName;
+    const logo = getGiftLogo(giftKey);
+    if (this.bannerLogoEl) {
+      this.bannerLogoEl.textContent = logo;
+    }
+
+    // Coin badge: "[Xu]🪙"
     if (this.bannerSubEl) {
-      this.bannerSubEl.textContent = `${data.totalCoins || data.diamondCount} Coins (${data.repeatCount || 1}x)`;
+      this.bannerSubEl.textContent = `${coins}🪙`;
     }
 
     if (this.bannerAvatarEl) {
       this.bannerAvatarEl.src = `/api/avatar?name=${encodeURIComponent(user.username || '')}&url=${encodeURIComponent(user.avatarUrl || '')}`;
     }
 
+    // Determine tier class & sfx
+    this.giftBannerEl.classList.remove('tier-small', 'tier-medium', 'tier-high', 'tier-ultra');
+    let tierClass = 'tier-small';
+    let sfxKey = 'coin';
+
+    if (coins >= 5000) {
+      tierClass = 'tier-ultra';
+      sfxKey = 'fanfare';
+    } else if (coins >= 500) {
+      tierClass = 'tier-high';
+      sfxKey = 'jetSwoosh';
+    } else if (coins >= 20) {
+      tierClass = 'tier-medium';
+      sfxKey = 'bassBoom';
+    } else {
+      tierClass = 'tier-small';
+      sfxKey = 'coin';
+    }
+
+    this.giftBannerEl.classList.add(tierClass);
     this.giftBannerEl.classList.add('show');
+
     clearTimeout(this.bannerTimeout);
+    const displayDuration = coins >= 5000 ? 5000 : (coins >= 500 ? 4000 : 3000);
     this.bannerTimeout = setTimeout(() => {
       this.giftBannerEl.classList.remove('show');
-    }, 4000);
+    }, displayDuration);
 
-    // Audio SFX trigger based on tier
+    // Audio SFX trigger (strictly <= 1.5s with clickless exponential decay)
     if (this.audioSystem) {
-      if (data.tier === 1) this.audioSystem.playSfx('coin');
-      else if (data.tier === 2) {
-        this.audioSystem.playSfx('coin');
-        this.audioSystem.playSfx('boom');
-      } else {
-        this.audioSystem.playSfx('airhorn');
-        this.audioSystem.playSfx('boom');
-      }
+      this.audioSystem.playSfx(sfxKey);
     }
   }
 
@@ -318,9 +634,9 @@ export class UiOverlay {
     if (!this.leaderListEl) return;
     this.leaderListEl.innerHTML = '';
 
-    const top3 = donors.slice(0, 3);
-    for (let i = 0; i < top3.length; i++) {
-      const d = top3[i];
+    const top5 = donors.slice(0, 5);
+    for (let i = 0; i < top5.length; i++) {
+      const d = top5[i];
       const row = document.createElement('div');
       row.className = 'leader-item';
 

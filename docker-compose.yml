@@ -7,10 +7,32 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
+      - "3001:3001"
     environment:
       - PORT=3000
-      - NODE_ENV=production
+      - ADMIN_PORT=3001
+      - NODE_ENV=development
       - TIKTOK_USERNAME=${TIKTOK_USERNAME:-}
     volumes:
-      - ./public/music:/app/public/music
+      - ./src:/app/src
+      - ./server:/app/server
+      - ./public:/app/public
+      - ./preview:/app/preview
+      - ./tests:/app/tests
+
+  tiktok-preview:
+    build:
+      context: .
+      dockerfile: Dockerfile.preview
+    container_name: tiktok-preview
+    restart: unless-stopped
+    ports:
+      - "${PREVIEW_PORT:-5175}:5175"
+    environment:
+      - PORT=5175
+    volumes:
+      - ./preview:/app/preview
+      - ./src:/app/src
+      - ./vite.preview.config.js:/app/vite.preview.config.js
+      - ./tests:/app/tests
 

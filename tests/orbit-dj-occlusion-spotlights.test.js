@@ -94,7 +94,7 @@ export async function run() {
         assert.ok(typeof ClubEnvironment === 'function', 'ClubEnvironment must be exported');
         const env = new ClubEnvironment();
 
-        assert.strictEqual(env.movingHeads.length, 4, 'Must have exactly 4 moving heads');
+        assert.strictEqual(env.movingHeads.length, 8, 'Must have exactly 8 moving heads');
         for (let i = 0; i < env.movingHeads.length; i++) {
           const mh = env.movingHeads[i];
           assert.ok(mh.spot, `Moving head ${i} must have SpotLight`);
@@ -119,12 +119,12 @@ export async function run() {
             const aim = mh.currentAim;
             assert.ok(aim, `Moving head ${i} must have currentAim`);
             assert.ok(
-              aim.x >= -7.6 && aim.x <= 7.6,
-              `Aim X (${aim.x.toFixed(2)}) must stay within floor bounds [-7.5, 7.5]`
+              aim.x >= -9.0 && aim.x <= 9.0,
+              `Aim X (${aim.x.toFixed(2)}) must stay within venue bounds [-8.8, 8.8]`
             );
             assert.ok(
-              aim.z >= -7.6 && aim.z <= 7.6,
-              `Aim Z (${aim.z.toFixed(2)}) must stay within floor bounds [-7.5, 7.5]`
+              aim.z >= -10.6 && aim.z <= 8.8,
+              `Aim Z (${aim.z.toFixed(2)}) must stay within venue bounds including DJ & VIP [-10.5, 8.8]`
             );
           }
         }

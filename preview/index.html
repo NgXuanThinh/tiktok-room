@@ -596,11 +596,33 @@
       <span style="font-size: 9px; color: #ffd700;">TikTok Simulation</span>
     </div>
 
+    <!-- OPTION TEST: TÁCH BIỆT TIER SHAPE VÀ DONATE EFFECT -->
+    <div style="background: rgba(18, 20, 38, 0.85); border: 1px solid rgba(255, 215, 0, 0.35); border-radius: 9px; padding: 8px; margin-bottom: 8px;">
+      <div class="slider-row" style="margin: 0 0 5px 0; justify-content: space-between;">
+        <label for="toggle-tier-up" style="color: #ffd700; font-weight: 700; display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 11px;">
+          ⚡ Đổi Shape theo Tier quà (Level Up)
+        </label>
+        <input type="checkbox" id="toggle-tier-up" style="accent-color: #ffd700; width: 16px; height: 16px; cursor: pointer;">
+      </div>
+      <div style="font-size: 9.5px; color: #8c90b0; margin-bottom: 6px; line-height: 1.3;">
+        Mặc định (OFF): Donate giữ nguyên hình dạng (Bán Cầu / Chubby) + Full FX.<br>
+        Bật (ON): Donate sẽ nâng cấp hình dáng lên Tier của món quà.
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+        <button class="btn" id="btn-test-keep-shape" style="background: rgba(0, 242, 254, 0.12); border-color: #00f2fe; color: #00f2fe; font-size: 10px; padding: 5px 2px; justify-content: center; font-weight: 700;">
+          ⚪ Bán Cầu + Ngựa Thần (Giữ Shape)
+        </button>
+        <button class="btn" id="btn-test-level-up" style="background: rgba(255, 215, 0, 0.16); border-color: #ffd700; color: #ffd700; font-size: 10px; padding: 5px 2px; justify-content: center; font-weight: 700;">
+          👑 Donate + Lên Level (Đổi Shape)
+        </button>
+      </div>
+    </div>
+
     <!-- Category Tabs -->
     <div class="gift-cat-tabs">
-      <div class="gift-cat-tab active" data-cat="small">Quà Nhỏ (1-10🪙)</div>
-      <div class="gift-cat-tab" data-cat="medium">Quà Trung (20-199🪙)</div>
-      <div class="gift-cat-tab" data-cat="high">Cao Cấp (500-5k🪙)</div>
+      <div class="gift-cat-tab active" data-cat="small">Nhỏ (Nhảy 1s)</div>
+      <div class="gift-cat-tab" data-cat="medium">Trung (Xoay 0.5s)</div>
+      <div class="gift-cat-tab" data-cat="high">Cao Cấp (Sáng trắng)</div>
       <div class="gift-cat-tab" data-cat="ultra">Siêu Xa Xỉ 👑</div>
     </div>
 
@@ -669,25 +691,67 @@
     </div>
     <div class="btn-group-5" style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px;">
       <button class="btn tier-btn active" data-tier="1" style="justify-content: flex-start; padding: 6px 10px;">
-        ⚪ Tie 1: Bán Cầu (Free Tier luồng chính)
+        ⚪ Tie 1: Bán Cầu (Nhún nhảy default)
       </button>
       <button class="btn tier-btn" data-tier="2" style="justify-content: flex-start; padding: 6px 10px;">
-        ✨ Tie 2: Chubby Dáng Đẹp
+        ✨ Tie 2: Chubby Dáng Đẹp (Nhún nhảy default)
       </button>
       <button class="btn tier-btn" data-tier="3" style="justify-content: flex-start; padding: 6px 10px;">
-        🍡 Tie 3: Chubby + 2 Tai Mochi (K mặt, dính 2 bên)
+        🍡 Tie 3: Chubby + 2 Tai Mochi (+ Xoay Tròn 360°)
       </button>
       <button class="btn tier-btn" data-tier="4" style="justify-content: flex-start; padding: 6px 10px;">
-        😈 Tie 4: Chubby + 2 Tai Mochi + Sừng + Đuôi
+        😈 Tie 4: Chubby + Sừng + Đuôi (+ Xoay & Lộn Vòng)
       </button>
       <button class="btn tier-btn" data-tier="5" style="justify-content: flex-start; padding: 6px 10px;">
-        👑 Tie 5: Chubby + 2 Tai Mochi + Sừng + Đuôi + Halo + Vòng Chân (VIP Max)
+        👑 Tie 5: Halo + Vòng Chân (VIP Max - Xoay & Lộn)
       </button>
     </div>
 
-    <!-- Theme Palettes -->
-    <div class="section-title"><span>Theme Palette</span></div>
-    <div class="btn-group">
+    <!-- DANCE MOVES & CHOREOGRAPHY -->
+    <div class="section-title">
+      <span>💃 Điệu Nhảy (Dance Moves By Tier)</span>
+      <span style="font-size: 9px; color: #00f2fe;">Tier Evolution</span>
+    </div>
+
+    <div style="background: rgba(18, 20, 38, 0.85); border: 1px solid rgba(0, 242, 254, 0.3); border-radius: 9px; padding: 8px; margin-bottom: 8px;">
+      <!-- Toggle Auto Routine -->
+      <div class="slider-row" style="margin: 0 0 6px 0; justify-content: space-between;">
+        <label for="toggle-auto-dance" style="color: #00f2fe; font-weight: 700; display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 11px;">
+          🎲 Vũ đạo ngẫu hứng (Organic AI)
+        </label>
+        <input type="checkbox" id="toggle-auto-dance" checked style="accent-color: #00f2fe; width: 16px; height: 16px; cursor: pointer;">
+      </div>
+      <div style="font-size: 9.5px; color: #8c90b0; margin-bottom: 8px; line-height: 1.35;">
+        • <b>Tier 1 & 2</b>: Chỉ nhún nhảy default.<br>
+        • <b>Tier 3</b>: Nhún nhảy + ngẫu hứng Xoay Tròn 360° (đổi chiều quay ±Y).<br>
+        • <b>Tier 4 & 5</b>: Nhún nhảy + ngẫu hứng Xoay Tròn 360° + Lộn Vòng 360° (tới/lùi ±X).
+      </div>
+
+      <!-- Action Buttons to Test Moves -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 5px;">
+        <button class="btn dance-test-btn" id="btn-dance-spin" style="background: rgba(0, 242, 254, 0.12); border-color: #00f2fe; color: #00f2fe; font-size: 10px; padding: 6px 2px; justify-content: center; font-weight: 700;">
+          🔄 Test Xoay Tròn (Tier 3+)
+        </button>
+        <button class="btn dance-test-btn" id="btn-dance-flip" style="background: rgba(255, 8, 116, 0.15); border-color: #ff0874; color: #ff0874; font-size: 10px; padding: 6px 2px; justify-content: center; font-weight: 700;">
+          🤸 Test Lộn Vòng (Tier 4 & 5)
+        </button>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+        <button class="btn dance-test-btn" id="btn-dance-shuffle" style="background: linear-gradient(135deg, rgba(255, 215, 0, 0.18), rgba(0, 242, 254, 0.18)); border-color: #ffd700; color: #ffd700; font-size: 10px; padding: 5px 2px; justify-content: center; font-weight: 700;">
+          🎲 Xáo Trộn Ngẫu Hứng
+        </button>
+        <button class="btn dance-test-btn" id="btn-dance-bounce" style="background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.2); color: #b0b4d4; font-size: 10px; padding: 5px 2px; justify-content: center;">
+          🦘 Nhún Nhảy Default
+        </button>
+      </div>
+    </div>
+
+    <!-- Theme Palettes (Chubby: Cyan - Pink - Lime, Vòng chân & Halo luôn là Gold) -->
+    <div class="section-title">
+      <span>Theme Palette</span>
+      <span style="font-size: 9px; color: #ffd700;">Halo & Vòng Chân: Gold</span>
+    </div>
+    <div class="btn-group-3">
       <button class="btn palette-btn active" data-palette="cyan">
         <span class="color-dot" style="background: #00f2fe;"></span> Electric Cyan
       </button>
@@ -696,9 +760,6 @@
       </button>
       <button class="btn palette-btn" data-palette="lime">
         <span class="color-dot" style="background: #00ff88;"></span> Toxic Lime
-      </button>
-      <button class="btn palette-btn" data-palette="gold">
-        <span class="color-dot" style="background: #ffbe1a;"></span> Gold Champagne
       </button>
     </div>
 
