@@ -3,6 +3,12 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { createCyberSlime, SLIME_PALETTES } from './slime-model.js?v=20261106_1645';
 import { GiftPropsManager } from './gift-props.js';
+import { playPreviewSfx } from './preview-audio.js';
+import {
+  enqueueHighTierShowcase,
+  initCinematicShowcase,
+  isCinematicFreezeActive
+} from './cinematic-showcase.js';
 
 // 1. Scene, Camera, Renderer Setup
 const container = document.getElementById('canvas-container');
@@ -170,6 +176,7 @@ let currentGlobalGender = 'male'; // Default: Male (NO BLUSH)
 let isPaused = false;
 let currentBpm = 128;
 let bassPunch = 0;
+let currentBillboardScale = 1.0;
 let isLabelsVisible = true; // Option Bật / Tắt Billboard Labels
 let autoTierUpOnDonate = false; // Tách biệt Tier Shape và Donate Effect: Mặc định không đổi shape khi donate
 
@@ -211,6 +218,7 @@ function createAvatarInstance(paletteKey, index = 0) {
   avatar.setTier(currentGlobalTier);
   avatar.setGender(currentGlobalGender);
   avatar.setLabelVisible(isLabelsVisible); // Respects the global label toggle
+  avatar.setBillboardScale(currentBillboardScale);
   avatar.state.bpm = currentBpm;
   avatar.setPaused(isPaused);
 
@@ -393,37 +401,10 @@ let isLionActive = false;
 
 function triggerLionCelebrationEvent(targetAvatar = null, upgradeTier = false) {
   if (activeAvatars.length === 0) return;
-  isLionActive = true;
-  lionFxTimer = 7.6;
-
-  // Unpause if paused
-  if (isPaused) {
-    togglePause();
-  }
-
-  // Trigger on the target avatar (hoặc Avatar #0 in center)
   const heroAvatar = targetAvatar || activeAvatars[0];
-  heroAvatar.triggerLionCelebration(upgradeTier);
-
-  // Position beam at heroAvatar position
-  goldenBeam.position.x = heroAvatar.mesh.position.x;
-  goldenBeam.position.z = heroAvatar.mesh.position.z;
-
-  // Show Lion Banner
-  lionBanner.style.display = 'block';
-
-  // Activate Golden Light Beam
-  goldenBeam.visible = true;
-  beamMat.opacity = 0.55;
-
-  // Trigger fireworks burst at apex after 2.3s and 3.8s
-  setTimeout(() => {
-    triggerFireworks(4.5, heroAvatar.mesh.position.x, heroAvatar.mesh.position.z);
-  }, 2300);
-
-  setTimeout(() => {
-    triggerFireworks(4.8, heroAvatar.mesh.position.x, heroAvatar.mesh.position.z);
-  }, 3800);
+  // Bỏ toàn bộ hiệu ứng cũ trên sàn (pháo hoa, cột sáng sàn, phóng lên 4.2m)
+  // Kích hoạt thẳng qua hệ thống Cinematic Showcase Ultra hoàn tráng & tối ưu tài nguyên
+  triggerDonation('lion', heroAvatar, upgradeTier);
 }
 lionBtn.addEventListener('click', () => triggerLionCelebrationEvent(null, autoTierUpOnDonate));
 
@@ -491,6 +472,23 @@ if (toggleLabelsCheck) {
   toggleLabelsCheck.addEventListener('change', (e) => {
     isLabelsVisible = e.target.checked;
     activeAvatars.forEach(av => av.setLabelVisible(isLabelsVisible));
+  });
+}
+
+// Billboard Label Scale Slider (Điều chỉnh tỷ lệ kích thước phụ thuộc đồng bộ)
+const billboardScaleSlider = document.getElementById('billboard-scale-slider');
+const billboardScaleVal = document.getElementById('billboard-scale-val');
+if (billboardScaleSlider) {
+  billboardScaleSlider.addEventListener('input', (e) => {
+    currentBillboardScale = parseFloat(e.target.value) || 1.0;
+    if (billboardScaleVal) {
+      billboardScaleVal.textContent = `${currentBillboardScale.toFixed(2)}x`;
+    }
+    activeAvatars.forEach(av => {
+      if (typeof av.setBillboardScale === 'function') {
+        av.setBillboardScale(currentBillboardScale);
+      }
+    });
   });
 }
 
@@ -609,21 +607,27 @@ const DONATE_GIFTS = {
   sunglasses: { name: 'Kính râm Cyber', emoji: '🕶️', coins: 199, vnd: '40.000 – 70.000đ', tier: 2, cat: 'medium', color: 0x9d4edd, desc: 'Kính ngầu + Đèn chiếu kép đan chéo' },
 
   // 3. Quà cao cấp (500 - 5.000 xu | ~100.000đ - 1.750.000đ)
+  money_gun: { name: 'Súng tiền (Money Gun)', emoji: '💸', coins: 500, vnd: '100.000 – 175.000đ', tier: 3, cat: 'high', color: 0x00ff88, desc: 'Đại bác bắn tiền & ngọc lục bảo rào rạt' },
   money_rain: { name: 'Mưa tiền', emoji: '💸', coins: 500, vnd: '100.000 – 175.000đ', tier: 3, cat: 'high', color: 0x00ff88, desc: 'Thăng cấp Tie 3 Tai Mochi + Mưa tiền vàng rơi' },
   concert: { name: 'Buổi hòa nhạc', emoji: '🎸', coins: 500, vnd: '100.000 – 175.000đ', tier: 3, cat: 'high', color: 0xff0874, desc: 'Pháo hoa nổ đôi + Đèn sân khấu quét mạnh' },
+  swan: { name: 'Thiên nga', emoji: '🦢', coins: 699, vnd: '140.000 – 240.000đ', tier: 3, cat: 'high', color: 0xff758f, desc: 'Đôi thiên nga hồ trăng + Lông vũ phát quang' },
   love_balloon: { name: 'Bóng bay tình yêu', emoji: '🎈', coins: 699, vnd: '140.000 – 240.000đ', tier: 3, cat: 'high', color: 0xff3366, desc: 'Bóng bay trái tim khổng lồ bay lên trần' },
+  galaxy: { name: 'Vũ trụ Galaxy', emoji: '🌌', coins: 1000, vnd: '200.000 – 350.000đ', tier: 4, cat: 'high', color: 0x00f2fe, desc: 'Hố xoáy thiên hà spiral + Mưa bụi tinh vân' },
   disco_ball: { name: 'Quả cầu Disco', emoji: '🪩', coins: 1000, vnd: '200.000 – 350.000đ', tier: 4, cat: 'high', color: 0x00f2fe, desc: 'Thăng cấp Tie 4 Sừng+Đuôi + Cầu disco phản quang laser' },
   legend: { name: 'Huyền thoại', emoji: '⚔️', coins: 1000, vnd: '200.000 – 350.000đ', tier: 4, cat: 'high', color: 0xffd700, desc: 'Gươm ánh sáng cắm xuống sàn + Air horn' },
+  whale_diving: { name: 'Cá voi lặn (Whale Diving)', emoji: '🐋', coins: 2150, vnd: '450.000 – 700.000đ', tier: 4, cat: 'high', color: 0x00b4d8, desc: 'Cá voi khổng lồ lặn tung bọt biển neon dạ quang' },
+  private_jet: { name: 'Chuyên cơ Private Jet', emoji: '🛩️', coins: 4888, vnd: '1.000.000 – 1.600.000đ', tier: 5, cat: 'high', color: 0xffaa00, desc: 'Chuyên cơ lướt xé gió để lại vệt khói lửa vàng' },
+  diamond_gun: { name: 'Pháo Kim Cương (Diamond Gun)', emoji: '💎', coins: 5000, vnd: '1.000.000 – 1.750.000đ', tier: 5, cat: 'high', color: 0xff007f, desc: 'Pháo kim cương hồng nổ vụn 1000 mảnh pha lê' },
   drama_queen: { name: 'Drama Queen', emoji: '👑', coins: 5000, vnd: '1.000.000 – 1.750.000đ', tier: 5, cat: 'high', color: 0xff0055, desc: 'Thăng cấp Tie 5 Max VIP + Frenzy Mode toàn sàn!' },
 
-  // 4. Quà siêu xa xỉ (6.000 - 44.999 xu | ~1.200.000đ - 15.700.000đ)
-  jet: { name: 'Máy bay phản lực', emoji: '✈️', coins: 6000, vnd: '1.2 – 2.1 Tr VNĐ', tier: 5, cat: 'ultra', color: 0x00f2fe, desc: 'Âm thanh phản lực xé gió + Dải khói Neon vắt ngang sàn' },
-  panther: { name: 'Con Báo (Panther)', emoji: '🐆', coins: 15000, vnd: '3.0 – 5.2 Tr VNĐ', tier: 5, cat: 'ultra', color: 0x7928ca, desc: 'Bóng báo đen hắc ám + Vết cào cào lửa tím trên sàn' },
-  tiger: { name: 'Con Hổ (Tiger)', emoji: '🐅', coins: 19999, vnd: '4.0 – 7.0 Tr VNĐ', tier: 5, cat: 'ultra', color: 0xff8800, desc: 'Hổ gầm chấn động + Quả cầu lửa bùng nổ rung màn hình' },
-  phoenix: { name: 'Phượng hoàng', emoji: '🦅', coins: 25999, vnd: '5.2 – 9.0 Tr VNĐ', tier: 5, cat: 'ultra', color: 0xff2200, desc: 'Đôi cánh lửa thần thoại sải cánh bao phủ toàn sàn đấu' },
-  lion: { name: 'Sư tử (Lion)', emoji: '🦁', coins: 29999, vnd: '6.0 – 10.5 Tr VNĐ', tier: 5, cat: 'ultra', color: 0xffd700, desc: 'Lễ Coronation Đăng Quang: Cột sáng vàng + Bay lộn 3 vòng + Pháo hoa cực đại' },
-  pegasus: { name: 'Ngựa thần (Pegasus)', emoji: '🦄', coins: 42999, vnd: '8.6 – 15.0 Tr VNĐ', tier: 5, cat: 'ultra', color: 0xc77dff, desc: 'Ngựa thần có cánh phi nước đại + Mưa sao băng thiên hà' },
-  universe: { name: 'Vũ trụ TikTok', emoji: '🪐', coins: 44999, vnd: '9.0 – 15.7 Tr VNĐ', tier: 5, cat: 'ultra', color: 0x00f2fe, desc: 'Hố đen vũ trụ mở ra + Nổ Siêu Tân Tinh + Đấng Tạo Hóa TOP 1' }
+  // 4. Quà siêu xa xỉ & Thần thoại (6.000 - 44.999 xu | ~1.200.000đ - 15.700.000đ)
+  jet: { name: 'Máy bay (Airplane)', emoji: '✈️', coins: 6000, vnd: '1.2 – 2.1 Tr VNĐ', tier: 5, cat: 'ultra', color: 0x00f2fe, desc: 'Cưỡi phi cơ phản lực + Rơi tự do + Bung dù 3D vàng kim' },
+  panther: { name: 'Báo đêm (Shadow Panther)', emoji: '🐆', coins: 10000, vnd: '2.0 – 3.5 Tr VNĐ', tier: 5, cat: 'ultra', color: 0x7b2cbf, desc: 'Báo đêm bứt tốc + Vệt bóng ma 2D + 3 cú cào xé không gian' },
+  phoenix: { name: 'Phượng hoàng (Phoenix)', emoji: '🔥', coins: 25999, vnd: '5.2 – 9.0 Tr VNĐ', tier: 5, cat: 'ultra', color: 0xff0055, desc: 'Trứng lửa nứt vỡ + Phượng hoàng 2D khổng lồ bay vút lên bầu trời' },
+  tiger: { name: 'Hổ lửa (Fire Tiger)', emoji: '🐅', coins: 26999, vnd: '5.4 – 9.4 Tr VNĐ', tier: 5, cat: 'ultra', color: 0xff5400, desc: 'Nhảy xuyên Vòng Lửa 2D + Đầu Hổ Lửa 2D gầm thét phun bão lửa' },
+  lion: { name: 'Sư tử (Lion King)', emoji: '🦁', coins: 29999, vnd: '6.0 – 10.5 Tr VNĐ', tier: 5, cat: 'ultra', color: 0xffd700, desc: 'Thăng thiên cột sáng 24K + Thác thỏi vàng và kim cương trút xuống' },
+  pegasus: { name: 'Ngựa thần (Celestial Pegasus)', emoji: '🦄', coins: 34000, vnd: '7.0 – 12.0 Tr VNĐ', tier: 5, cat: 'ultra', color: 0xb2ebf2, desc: 'Ngựa thần Pegasus phi nước đại trên Dải Cực Quang Aurora 2D' },
+  universe: { name: 'Vũ trụ TikTok (TikTok Universe)', emoji: '🌌', coins: 44999, vnd: '9.0 – 15.7 Tr VNĐ', tier: 5, cat: 'ultra', color: 0x00f2fe, desc: 'Đại vụ nổ Big Bang cực đại + 4 hành tinh 2D quay quanh Avatar' }
 };
 
 // Camera shake effect for ultra-luxury gifts
@@ -674,6 +678,284 @@ function showGiftToast(username, gift) {
   }, isUltra ? 4500 : 2800);
 }
 
+// ----------------------------------------------------
+// 6. PROCEDURAL WEB AUDIO SYNTHESIZER
+// (Extracted to ./preview-audio.js)
+// ----------------------------------------------------
+
+// ----------------------------------------------------
+// 7. 3D COIN DROPPING CASCADE PHYSICS SYSTEM (INSTANCED MESH)
+// ----------------------------------------------------
+const MAX_DROPPING_COINS = 120;
+// Vàng sáng rực rỡ, to hơn gấp đôi (đường kính 0.46m) theo feedback user
+const coinDiscGeom = new THREE.CylinderGeometry(0.23, 0.23, 0.045, 16);
+const coinDiscMat = new THREE.MeshStandardMaterial({
+  color: 0xffea00, // Vàng chanh sáng rực
+  metalness: 0.20,
+  roughness: 0.15,
+  emissive: 0xffaa00, // Tự phát quang vàng kim rực rỡ trong bar tối
+  emissiveIntensity: 0.90
+});
+const droppingCoinsMesh = new THREE.InstancedMesh(coinDiscGeom, coinDiscMat, MAX_DROPPING_COINS);
+droppingCoinsMesh.frustumCulled = false; // BẮT BUỘC: Không bị Three.js ẩn do culling!
+const droppingCoinsDummy = new THREE.Object3D();
+const droppingCoinsData = [];
+for (let i = 0; i < MAX_DROPPING_COINS; i++) {
+  droppingCoinsData.push({
+    active: false,
+    x: 0, y: -100, z: 0,
+    vx: 0, vy: 0, vz: 0,
+    rx: 0, ry: 0, rz: 0,
+    vrx: 0, vry: 0, vrz: 0,
+    scale: 1,
+    life: 0,
+    maxLife: 1.0
+  });
+  droppingCoinsDummy.position.set(0, -100, 0);
+  droppingCoinsDummy.updateMatrix();
+  droppingCoinsMesh.setMatrixAt(i, droppingCoinsDummy.matrix);
+}
+droppingCoinsMesh.instanceMatrix.needsUpdate = true;
+scene.add(droppingCoinsMesh);
+
+const pendingCoinSpawns = [];
+
+function spawnDroppingCoins(origin, count = 1, subType = 'drop_single') {
+  if (subType === 'drop_single') {
+    // 1 coin: Rơi đúng 1 đồng từ trên cao 4.2m xuống sàn trong đúng 1.0s và nảy
+    spawnSingleCoinInstance(origin, {
+      offsetY: 4.2,
+      vx: (Math.random() - 0.5) * 0.12,
+      vy: -1.2,
+      vz: (Math.random() - 0.5) * 0.12,
+      maxLife: 1.0
+    });
+  } else if (subType === 'drop_cascade') {
+    // 5 coins: Chuỗi rơi liên tiếp dạng thác từ cao xuống sàn trong 2.0s
+    for (let i = 0; i < 5; i++) {
+      pendingCoinSpawns.push({
+        delay: i * 0.20, // Staggered delay: 0s, 0.20s, 0.40s, 0.60s, 0.80s
+        origin: origin.clone(),
+        offsetY: 4.6 + i * 0.18,
+        vx: (Math.random() - 0.5) * 0.45,
+        vy: -1.6 - Math.random() * 0.8,
+        vz: (Math.random() - 0.5) * 0.45,
+        maxLife: 1.15
+      });
+    }
+  } else if (subType === 'drop_burst') {
+    // 10 coins: Rơi dồn dập quạt tròn từ 5.0m xuống sàn liên tục trong 2.0s
+    for (let i = 0; i < 10; i++) {
+      const angle = (i / 10) * Math.PI * 2 + Math.random() * 0.3;
+      const speed = 0.4 + Math.random() * 0.8;
+      pendingCoinSpawns.push({
+        delay: (i / 10) * 0.80, // Dàn trải đều trong 0.80s đầu
+        origin: origin.clone(),
+        offsetY: 4.8 + Math.random() * 0.5,
+        vx: Math.cos(angle) * speed,
+        vy: -1.5 - Math.random() * 1.0,
+        vz: Math.sin(angle) * speed,
+        maxLife: 1.25
+      });
+    }
+  }
+}
+
+function spawnSingleCoinInstance(origin, cfg) {
+  for (let i = 0; i < droppingCoinsData.length; i++) {
+    const c = droppingCoinsData[i];
+    if (!c.active) {
+      c.active = true;
+      c.life = 0;
+      c.maxLife = cfg.maxLife || 1.0;
+      c.scale = 1.0;
+      c.x = origin.x + (Math.random() - 0.5) * 0.15;
+      c.y = origin.y + (cfg.offsetY || 4.2);
+      c.z = origin.z + (Math.random() - 0.5) * 0.15;
+      c.vx = cfg.vx || 0;
+      c.vy = cfg.vy || -1.2;
+      c.vz = cfg.vz || 0;
+      c.rx = Math.random() * Math.PI * 2;
+      c.ry = Math.random() * Math.PI * 2;
+      c.rz = Math.random() * Math.PI * 2;
+      c.vrx = 6 + Math.random() * 10;
+      c.vry = 6 + Math.random() * 10;
+      c.vrz = 6 + Math.random() * 10;
+      break;
+    }
+  }
+}
+
+// ----------------------------------------------------
+// 8. DYNAMIC ORBITING COIN RINGS SYSTEM (3D RINGS 20 - 100 COIN)
+// ----------------------------------------------------
+const activeOrbitRings = [];
+const activeShockwaves = [];
+
+// Tính toán bán kính thực tế của Slime (đã tính Tier và Scale của avatar)
+function getSlimeEffectiveRadius(targetAvatarOrOrigin) {
+  if (targetAvatarOrOrigin && targetAvatarOrOrigin.mesh) {
+    try {
+      const box = new THREE.Box3().setFromObject(targetAvatarOrOrigin.mesh);
+      const size = box.getSize(new THREE.Vector3());
+      const r = Math.max(size.x, size.z) * 0.5;
+      if (r > 0.4 && r < 5.0) return r;
+    } catch (e) {}
+  }
+  return 0.95; // Default safe fallback
+}
+
+function spawnOrbitingCoinRings(targetAvatarOrOrigin, coins = 20, duration = 2.0) {
+  // Hỗ trợ cả object avatar hoặc Vector3 origin
+  const isAvatar = (targetAvatarOrOrigin && targetAvatarOrOrigin.mesh);
+  const origin = isAvatar ? targetAvatarOrOrigin.mesh.position.clone() : (targetAvatarOrOrigin || new THREE.Vector3());
+
+  // Thuật toán bán kính động: Không bao giờ dính thân dù Slime ở bất kỳ Tier/Scale nào!
+  const slimeR = getSlimeEffectiveRadius(targetAvatarOrOrigin);
+  const coinR = 0.23;     // Bán kính đồng coin vàng 0.46m
+  const clearance = 0.45; // Khoảng cách an toàn tối thiểu giữa mép trong coin và thân Slime
+  const baseR = slimeR + coinR + clearance; // Mốc an toàn xuất phát (~1.63m cho Slime chuẩn)
+
+  let ringConfigs = [];
+
+  if (coins >= 150) {
+    // 150 - 199 coin (Kính râm / Love You): 3 vòng cực đại (Vành đai sao Thổ)
+    ringConfigs = [
+      { radius: baseR + 0.65, tiltX: 0.52, tiltZ: -0.35, speed: 2.8, coins: 12 },
+      { radius: baseR + 1.15, tiltX: -0.55, tiltZ: 0.42, speed: -3.2, coins: 12 },
+      { radius: baseR + 1.65, tiltX: 0.38, tiltZ: 0.75, speed: 3.6, coins: 12 }
+    ];
+  } else if (coins >= 80) {
+    // 80 - 149 coin (Pháo giấy / Cầu vồng): 3 vòng đa góc nghiêng
+    ringConfigs = [
+      { radius: baseR + 0.45, tiltX: 0.45, tiltZ: -0.30, speed: 2.6, coins: 10 },
+      { radius: baseR + 0.85, tiltX: -0.50, tiltZ: 0.35, speed: -2.9, coins: 12 },
+      { radius: baseR + 1.25, tiltX: 0.35, tiltZ: 0.65, speed: 3.3, coins: 14 }
+    ];
+  } else if (coins >= 50) {
+    // 50 - 79 coin (Kem chống nắng): 2 vòng đan chéo đối xứng
+    ringConfigs = [
+      { radius: baseR + 0.35, tiltX: 0.43, tiltZ: 0.28, speed: 2.5, coins: 10 },
+      { radius: baseR + 0.75, tiltX: -0.55, tiltZ: -0.35, speed: -2.8, coins: 10 }
+    ];
+  } else {
+    // 20 - 49 coin (Nước hoa): 1 vòng bán kính thoát thân hoàn toàn (~1.78m)
+    ringConfigs = [
+      { radius: baseR + 0.15, tiltX: 0.28, tiltZ: 0.18, speed: 2.4, coins: 8 }
+    ];
+  }
+
+  if (coins >= 80) {
+    triggerFloorShockwave(origin, 4.2, duration * 0.6);
+  }
+
+  const parentGroup = new THREE.Group();
+  parentGroup.position.set(origin.x, origin.y + 0.45, origin.z);
+  parentGroup.scale.set(0.01, 0.01, 0.01);
+
+  const childRings = [];
+  // Coin trên vòng quay: Vàng sáng, to và tự phát quang
+  const ringDiscMat = new THREE.MeshStandardMaterial({
+    color: 0xffea00,
+    metalness: 0.20,
+    roughness: 0.15,
+    emissive: 0xffaa00,
+    emissiveIntensity: 0.85,
+    transparent: true,
+    opacity: 0.95,
+    depthWrite: false
+  });
+
+  ringConfigs.forEach(cfg => {
+    const ringGroup = new THREE.Group();
+    ringGroup.rotation.x = cfg.tiltX;
+    ringGroup.rotation.z = cfg.tiltZ;
+
+    const trackGeom = new THREE.TorusGeometry(cfg.radius, 0.015, 6, 36);
+    const trackMat = new THREE.MeshBasicMaterial({
+      color: 0xffea00,
+      transparent: true,
+      opacity: 0.35,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
+    });
+    const track = new THREE.Mesh(trackGeom, trackMat);
+    track.rotation.x = Math.PI / 2;
+    ringGroup.add(track);
+
+    for (let i = 0; i < cfg.coins; i++) {
+      const theta = (i / cfg.coins) * Math.PI * 2;
+      const coin = new THREE.Mesh(coinDiscGeom, ringDiscMat);
+      coin.position.set(Math.cos(theta) * cfg.radius, 0, Math.sin(theta) * cfg.radius);
+      coin.rotation.y = -theta;
+      coin.rotation.z = Math.PI / 2;
+      ringGroup.add(coin);
+    }
+
+    parentGroup.add(ringGroup);
+    childRings.push({ group: ringGroup, speed: cfg.speed });
+  });
+
+  scene.add(parentGroup);
+  activeOrbitRings.push({
+    avatar: isAvatar ? targetAvatarOrOrigin : null,
+    group: parentGroup,
+    childRings,
+    ringDiscMat,
+    duration,
+    timer: 0
+  });
+}
+
+function triggerFloorShockwave(origin, maxScale = 4.0, duration = 1.2) {
+  const geom = new THREE.RingGeometry(0.75, 0.95, 36);
+  geom.rotateX(-Math.PI / 2);
+  const mat = new THREE.MeshBasicMaterial({
+    color: 0xffd700,
+    transparent: true,
+    opacity: 0.8,
+    side: THREE.DoubleSide,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false
+  });
+  const mesh = new THREE.Mesh(geom, mat);
+  mesh.position.set(origin.x, 0.025, origin.z);
+  mesh.scale.set(0.2, 0.2, 0.2);
+  scene.add(mesh);
+  activeShockwaves.push({ mesh, mat, maxScale, duration, timer: 0 });
+}
+
+// ----------------------------------------------------
+// ----------------------------------------------------
+// 9. CINEMATIC 2D & 3D SHOWCASE ENGINE (HIGH-TIER & ULTRA)
+// Modularized in:
+// - preview-audio.js: Web Audio procedural sound synthesizer
+// - chibi-mascot.js: Procedural 2D chibi mascot canvas badge
+// - avatar-ornaments.js: Procedural SVG vector milestone ornaments
+// - cinematic-particles.js: 2D fullscreen particle physics engines
+// - foreground-slime.js: 3D mascot stage & ultra models
+// - cinematic-showcase.js: Showcase orchestrator, FIFO queue & DOM manager
+// ----------------------------------------------------
+initCinematicShowcase({
+  camera,
+  activeAvatars,
+  clearFloorEffects: () => {
+    bassPunch = 0;
+    isWhiteBeamActive = false;
+    if (whiteBeam) whiteBeam.visible = false;
+    isLionActive = false;
+    if (goldenBeam) goldenBeam.visible = false;
+    if (lionBanner) lionBanner.style.display = 'none';
+    if (particleMat) particleMat.opacity = 0;
+    pendingCoinSpawns.length = 0;
+    activeOrbitRings.forEach(r => scene.remove(r.group));
+    activeOrbitRings.length = 0;
+    activeShockwaves.forEach(sw => scene.remove(sw.mesh));
+    activeShockwaves.length = 0;
+  }
+});
+// 10. REFACTORED DONATION DISPATCHER (CONCURRENT & SEQUENTIAL)
+// ----------------------------------------------------
 function triggerDonation(giftKey, targetAvatar = null, forceTierUp = null) {
   const gift = DONATE_GIFTS[giftKey] || DONATE_GIFTS.rose;
   if (activeAvatars.length === 0) return;
@@ -695,13 +977,10 @@ function triggerDonation(giftKey, targetAvatar = null, forceTierUp = null) {
   // Accumulate coins & update billboard
   av.updateBillboard(gift.coins);
 
-  // Tách biệt giữa Tier Shape và Donate Effect:
-  // Chỉ thay đổi shape khi autoTierUpOnDonate là true hoặc forceTierUp là true!
   const shouldUpgradeTier = (forceTierUp !== null) ? Boolean(forceTierUp) : autoTierUpOnDonate;
   if (shouldUpgradeTier) {
     av.setTier(gift.tier);
 
-    // Sync tier button UI if single avatar
     if (activeAvatars.length === 1) {
       currentGlobalTier = gift.tier;
       document.querySelectorAll('.tier-btn').forEach(b => {
@@ -711,42 +990,84 @@ function triggerDonation(giftKey, targetAvatar = null, forceTierUp = null) {
   }
 
   const origin = av.mesh.position.clone();
+  gift.key = giftKey;
 
-  // Trigger 3D Signature Prop (Jet, Cyber Panther, TikTok Galaxy Universe, etc.)
-  giftProps.trigger(giftKey, origin, gift.coins || 1);
-
-  // Tier-specific celebratory visual FX
+  // 1. Quà nhỏ (1 - 10 coin | Nhảy + Coin rơi 1s/2s — Đồng thời)
   if (gift.cat === 'small') {
-    // Quà nhỏ: Nhảy lên cao trong 1s (1 xu) hoặc 3 lần liên tiếp (5 xu)
-    av.triggerDonateAnimation('small', shouldUpgradeTier, gift.tier, gift.coins || 1);
+    if (gift.coins === 1) {
+      av.triggerDonateAnimation({
+        type: 'small',
+        subType: 'drop_single',
+        coins: 1,
+        duration: 1.0,
+        upgradeTier: shouldUpgradeTier,
+        targetTier: gift.tier
+      });
+      spawnDroppingCoins(origin, 1, 'drop_single');
+      playPreviewSfx('coin');
+    } else if (gift.coins <= 5) {
+      av.triggerDonateAnimation({
+        type: 'small',
+        subType: 'drop_cascade',
+        coins: 5,
+        duration: 2.0,
+        upgradeTier: shouldUpgradeTier,
+        targetTier: gift.tier
+      });
+      spawnDroppingCoins(origin, 5, 'drop_cascade');
+      playPreviewSfx('coin');
+    } else {
+      av.triggerDonateAnimation({
+        type: 'small',
+        subType: 'drop_burst',
+        coins: 10,
+        duration: 2.0,
+        upgradeTier: shouldUpgradeTier,
+        targetTier: gift.tier
+      });
+      spawnDroppingCoins(origin, 10, 'drop_burst');
+      playPreviewSfx('coin');
+    }
     bassPunch = 0.8;
-  } else if (gift.cat === 'medium') {
-    // Quà trung: Nhảy lên cao trong 1s + xoay vòng tròn 0.5s rồi rớt xuống
-    av.triggerDonateAnimation('medium', shouldUpgradeTier, gift.tier, gift.coins || 20);
+  }
+  // 2. Quà trung (20 - 100 coin | Nhảy xoay 360 + Vòng coin bay quanh 2-4s — Đồng thời)
+  else if (gift.cat === 'medium') {
+    let subType = 'orbit_narrow';
+    let duration = 2.0;
+
+    if (gift.coins >= 80) {
+      subType = 'orbit_triple';
+      duration = (gift.coins >= 100) ? 4.0 : 3.5;
+    } else if (gift.coins >= 50) {
+      subType = 'orbit_double';
+      duration = 3.0;
+    } else if (gift.coins >= 30) {
+      subType = 'orbit_trail';
+      duration = 2.5;
+    } else {
+      subType = 'orbit_narrow';
+      duration = 2.0;
+    }
+
+    av.triggerDonateAnimation({
+      type: 'medium',
+      subType,
+      coins: gift.coins,
+      duration,
+      upgradeTier: shouldUpgradeTier,
+      targetTier: gift.tier
+    });
+    spawnOrbitingCoinRings(av, gift.coins, duration);
+    playPreviewSfx('bassBoom');
     bassPunch = 1.1;
     triggerFireworks(origin.y + 2.4, origin.x, origin.z, gift.color);
-  } else if (gift.cat === 'high') {
-    // Quà cao cấp: Có ánh sáng trắng chiếu xuống + hiệu ứng như quà trung
-    av.triggerDonateAnimation('high', shouldUpgradeTier, gift.tier, gift.coins || 500);
-    triggerWhiteLightBeam(origin.x, origin.z, 1.5);
-    bassPunch = 1.3;
-    triggerFireworks(origin.y + 2.8, origin.x, origin.z, gift.color);
-    setTimeout(() => {
-      triggerFireworks(origin.y + 3.6, origin.x, origin.z, 0xffffff);
-    }, 300);
-  } else if (gift.cat === 'ultra') {
-    // Quà xa xỉ: Như không đổi
-    triggerCameraShake(0.35, 1.0);
-    triggerLionCelebrationEvent(av, shouldUpgradeTier);
-    setTimeout(() => {
-      triggerFireworks(origin.y + 4.8, origin.x - 1.5, origin.z, gift.color);
-    }, 1500);
-    setTimeout(() => {
-      triggerFireworks(origin.y + 5.2, origin.x + 1.5, origin.z, 0xff0874);
-    }, 2800);
-    setTimeout(() => {
-      triggerFireworks(origin.y + 5.5, origin.x, origin.z, 0x00f2fe);
-    }, 3800);
+  }
+  // 3. Quà cao cấp (500 - 5.000 coin | 2D Showcase toàn màn hình — Tuần tự FIFO)
+  // 3 & 4. Quà cao cấp & Siêu xa xỉ (500 - 44.999 coin | Cinematic Showcase toàn màn hình)
+  else if (gift.cat === 'high' || gift.cat === 'ultra') {
+    enqueueHighTierShowcase({ avatar: av, gift, shouldUpgradeTier });
+    bassPunch = 0; // Triệt tiêu xung chấn sàn khi donate xa xỉ / cao cấp để không giật slime trên sàn
+    // Bỏ tất cả floor props (giftProps.trigger) và floor camera shake khi donate xa xỉ / cao cấp
   }
 
   showGiftToast(av.userData.username || '@Viewer', gift);
@@ -898,6 +1219,96 @@ if (btnDanceShuffle) {
   });
 }
 
+// Like Button (Thả Tim)
+let activeHeartBubbles = [];
+let heartBubbleTexture = null;
+
+function createHeartBubbleTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, 128, 128);
+  ctx.save();
+  ctx.translate(64, 56);
+  ctx.beginPath();
+  ctx.moveTo(0, 36);
+  ctx.bezierCurveTo(-45, 12, -42, -26, -20, -26);
+  ctx.bezierCurveTo(-8, -26, 0, -14, 0, -8);
+  ctx.bezierCurveTo(0, -14, 8, -26, 20, -26);
+  ctx.bezierCurveTo(42, -26, 45, 12, 0, 36);
+  ctx.closePath();
+  ctx.shadowColor = 'rgba(255, 20, 60, 0.9)';
+  ctx.shadowBlur = 14;
+  const grad = ctx.createRadialGradient(-10, -5, 4, 0, 4, 42);
+  grad.addColorStop(0, 'rgba(255, 140, 170, 0.95)');
+  grad.addColorStop(0.35, 'rgba(255, 25, 75, 0.88)');
+  grad.addColorStop(0.75, 'rgba(220, 10, 45, 0.75)');
+  grad.addColorStop(1.0, 'rgba(255, 40, 90, 0.95)');
+  ctx.fillStyle = grad;
+  ctx.fill();
+  ctx.shadowBlur = 4;
+  ctx.lineWidth = 2.5;
+  ctx.strokeStyle = 'rgba(255, 220, 235, 0.95)';
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+  ctx.beginPath();
+  ctx.ellipse(-14, -16, 7, 3.5, -Math.PI / 4, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(-6, -21, 2, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+  ctx.fill();
+  ctx.restore();
+  return new THREE.CanvasTexture(canvas);
+}
+
+function triggerHeartBubbles(pos, count = 5) {
+  if (!heartBubbleTexture) heartBubbleTexture = createHeartBubbleTexture();
+  const basePos = pos || new THREE.Vector3(0, 0, 0);
+  for (let i = 0; i < count; i++) {
+    const mat = new THREE.SpriteMaterial({
+      map: heartBubbleTexture,
+      transparent: true,
+      opacity: 0.95,
+      blending: THREE.NormalBlending,
+      depthWrite: false
+    });
+    const sprite = new THREE.Sprite(mat);
+    const scale = 0.35 + Math.random() * 0.25;
+    sprite.scale.set(scale, scale, 1.0);
+    sprite.position.set(
+      basePos.x + (Math.random() - 0.5) * 0.45,
+      (basePos.y || 0) + 0.65 + Math.random() * 0.35,
+      basePos.z + (Math.random() - 0.5) * 0.45
+    );
+    scene.add(sprite);
+    activeHeartBubbles.push({
+      sprite,
+      baseScale: scale,
+      vy: 1.4 + Math.random() * 0.9,
+      wobbleSpeed: 3.2 + Math.random() * 2.8,
+      wobblePhase: Math.random() * Math.PI * 2,
+      wobbleAmp: 0.22 + Math.random() * 0.18,
+      maxLife: 1.8 + Math.random() * 0.8,
+      life: 0
+    });
+  }
+}
+
+const btnDanceLike = document.getElementById('btn-dance-like');
+if (btnDanceLike) {
+  btnDanceLike.addEventListener('click', () => {
+    activeAvatars.forEach(av => {
+      if (av.triggerLikeJump) av.triggerLikeJump();
+      triggerHeartBubbles(av.mesh.position, 4);
+    });
+    showGiftToast('Thả Tim', { name: '❤️ Thả tim thành công! Slime đã nhảy 1 lần & bong bóng tim bay lên!', icon: '❤️', coins: 0 });
+    playPreviewSfx('heartwhoosh');
+  });
+}
+
 // Palettes
 document.querySelectorAll('.palette-btn').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -988,6 +1399,11 @@ window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
+  if (fgRenderer && fgCamera) {
+    fgCamera.aspect = window.innerWidth / window.innerHeight;
+    fgCamera.updateProjectionMatrix();
+    fgRenderer.setSize(window.innerWidth, window.innerHeight);
+  }
 });
 
 // ----------------------------------------------------
@@ -1093,44 +1509,185 @@ function animate() {
     }
   }
 
-  // Update Fireworks Particles
-  if (particleMat.opacity > 0.01) {
-    const pos = particleGeom.attributes.position;
-    for (let i = 0; i < particleCount; i++) {
-      particleVelocities[i].y -= 4.5 * deltaTime; // gravity
-      pos.setX(i, pos.getX(i) + particleVelocities[i].x * deltaTime);
-      pos.setY(i, pos.getY(i) + particleVelocities[i].y * deltaTime);
-      pos.setZ(i, pos.getZ(i) + particleVelocities[i].z * deltaTime);
+  // Khi Cinematic Overlay (Quà cao cấp/Xa xỉ) đang hoạt động, TẠM DỪNG TOÀN BỘ vật lý, hạt và hiệu ứng sàn để tối ưu tài nguyên tối đa:
+  if (!isCinematicFreezeActive) {
+    // Update Fireworks Particles
+    if (particleMat.opacity > 0.01) {
+      const pos = particleGeom.attributes.position;
+      for (let i = 0; i < particleCount; i++) {
+        particleVelocities[i].y -= 4.5 * deltaTime; // gravity
+        pos.setX(i, pos.getX(i) + particleVelocities[i].x * deltaTime);
+        pos.setY(i, pos.getY(i) + particleVelocities[i].y * deltaTime);
+        pos.setZ(i, pos.getZ(i) + particleVelocities[i].z * deltaTime);
+      }
+      pos.needsUpdate = true;
+      particleMat.opacity = Math.max(0, particleMat.opacity - deltaTime * 0.45);
     }
-    pos.needsUpdate = true;
-    particleMat.opacity = Math.max(0, particleMat.opacity - deltaTime * 0.45);
-  }
 
-  // Decay bass punch smoothly
-  if (bassPunch > 0.001) {
-    bassPunch *= 0.91;
-  } else {
-    bassPunch = 0;
-  }
-
-  // Update all active avatars
-  const avatarCount = activeAvatars.length;
-  for (let i = 0; i < avatarCount; i++) {
-    const av = activeAvatars[i];
-    av.update(deltaTime, bassPunch);
-
-    if (!isPaused && av.shadowMesh) {
-      const scaleVal = av.state.currentScale;
-      const sX = av.rootNode.scale.x;
-      const sZ = av.rootNode.scale.z;
-      av.shadowMesh.scale.set(sX / scaleVal, sZ / scaleVal, 1);
-      const jumpHeight = Math.max(0, av.rootNode.position.y - 0.12 * scaleVal);
-      av.shadowMat.opacity = Math.max(0.12, 0.45 - jumpHeight * 0.45);
+    // Update Staggered Coin Cascade Spawns
+    for (let i = pendingCoinSpawns.length - 1; i >= 0; i--) {
+      const p = pendingCoinSpawns[i];
+      p.delay -= deltaTime;
+      if (p.delay <= 0) {
+        spawnSingleCoinInstance(p.origin, p);
+        pendingCoinSpawns.splice(i, 1);
+      }
     }
-  }
 
-  controls.update();
-  giftProps.update(deltaTime);
+    // Update 3D Dropping Coins Physics (Gravity, Bounce & Fade)
+    let anyCoinActive = false;
+    for (let i = 0; i < droppingCoinsData.length; i++) {
+      const c = droppingCoinsData[i];
+      if (c.active) {
+        anyCoinActive = true;
+        c.life += deltaTime;
+        if (c.life >= c.maxLife) {
+          c.active = false;
+          droppingCoinsDummy.position.set(0, -100, 0);
+          droppingCoinsDummy.updateMatrix();
+          droppingCoinsMesh.setMatrixAt(i, droppingCoinsDummy.matrix);
+        } else {
+          c.vy -= 12.0 * deltaTime; // Gravity
+          c.x += c.vx * deltaTime;
+          c.y += c.vy * deltaTime;
+          c.z += c.vz * deltaTime;
+
+          c.rx += c.vrx * deltaTime;
+          c.ry += c.vry * deltaTime;
+          c.rz += c.vrz * deltaTime;
+
+          // Floor collision & bounce at floor y = 0.045
+          if (c.y <= 0.045) {
+            c.y = 0.045;
+            c.vy = Math.abs(c.vy) * 0.45; // Nảy lên sàn
+            c.vx *= 0.72;
+            c.vz *= 0.72;
+            c.vrx *= 0.65;
+            c.vrz *= 0.65;
+          }
+
+          // Fade scale in final 25% of life
+          const fadeThreshold = c.maxLife * 0.75;
+          if (c.life > fadeThreshold) {
+            const p = (c.life - fadeThreshold) / (c.maxLife - fadeThreshold);
+            c.scale = Math.max(0, 1.0 - p);
+          }
+
+          droppingCoinsDummy.position.set(c.x, c.y, c.z);
+          droppingCoinsDummy.rotation.set(c.rx, c.ry, c.rz);
+          droppingCoinsDummy.scale.set(c.scale, c.scale, c.scale);
+          droppingCoinsDummy.updateMatrix();
+          droppingCoinsMesh.setMatrixAt(i, droppingCoinsDummy.matrix);
+        }
+      }
+    }
+    if (anyCoinActive) {
+      droppingCoinsMesh.instanceMatrix.needsUpdate = true;
+    }
+
+    // Update Dynamic Orbiting Coin Rings (20 - 100 Coin)
+    for (let idx = activeOrbitRings.length - 1; idx >= 0; idx--) {
+      const ringObj = activeOrbitRings[idx];
+      ringObj.timer += deltaTime;
+      const t = ringObj.timer;
+      const dur = ringObj.duration;
+
+      if (t >= dur) {
+        scene.remove(ringObj.group);
+        activeOrbitRings.splice(idx, 1);
+      } else {
+        // POINT 3: Vòng coin di chuyển bám sát theo Slime khi Slime nhảy lên 4.8m và tiếp đất!
+        if (ringObj.avatar) {
+          const basePos = ringObj.avatar.mesh.position;
+          const rootPos = ringObj.avatar.rootNode.position;
+          ringObj.group.position.set(
+            basePos.x + rootPos.x,
+            basePos.y + rootPos.y + 0.45,
+            basePos.z + rootPos.z
+          );
+        }
+
+        for (const cr of ringObj.childRings) {
+          cr.group.rotation.y += cr.speed * deltaTime;
+        }
+
+        let scale = 1.0;
+        if (t < 0.35) {
+          scale = Math.sin((t / 0.35) * Math.PI * 0.5);
+        } else if (t > (dur - 0.4)) {
+          const p = (t - (dur - 0.4)) / 0.4;
+          scale = Math.cos(p * Math.PI * 0.5);
+          if (ringObj.ringDiscMat) {
+            ringObj.ringDiscMat.opacity = Math.max(0, 0.55 * (1.0 - p));
+          }
+        }
+        ringObj.group.scale.set(scale, scale, scale);
+      }
+    }
+
+    // Update Floor Shockwaves
+    for (let idx = activeShockwaves.length - 1; idx >= 0; idx--) {
+      const sw = activeShockwaves[idx];
+      sw.timer += deltaTime;
+      const p = sw.timer / sw.duration;
+
+      if (p >= 1.0) {
+        scene.remove(sw.mesh);
+        activeShockwaves.splice(idx, 1);
+      } else {
+        const easeOut = 1.0 - Math.pow(1.0 - p, 2.5);
+        const currentScale = 0.2 + easeOut * (sw.maxScale - 0.2);
+        sw.mesh.scale.set(currentScale, currentScale, currentScale);
+        sw.mat.opacity = Math.max(0, 0.8 * (1.0 - Math.pow(p, 1.8)));
+      }
+    }
+
+    // Update Floating Red Heart Bubbles
+    if (activeHeartBubbles.length > 0) {
+      for (let i = activeHeartBubbles.length - 1; i >= 0; i--) {
+        const hb = activeHeartBubbles[i];
+        hb.life += deltaTime;
+        if (hb.life >= hb.maxLife) {
+          scene.remove(hb.sprite);
+          if (hb.sprite.material) hb.sprite.material.dispose();
+          activeHeartBubbles.splice(i, 1);
+        } else {
+          const p = hb.life / hb.maxLife;
+          hb.sprite.position.y += hb.vy * deltaTime;
+          hb.sprite.position.x += Math.sin(hb.life * hb.wobbleSpeed + hb.wobblePhase) * hb.wobbleAmp * deltaTime;
+          hb.sprite.position.z += Math.cos(hb.life * hb.wobbleSpeed + hb.wobblePhase) * (hb.wobbleAmp * 0.5) * deltaTime;
+          const currentScale = hb.baseScale * (1.0 + p * 0.22);
+          hb.sprite.scale.set(currentScale, currentScale, 1.0);
+          hb.sprite.material.opacity = Math.max(0, (1.0 - Math.pow(p, 1.5)) * 0.95);
+        }
+      }
+    }
+
+    // Decay bass punch smoothly
+    if (bassPunch > 0.001) {
+      bassPunch *= 0.91;
+    } else {
+      bassPunch = 0;
+    }
+
+    // Update all active avatars (Không nhào lộn phức tạp, tắt ăn mừng sàn khi donate xa xỉ)
+    const avatarCount = activeAvatars.length;
+    for (let i = 0; i < avatarCount; i++) {
+      const av = activeAvatars[i];
+      av.update(deltaTime, bassPunch);
+
+      if (!isPaused && av.shadowMesh) {
+        const scaleVal = av.state.currentScale;
+        const sX = av.rootNode.scale.x;
+        const sZ = av.rootNode.scale.z;
+        av.shadowMesh.scale.set(sX / scaleVal, sZ / scaleVal, 1);
+        const jumpHeight = Math.max(0, av.rootNode.position.y - 0.12 * scaleVal);
+        av.shadowMat.opacity = Math.max(0.12, 0.45 - jumpHeight * 0.45);
+      }
+    }
+
+    giftProps.update(deltaTime);
+  }
   renderer.render(scene, camera);
 }
 

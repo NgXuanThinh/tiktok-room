@@ -3,54 +3,64 @@
 export const SLIME_COLORS = {
   green: { name: 'green', hex: '#00FF66', threeColor: 0x00ff66 },
   red: { name: 'red', hex: '#FF2A6D', threeColor: 0xff2a6d },
-  blue: { name: 'blue', hex: '#00F0FF', threeColor: 0x00f0ff },
-  yellow: { name: 'yellow', hex: '#FFE600', threeColor: 0xffe600 }
+  blue: { name: 'blue', hex: '#00F0FF', threeColor: 0x00f0ff }
 };
 
 const COLOR_ALIASES = {
   green: 'green',
+  lime: 'green',
   xanhla: 'green',
   xanh_la: 'green',
   'xanh lá': 'green',
   emerald: 'green',
+  luc: 'green',
+  'lục': 'green',
   red: 'red',
+  pink: 'red',
   do: 'red',
   'đỏ': 'red',
   rose: 'red',
+  hong: 'red',
+  'hồng': 'red',
   blue: 'blue',
+  cyan: 'blue',
   xanh: 'blue',
   xanhduong: 'blue',
   'xanh_duong': 'blue',
-  'xanh dương': 'blue',
-  cyan: 'blue',
-  yellow: 'yellow',
-  vang: 'yellow',
-  'vàng': 'yellow',
-  gold: 'yellow'
+  'xanh dương': 'blue'
 };
 
 /**
- * Parses chat commands like !color <name>, strictly allowing the 4 canonical colors and aliases.
+ * Parses chat commands like !color <name>, strictly allowing the 3 canonical colors and aliases.
  * Explicitly rejects hex codes (#...) and arbitrary colors.
+ * If empty argument, returns { isRandom: true }.
  * @param {string} comment
  * @returns {object|null}
  */
 export function parseColorCommand(comment) {
   if (!comment || typeof comment !== 'string') return null;
-  const match = comment.trim().match(/^!color\s+(.+)$/i);
+  const trimmed = comment.trim();
+  const match = trimmed.match(/^!color(?:\s+(.+))?$/i);
   if (!match) return null;
 
-  const rawInput = match[1].trim().toLowerCase();
-
-  // Reject hex codes (e.g. #FF0000, #00ff55, #123, 0xff0000, 123456, #aabbccdd)
-  if (/^(#|0x)?[0-9a-f]{3,8}$/i.test(rawInput) && !COLOR_ALIASES[rawInput]) {
-    return null;
+  const rawInput = match[1] ? match[1].trim().toLowerCase() : '';
+  if (!rawInput) {
+    return { isRandom: true };
   }
 
-  const resolved = COLOR_ALIASES[rawInput];
+  const tokens = rawInput.split(/\s+/);
+  const oneWord = tokens[0];
+  const twoWords = tokens.slice(0, 2).join(' ');
+
+  const resolved = COLOR_ALIASES[rawInput] || COLOR_ALIASES[twoWords] || COLOR_ALIASES[oneWord];
   if (resolved && SLIME_COLORS[resolved]) {
     return SLIME_COLORS[resolved];
   }
+
+  if (/^(#|0x)?[0-9a-f]{3,8}$/i.test(oneWord) && !COLOR_ALIASES[oneWord]) {
+    return null;
+  }
+
   return null;
 }
 
@@ -88,15 +98,97 @@ export function sanitizeComment(text) {
  */
 function extractUser(raw) {
   const userObj = raw.user || {};
-  const res = {
-    id: String(raw.userId || userObj.id || raw.uniqueId || raw.id || '0'),
-    username: String(raw.username || userObj.username || raw.uniqueId || raw.nickname || 'anonymous'),
-    nickname: String(raw.nickname || userObj.nickname || raw.username || raw.uniqueId || 'Viewer'),
-    avatarUrl: String(raw.profilePictureUrl || userObj.avatarUrl || userObj.profilePictureUrl || '')
+  const avatarUrl =
+    raw.profilePictureUrl ||
+    userObj.avatarUrl ||
+    userObj.profilePictureUrl ||
+    userObj.avatarThumb?.urlList?.[0] ||
+    userObj.avatarMedium?.urlList?.[0] ||
+    '';
+
+  const pickValid = (...vals) => {
+    for (const v of vals) {
+      if (v !== undefined && v !== null) {
+        const s = String(v).trim();
+        if (s && s !== '0' && s !== 'undefined' && s !== 'null') {
+          return s;
+        }
+      }
+    }
+    return '';
   };
-  if (raw.level || userObj.level) res.level = raw.level || userObj.level;
+
+  const id = pickValid(
+    userObj.id,
+    userObj.idStr,
+    raw.userId,
+    userObj.uniqueId,
+    raw.uniqueId,
+    raw.id
+  ) || '0';
+
+  const username = pickValid(
+    raw.username,
+    userObj.displayId,
+    userObj.username,
+    raw.uniqueId,
+    userObj.uniqueId,
+    raw.nickname,
+    userObj.nickname
+  ) || (id !== '0' ? `user_${id.slice(-4)}` : 'anonymous');
+
+  const nickname = pickValid(
+    raw.nickname,
+    userObj.nickname,
+    userObj.displayId,
+    raw.username,
+    userObj.username,
+    raw.uniqueId,
+    userObj.uniqueId
+  ) || (username !== 'anonymous' ? username : 'Viewer');
+
+  const res = {
+    id,
+    username,
+    nickname,
+    avatarUrl: String(avatarUrl)
+  };
+
+  const detectedLevel =
+    raw.level ||
+    userObj.level ||
+    userObj.payGrade?.level ||
+    userObj.payGrade?.score ||
+    userObj.badgeList?.[0]?.level;
+  if (detectedLevel !== undefined && detectedLevel !== null && detectedLevel !== '') {
+    res.level = typeof detectedLevel === 'number' ? `Lv.${detectedLevel}` : String(detectedLevel);
+  }
+
   if (raw.slimeColor || userObj.slimeColor) res.slimeColor = raw.slimeColor || userObj.slimeColor;
   if (raw.tier !== undefined || userObj.tier !== undefined) res.tier = Number(raw.tier !== undefined ? raw.tier : userObj.tier);
+  if (raw.isPinned !== undefined || userObj.isPinned !== undefined) res.isPinned = Boolean(raw.isPinned ?? userObj.isPinned);
+
+  // Follow & Fan Club attributes (TikTok LIVE proto payload)
+  const isFollower =
+    raw.isFollower ??
+    userObj.isFollower ??
+    userObj.userIdentity?.isFollowerOfAnchor ??
+    (Number(raw.followStatus ?? userObj.followStatus ?? userObj.followInfo?.followStatus) >= 1);
+  if (isFollower !== undefined) res.isFollower = Boolean(isFollower);
+
+  const fansClub = raw.fansClub || userObj.fansClub || userObj.fansClubInfo;
+  const fansStatus = fansClub?.userFansClubStatus ?? fansClub?.data?.userFansClubStatus;
+  if (fansStatus !== undefined) {
+    res.fansStatus = Number(fansStatus);
+    if (Number(fansStatus) === 1) {
+      res.isFan = true;
+    }
+  }
+  if (raw.isFan || userObj.isFan) res.isFan = true;
+  if (fansClub?.level || fansClub?.data?.level) {
+    res.fanLevel = Number(fansClub.level || fansClub.data.level);
+  }
+
   return res;
 }
 
@@ -104,7 +196,7 @@ function extractUser(raw) {
  * Normalizes chat event data.
  */
 export function normalizeChat(raw) {
-  const rawComment = raw.comment || raw.data?.comment || '';
+  const rawComment = raw.content || raw.comment || raw.data?.comment || '';
   const parsedCommand = parseColorCommand(rawComment);
   const data = {
     comment: sanitizeComment(rawComment)
@@ -149,7 +241,8 @@ export function normalizeGift(raw) {
     diamondCount,
     repeatCount,
     totalCoins,
-    tier
+    tier,
+    ...(raw.forceTierUp !== undefined ? { forceTierUp: Boolean(raw.forceTierUp) } : {})
   };
 }
 
@@ -201,6 +294,14 @@ export function normalizeTikTokEvent(type, raw = {}) {
     case 'share':
     case 'member':
       data = normalizeSocial(type, raw);
+      break;
+    case 'superFan':
+      data = { isFan: true, isNew: true, action: 'superFan' };
+      user.isFan = true;
+      break;
+    case 'superFanJoin':
+      data = { isFan: true, isNew: false, action: 'superFanJoin' };
+      user.isFan = true;
       break;
     default:
       data = { ...raw };

@@ -1,50 +1,42 @@
 // preview/slime-model.js - Complete Tier Evolution (Free Tier: Half-Sphere, T1-T4: Chubby Mochi with Additive Features)
 import * as THREE from 'three';
+import {
+  SLIME_BASE_RADIUS,
+  SLIME_BASE_HEIGHT,
+  SLIME_BELLY_BULGE_FACTOR,
+  SLIME_PALETTES,
+  ULTRA_PALETTES,
+  SLIME_EYE_CONFIG,
+  SLIME_BILLBOARD_CONFIG,
+  SLIME_ANIMATION_CONFIG,
+  SLIME_ACCESSORY_DIMENSIONS
+} from './slime-constants.js';
+import { LIKE_JUMP_CONFIG, DONATE_CELEBRATION_CONFIG } from './animation-constants.js';
+import { createSlimeAura } from './slime-aura.js';
+import {
+  BILLBOARD_BORDERS,
+  BILLBOARD_PILLS,
+  BILLBOARD_LAYOUT,
+  PILL_SCALE
+} from './billboard-constants.js';
 
-export const SLIME_PALETTES = {
-  cyan: {
-    name: 'Electric Cyan',
-    shellColor: 0x00f2fe,
-    coreEmissive: 0x005577,
-    eyeGlow: 0x00f2fe,
-    blushColor: 0xff007f,
-    visorColor: 0x00f2fe,
-    auraColor: 0xffd700
-  },
-  pink: {
-    name: 'Synthwave Pink',
-    shellColor: 0xff0874,
-    coreEmissive: 0x55002a,
-    eyeGlow: 0xff0874,
-    blushColor: 0xff66cc,
-    visorColor: 0xff0874,
-    auraColor: 0xffd700
-  },
-  magenta: {
-    name: 'Synthwave Pink',
-    shellColor: 0xff0874,
-    coreEmissive: 0x55002a,
-    eyeGlow: 0xff0874,
-    blushColor: 0xff66cc,
-    visorColor: 0xff0874,
-    auraColor: 0xffd700
-  },
-  lime: {
-    name: 'Toxic Lime',
-    shellColor: 0x00ff88,
-    coreEmissive: 0x00441a,
-    eyeGlow: 0x00ff88,
-    blushColor: 0xffaa00,
-    visorColor: 0x00ff88,
-    auraColor: 0xffd700
-  }
+export {
+  SLIME_BASE_RADIUS,
+  SLIME_BASE_HEIGHT,
+  SLIME_BELLY_BULGE_FACTOR,
+  SLIME_PALETTES,
+  ULTRA_PALETTES,
+  SLIME_EYE_CONFIG,
+  SLIME_BILLBOARD_CONFIG,
+  SLIME_ANIMATION_CONFIG,
+  SLIME_ACCESSORY_DIMENSIONS
 };
 
 // ----------------------------------------------------
 // 1. FREE TIER GEOMETRY: Simple Half-Sphere like main branch
 // ----------------------------------------------------
 export function createBasicHalfSphereGeometry() {
-  const geom = new THREE.SphereGeometry(0.85, 24, 18);
+  const geom = new THREE.SphereGeometry(SLIME_BASE_RADIUS, 24, 18);
   const pos = geom.attributes.position;
   for (let i = 0; i < pos.count; i++) {
     const y = pos.getY(i);
@@ -56,12 +48,13 @@ export function createBasicHalfSphereGeometry() {
   return geom;
 }
 export const sharedBasicHalfSphereGeometry = createBasicHalfSphereGeometry();
+sharedBasicHalfSphereGeometry.userData = { isShared: true };
 
 // ----------------------------------------------------
 // 2. GORGEOUS CHUBBY MOCHI GEOMETRY (T1 - T4)
 // ----------------------------------------------------
 export function createChubbyMochiSlimeGeometry() {
-  const geom = new THREE.SphereGeometry(0.85, 24, 18);
+  const geom = new THREE.SphereGeometry(SLIME_BASE_RADIUS, 24, 18);
   const pos = geom.attributes.position;
 
   for (let i = 0; i < pos.count; i++) {
@@ -69,10 +62,10 @@ export function createChubbyMochiSlimeGeometry() {
     let y = pos.getY(i);
     let z = pos.getZ(i);
 
-    const ny = y / 0.85;
+    const ny = y / SLIME_BASE_HEIGHT;
 
     if (ny < 0) {
-      const bellyBulge = 1.0 + Math.sin(Math.abs(ny) * Math.PI * 0.5) * 0.32;
+      const bellyBulge = 1.0 + Math.sin(Math.abs(ny) * Math.PI * 0.5) * (SLIME_BELLY_BULGE_FACTOR - 1.0);
       x *= bellyBulge;
       z *= bellyBulge;
       y *= 0.42;
@@ -96,11 +89,12 @@ export function createChubbyMochiSlimeGeometry() {
   return geom;
 }
 export const sharedChubbyMochiGeometry = createChubbyMochiSlimeGeometry();
+sharedChubbyMochiGeometry.userData = { isShared: true };
 
 // Global Shared Materials Pool
 export const sharedMaterialsPool = {};
-Object.entries(SLIME_PALETTES).forEach(([key, spec]) => {
-  sharedMaterialsPool[key] = new THREE.MeshStandardMaterial({
+Object.entries({ ...SLIME_PALETTES, ...ULTRA_PALETTES }).forEach(([key, spec]) => {
+  const mat = new THREE.MeshStandardMaterial({
     color: spec.shellColor,
     emissive: spec.coreEmissive,
     emissiveIntensity: 0.35,
@@ -110,10 +104,27 @@ Object.entries(SLIME_PALETTES).forEach(([key, spec]) => {
     opacity: 0.92,
     depthWrite: true
   });
+  mat.userData = { isShared: true, isGlobalPool: true };
+  sharedMaterialsPool[key] = mat;
 });
 
+export function getClonedSlimeMaterial(paletteKey) {
+  const base = sharedMaterialsPool[paletteKey] || sharedMaterialsPool.cyan;
+  const mat = base.clone();
+  mat.userData = { isShared: false };
+  mat.opacity = 0.92;
+  mat.transparent = true;
+  return mat;
+}
+
 // Shared Accessories
-export const sharedHeadbandGeom = new THREE.TorusGeometry(0.85, 0.035, 6, 16, Math.PI * 0.9);
+export const sharedHeadbandGeom = new THREE.TorusGeometry(
+  SLIME_ACCESSORY_DIMENSIONS.headband.radius,
+  SLIME_ACCESSORY_DIMENSIONS.headband.tube,
+  6,
+  16,
+  Math.PI * 0.9
+);
 export const sharedEarcupGeom = new THREE.CylinderGeometry(0.20, 0.22, 0.10, 12);
 
 // T3 Replacement: Mini Slime Pet
@@ -144,12 +155,14 @@ const sharedCrownGeom = new THREE.CylinderGeometry(0.18, 0.13, 0.14, 10);
 export const sharedHornGeom = (() => {
   const geom = new THREE.ConeGeometry(0.08, 0.36, 12);
   geom.translate(0, 0.18, 0);
+  geom.userData = { isShared: true };
   return geom;
 })();
 
 const sharedTailSegmentGeom = (() => {
   const geom = new THREE.CylinderGeometry(0.045, 0.065, 0.35, 8);
   geom.translate(0, 0.175, 0);
+  geom.userData = { isShared: true };
   return geom;
 })();
 
@@ -157,6 +170,7 @@ const sharedTailTipGeom = (() => {
   const geom = new THREE.ConeGeometry(0.11, 0.22, 4);
   geom.scale(1.2, 1.0, 0.3);
   geom.translate(0, 0.11, 0);
+  geom.userData = { isShared: true };
   return geom;
 })();
 
@@ -165,6 +179,7 @@ export const sharedSideMochiGeom = (() => {
   const geom = new THREE.SphereGeometry(0.36, 20, 16);
   geom.scale(1.0, 1.12, 0.92);
   geom.computeVertexNormals();
+  geom.userData = { isShared: true };
   return geom;
 })();
 
@@ -177,134 +192,236 @@ const sharedAuraRuneGeom = new THREE.BoxGeometry(0.07, 0.025, 0.18);
 const sharedHaloGeom = new THREE.TorusGeometry(0.36, 0.026, 8, 24);
 
 /**
- * 3D Overhead Billboard Sprite (Ported & Optimized from main branch src/avatar-manager.js)
- * Cấu trúc nhãn chuẩn:
- * - Dòng 1: Nickname / Username
- * - Dòng 2: Level Account TikTok (e.g. Lv.1, Lv.15, Lv.45)
- * - Dòng 2 (bên cạnh): Rank Donate (TOP 1, TOP 2, TOP 3, VIP) NẾU CÓ.
- * - NẾU KHÔNG CÓ RANK DONATE: Tuyệt đối không hiển thị badge rank!
+ * 3D Overhead Billboard Sprite
+ * Structure:
+ * - Line 1: Nickname / Username
+ * - Line 2: Level (number only: e.g. "20"), Top rank badge (👑 TOP 1, etc.), Fan badge (💜 Fan)
+ * - Avatar circular borders:
+ *   + TOP 1: Gold 5.5px
+ *   + TOP 2: Silver 4.5px
+ *   + TOP 3: Bronze 3.5px
+ *   + Fan: Violet 3.5px
+ *   + Top + Fan: Double border (inner Top border, outer Violet Fan border)
+ *   + Follower: Soft violet 1.8px
  */
 export function createBillboardSprite(userData = {}) {
   const rawLvl = userData.tiktokLevel || userData.level || 'Lv.1';
-  const lvlText = typeof rawLvl === 'number' ? `Lv.${rawLvl}` : (String(rawLvl).startsWith('Lv.') ? String(rawLvl) : `Lv.${rawLvl}`);
+  const rawLvlStr = String(rawLvl ?? 1);
+  const lvlNumber = rawLvlStr.replace(/^(Lv\.?|Level\s*)/i, '').trim() || '1';
+  const lvlText = `Lv.${lvlNumber}`;
+
   const rank = userData.donateRank || null;
+  const isFan = Boolean(userData.isFan);
+  const isFollower = Boolean(userData.isFollower);
   const badgeText = rank ? String(rank) : (userData.level ? String(userData.level) : lvlText);
+  const effectiveBaseScale = Number(PILL_SCALE ?? BILLBOARD_LAYOUT?.PILL_SCALE ?? BILLBOARD_PILLS?.PILL_SCALE ?? 1.4) || 1.4;
 
   if (typeof document === 'undefined') {
     const dummy = new THREE.Object3D();
-    dummy.scale.set(1.8, 0.9, 1.0);
-    dummy.userData = { badgeText, level: lvlText, donateRank: rank };
+    dummy.scale.set(effectiveBaseScale, effectiveBaseScale, 1.0);
+    dummy.userData = { badgeText, level: lvlText, donateRank: rank, isFan, isFollower, baseScale: effectiveBaseScale };
     return dummy;
   }
 
   const canvas = document.createElement('canvas');
-  canvas.width = 256;
-  canvas.height = 128;
+  canvas.width = BILLBOARD_LAYOUT.CANVAS_SIZE;
+  canvas.height = BILLBOARD_LAYOUT.CANVAS_SIZE;
   const ctx = canvas.getContext('2d');
 
   const redraw = (img = null) => {
-    ctx.clearRect(0, 0, 256, 128);
+    ctx.clearRect(0, 0, BILLBOARD_LAYOUT.CANVAS_SIZE, BILLBOARD_LAYOUT.CANVAS_SIZE);
 
-    let rankTheme = null;
-    if (rank) {
-      const upper = String(rank).trim().toUpperCase();
+    // 1. Detect roles & configs
+    const currentRank = userData.donateRank !== undefined ? userData.donateRank : rank;
+    const currentIsFan = Boolean(userData.isFan !== undefined ? userData.isFan : isFan);
+    const currentIsFollower = Boolean(userData.isFollower !== undefined ? userData.isFollower : isFollower);
+
+    let topBorder = null;
+    let topPill = null;
+    if (currentRank) {
+      const upper = String(currentRank).trim().toUpperCase();
       if (upper.includes('TOP 1') || upper === 'TOP1' || upper === '1') {
-        rankTheme = { bg: 'rgba(32, 24, 6, 0.92)', border: '#ffd700', text: '#ffffff', label: '👑 TOP 1' };
+        topBorder = BILLBOARD_BORDERS.TOP1;
+        topPill = BILLBOARD_PILLS.TOP1;
       } else if (upper.includes('TOP 2') || upper === 'TOP2' || upper === '2') {
-        rankTheme = { bg: 'rgba(25, 25, 32, 0.92)', border: '#e0e0e8', text: '#ffffff', label: '🥈 TOP 2' };
+        topBorder = BILLBOARD_BORDERS.TOP2;
+        topPill = BILLBOARD_PILLS.TOP2;
       } else if (upper.includes('TOP 3') || upper === 'TOP3' || upper === '3') {
-        rankTheme = { bg: 'rgba(35, 20, 10, 0.92)', border: '#cd7f32', text: '#ffffff', label: '🥉 TOP 3' };
+        topBorder = BILLBOARD_BORDERS.TOP3;
+        topPill = BILLBOARD_PILLS.TOP3;
       } else if (upper.includes('VIP')) {
-        rankTheme = { bg: 'rgba(30, 15, 45, 0.92)', border: '#c77dff', text: '#ffffff', label: '💎 VIP' };
+        topBorder = { color: '#c77dff', lineWidth: 3.5, shadowBlur: 10, shadowColor: '#c77dff' };
+        topPill = BILLBOARD_PILLS.VIP;
       } else {
-        rankTheme = { bg: 'rgba(10, 25, 35, 0.92)', border: '#00f2fe', text: '#ffffff', label: String(rank) };
+        topBorder = { color: '#00f2fe', lineWidth: 3.5, shadowBlur: 10, shadowColor: '#00f2fe' };
+        topPill = { bg: 'rgba(10, 25, 35, 0.95)', border: '#00f2fe', text: '#ffffff', label: String(currentRank) };
       }
     }
 
-    // Outer Billboard Capsule Card
-    ctx.fillStyle = 'rgba(10, 10, 24, 0.88)';
-    ctx.beginPath();
-    ctx.roundRect(14, 18, 228, 70, 16);
-    ctx.fill();
+    const {
+      AVATAR_CX: cx,
+      AVATAR_CY: cy,
+      AVATAR_R: R,
+      DOUBLE_BORDER_GAP: GAP,
+      NAME_Y,
+      NAME_FONT,
+      PILL_Y,
+      PILL_H,
+      PILL_GAP,
+      PILL_FONT
+    } = BILLBOARD_LAYOUT;
 
-    // Outer Border Glow (Tô màu viền theo Rank nếu có, hoặc Cyan nếu là khán giả thường)
-    ctx.lineWidth = rankTheme ? 2.5 : 2.0;
-    ctx.strokeStyle = rankTheme ? rankTheme.border : 'rgba(0, 242, 254, 0.7)';
-    ctx.stroke();
-
-    // Circular Profile Thumbnail on Left
+    // 2. Avatar Circular Clip
     ctx.save();
     ctx.beginPath();
-    ctx.arc(50, 53, 24, 0, Math.PI * 2);
+    ctx.arc(cx, cy, R, 0, Math.PI * 2);
     ctx.clip();
     if (img) {
-      ctx.drawImage(img, 26, 29, 48, 48);
+      ctx.drawImage(img, cx - R, cy - R, R * 2, R * 2);
     } else {
-      ctx.fillStyle = userData.avatarColor || (rankTheme ? rankTheme.border : '#00f2fe');
-      ctx.fill();
+      ctx.fillStyle = userData.avatarColor || (topBorder ? topBorder.color : (currentIsFan ? BILLBOARD_BORDERS.FAN.color : '#00f2fe'));
+      ctx.fillRect(cx - R, cy - R, R * 2, R * 2);
       ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.font = 'bold 28px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       const initials = (userData.nickname || userData.username || 'U').replace('@', '').slice(0, 2).toUpperCase();
-      ctx.fillText(initials, 50, 53);
+      ctx.fillText(initials, cx, cy);
     }
     ctx.restore();
 
-    // Line 1: Nickname / Username
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-    const cleanName = (userData.nickname || userData.username || 'Viewer').slice(0, 14);
-    ctx.fillText(cleanName, 84, 40);
+    // Helper to draw clean circular glowing border
+    const drawBorderRing = (radius, borderCfg) => {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+      ctx.lineWidth = borderCfg.lineWidth;
+      ctx.strokeStyle = borderCfg.color;
+      ctx.shadowColor = borderCfg.shadowColor || borderCfg.color;
+      ctx.shadowBlur = borderCfg.shadowBlur || 10;
+      ctx.stroke();
+      ctx.restore();
+    };
 
-    // Line 2: TikTok Account Level
-    ctx.font = 'bold 11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    const lvlWidth = ctx.measureText(lvlText).width;
-    const lvlPillW = Math.max(34, lvlWidth + 10);
-    const lvlPillH = 18;
-    const lvlPillX = 84;
-    const lvlPillY = 55;
+    // 3. Avatar Border Rendering
+    if (currentIsFan && topBorder) {
+      // User is BOTH Top rank AND Fan -> Double border
+      // Inner border: Top rank (Gold/Silver/Bronze)
+      drawBorderRing(R + topBorder.lineWidth / 2, topBorder);
+      // Outer border: Fan violet (#c77dff, 3.5px) with gap
+      const outerR = R + topBorder.lineWidth + GAP + BILLBOARD_BORDERS.FAN.lineWidth / 2;
+      drawBorderRing(outerR, BILLBOARD_BORDERS.FAN);
+    } else if (topBorder) {
+      // Top rank only
+      drawBorderRing(R + topBorder.lineWidth / 2, topBorder);
+    } else if (currentIsFan) {
+      // Fan only
+      drawBorderRing(R + BILLBOARD_BORDERS.FAN.lineWidth / 2, BILLBOARD_BORDERS.FAN);
+    } else if (currentIsFollower) {
+      // Follower soft border (gentle violet, thinner)
+      drawBorderRing(R + BILLBOARD_BORDERS.FOLLOW.lineWidth / 2, BILLBOARD_BORDERS.FOLLOW);
+    } else {
+      // Default Cyan border
+      drawBorderRing(R + BILLBOARD_BORDERS.DEFAULT.lineWidth / 2, BILLBOARD_BORDERS.DEFAULT);
+    }
 
-    // Vẽ pill Level Account TikTok: Nền tối tương phản, viền Cyan, chữ Trắng nét (#ffffff)
-    ctx.fillStyle = 'rgba(8, 22, 35, 0.92)';
-    ctx.beginPath();
-    ctx.roundRect(lvlPillX, lvlPillY, lvlPillW, lvlPillH, 5);
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(0, 242, 254, 0.85)';
-    ctx.lineWidth = 1.2;
-    ctx.stroke();
-
-    ctx.fillStyle = '#ffffff'; // Màu trắng dễ nhìn, tương phản cao
+    // 4. Nickname / Username - Center
+    ctx.save();
+    ctx.font = NAME_FONT;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(lvlText, lvlPillX + lvlPillW / 2, lvlPillY + lvlPillH / 2);
+    const cleanName = (userData.nickname || userData.username || 'Viewer').slice(0, 16);
+    ctx.lineWidth = 3.5;
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.85)';
+    ctx.strokeText(cleanName, cx, NAME_Y);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(cleanName, cx, NAME_Y);
+    ctx.restore();
 
-    // Line 2: Rank Donate NẾU CÓ (Bên cạnh Level)
-    if (rankTheme) {
-      ctx.font = 'bold 11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      const rankTextWidth = ctx.measureText(rankTheme.label).width;
-      const rankPillW = rankTextWidth + 12;
-      const rankPillH = 18;
-      const rankPillX = lvlPillX + lvlPillW + 6;
-      const rankPillY = 55;
+    // 5. Dynamic Info Pills: [Level][TOP Rank][Fan]
+    ctx.save();
+    ctx.font = PILL_FONT;
+    ctx.textBaseline = 'middle';
 
-      // Nền tối tương phản, viền màu Rank (Gold, Silver, Bronze, VIP), chữ Trắng (#ffffff)
-      ctx.fillStyle = rankTheme.bg;
+    const currentRawLvl = userData.tiktokLevel || userData.level || '1';
+    const currentLvlStr = String(currentRawLvl).replace(/^Lv\.?/i, '').trim() || '1';
+
+    const pills = [
+      {
+        label: currentLvlStr,
+        bg: BILLBOARD_PILLS.LVL.bg,
+        border: BILLBOARD_PILLS.LVL.border,
+        text: BILLBOARD_PILLS.LVL.text,
+        minW: 32
+      }
+    ];
+
+    if (topPill) {
+      pills.push({
+        label: topPill.label,
+        bg: topPill.bg,
+        border: topPill.border,
+        text: topPill.text,
+        minW: 42
+      });
+    }
+
+    if (currentIsFan) {
+      const fanLvl = Number(userData.fanLevel || 0);
+      let fanLabel = BILLBOARD_PILLS.FAN.label;
+      if (fanLvl > 0 && fanLvl <= 5) {
+        fanLabel = `${'💜'.repeat(fanLvl)}Fan`;
+      } else if (fanLvl > 5) {
+        fanLabel = `💜x${fanLvl} Fan`;
+      }
+      pills.push({
+        label: fanLabel,
+        bg: BILLBOARD_PILLS.FAN.bg,
+        border: BILLBOARD_PILLS.FAN.border,
+        text: BILLBOARD_PILLS.FAN.text,
+        minW: 42
+      });
+    } else if (currentIsFollower && BILLBOARD_PILLS.FOLLOW) {
+      pills.push({
+        label: BILLBOARD_PILLS.FOLLOW.label,
+        bg: BILLBOARD_PILLS.FOLLOW.bg,
+        border: BILLBOARD_PILLS.FOLLOW.border,
+        text: BILLBOARD_PILLS.FOLLOW.text,
+        minW: 55
+      });
+    }
+
+    const pillWidths = pills.map((p) => {
+      const textW = ctx.measureText(p.label).width;
+      return Math.max(p.minW, textW + 14);
+    });
+
+    const totalPillsWidth = pillWidths.reduce((acc, w) => acc + w, 0) + PILL_GAP * (pills.length - 1);
+    let startX = cx - totalPillsWidth / 2;
+
+    pills.forEach((p, idx) => {
+      const pillW = pillWidths[idx];
+
+      // Draw background
+      ctx.fillStyle = p.bg;
       ctx.beginPath();
-      ctx.roundRect(rankPillX, rankPillY, rankPillW, rankPillH, 5);
+      ctx.roundRect(startX, PILL_Y, pillW, PILL_H, 6);
       ctx.fill();
-      ctx.strokeStyle = rankTheme.border;
-      ctx.lineWidth = 1.2;
+
+      // Draw border
+      ctx.strokeStyle = p.border;
+      ctx.lineWidth = 1.4;
       ctx.stroke();
 
-      ctx.fillStyle = rankTheme.text; // '#ffffff'
+      // Draw text
+      ctx.fillStyle = p.text;
       ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(rankTheme.label, rankPillX + rankPillW / 2, rankPillY + rankPillH / 2);
-    }
-    // NẾU KHÔNG CÓ RANK DONATE: Tuyệt đối không vẽ gì thêm!
+      ctx.fillText(p.label, startX + pillW / 2, PILL_Y + PILL_H / 2);
+
+      startX += pillW + PILL_GAP;
+    });
+
+    ctx.restore();
   };
 
   redraw();
@@ -313,8 +430,9 @@ export function createBillboardSprite(userData = {}) {
   texture.minFilter = THREE.LinearFilter;
   const spriteMat = new THREE.SpriteMaterial({ map: texture, transparent: true, depthWrite: false });
   const sprite = new THREE.Sprite(spriteMat);
-  sprite.scale.set(1.6, 0.8, 1.0);
-  sprite.position.set(0, 1.62, 0); // Positioned comfortably above head, horns, and halo
+  sprite.center.set(0.5, 0.05);
+  sprite.scale.set(effectiveBaseScale, effectiveBaseScale, 1.0);
+  sprite.position.set(0, 1.45, 0);
 
   if (userData.avatarUrl || userData.username) {
     const img = new Image();
@@ -326,7 +444,18 @@ export function createBillboardSprite(userData = {}) {
     img.src = `/api/avatar?name=${encodeURIComponent(userData.username || '')}&url=${encodeURIComponent(userData.avatarUrl || '')}`;
   }
 
-  sprite.userData = { canvas, ctx, texture, redraw, badgeText, level: lvlText, donateRank: rank };
+  sprite.userData = {
+    canvas,
+    ctx,
+    texture,
+    redraw,
+    badgeText,
+    level: lvlText,
+    donateRank: rank,
+    isFan,
+    isFollower,
+    baseScale: effectiveBaseScale
+  };
   return sprite;
 }
 
@@ -364,8 +493,9 @@ export function createCyberSlime(paletteKey = 'cyan', rawUserData = {}) {
   slimeGroup.add(billboard);
 
   // 2. Slime Mesh (defaults to Chubby Mochi, swappable to Half-Sphere on Tier 0)
-  let currentMat = (sharedMaterialsPool[paletteKey] || sharedMaterialsPool.cyan).clone();
+  let currentMat = getClonedSlimeMaterial(paletteKey);
   const slimeMesh = new THREE.Mesh(sharedChubbyMochiGeometry, currentMat);
+  slimeMesh.name = 'slime_body';
   rootNode.add(slimeMesh);
 
   // 3. 3D Chibi Face Features
@@ -387,7 +517,8 @@ export function createCyberSlime(paletteKey = 'cyan', rawUserData = {}) {
     eyeHolder.rotation.y = isLeft ? 0.30 : -0.30;
     eyeHolder.rotation.x = -0.05;
 
-    const cornea = new THREE.Mesh(eyeCorneaGeom, blackPupilMat);
+    const corneaMat = new THREE.MeshBasicMaterial({ color: palette.corneaColor || 0x05050e });
+    const cornea = new THREE.Mesh(eyeCorneaGeom, corneaMat);
     eyeHolder.add(cornea);
 
     const spec1 = new THREE.Mesh(specKeyGeom, whiteMat);
@@ -623,7 +754,7 @@ export function createCyberSlime(paletteKey = 'cyan', rawUserData = {}) {
   tailGroup.name = 'WaggingTail';
   tailGroup.position.set(0, 0.15, -0.76);
 
-  const tailMat = sharedMaterialsPool[paletteKey] || sharedMaterialsPool.cyan;
+  const tailMat = getClonedSlimeMaterial(paletteKey);
   const tailSegment = new THREE.Mesh(sharedTailSegmentGeom, tailMat);
   tailSegment.rotation.x = -Math.PI * 0.42;
   tailGroup.add(tailSegment);
@@ -745,6 +876,45 @@ export function createCyberSlime(paletteKey = 'cyan', rawUserData = {}) {
   sparkles.visible = false;
   rootNode.add(sparkles);
 
+  // 3 Concentric Ground Foot Rings (Trắng nhỏ -> Vàng trung -> Cam lớn)
+  // Bán kính tự động tính tương thích theo kích thước slime từ SLIME_ACCESSORY_DIMENSIONS
+  const { footRings: ringDims, bodyAura: auraDims } = SLIME_ACCESSORY_DIMENSIONS;
+
+  const footRingsGroup = new THREE.Group();
+  footRingsGroup.name = 'FootRings';
+  footRingsGroup.position.y = ringDims.yOffset; // Nằm phẳng sát mặt sàn
+
+  const ring1Geom = new THREE.TorusGeometry(ringDims.ring1Radius, ringDims.tubeRadius, 10, 48);
+  const ring1Mat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+  const ring1 = new THREE.Mesh(ring1Geom, ring1Mat);
+  ring1.rotation.x = Math.PI / 2;
+  ring1.visible = false;
+  footRingsGroup.add(ring1);
+
+  const ring2Geom = new THREE.TorusGeometry(ringDims.ring2Radius, ringDims.tubeRadius, 10, 48);
+  const ring2Mat = new THREE.MeshBasicMaterial({ color: 0xffd700 });
+  const ring2 = new THREE.Mesh(ring2Geom, ring2Mat);
+  ring2.rotation.x = Math.PI / 2;
+  ring2.visible = false;
+  footRingsGroup.add(ring2);
+
+  const ring3Geom = new THREE.TorusGeometry(ringDims.ring3Radius, ringDims.tubeRadius, 10, 48);
+  const ring3Mat = new THREE.MeshBasicMaterial({ color: 0xff6600 });
+  const ring3 = new THREE.Mesh(ring3Geom, ring3Mat);
+  ring3.rotation.x = Math.PI / 2;
+  ring3.visible = false;
+  footRingsGroup.add(ring3);
+
+  footRingsGroup.ring1 = ring1;
+  footRingsGroup.ring2 = ring2;
+  footRingsGroup.ring3 = ring3;
+  rootNode.add(footRingsGroup);
+
+  // Multi-style rotating Body Aura (Tím / Cam / Vàng + mini bubbles sủi lên)
+  const auraController = createSlimeAura();
+  rootNode.add(auraController.group);
+  const goldenBodyAuraMesh = auraController.coneMesh;
+
   slimeGroup.userData = {
     ...userData,
     isSlime: true,
@@ -785,6 +955,13 @@ export function createCyberSlime(paletteKey = 'cyan', rawUserData = {}) {
     setLabelVisible(visible) {
       if (this.billboard) this.billboard.visible = visible;
     },
+    setBillboardScale(scale = 1.0) {
+      this.billboardScale = scale;
+      if (this.billboard) {
+        const base = this.billboard.userData?.baseScale || Number(PILL_SCALE ?? BILLBOARD_LAYOUT?.PILL_SCALE ?? BILLBOARD_PILLS?.PILL_SCALE ?? 1.4) || 1.4;
+        this.billboard.scale.set(base * scale, base * scale, 1.0);
+      }
+    },
     setTikTokLevel(lvl) {
       this.userData.tiktokLevel = typeof lvl === 'number' ? `Lv.${lvl}` : (String(lvl).startsWith('Lv.') ? String(lvl) : `Lv.${lvl}`);
       if (this.billboard?.userData?.redraw) {
@@ -794,6 +971,20 @@ export function createCyberSlime(paletteKey = 'cyan', rawUserData = {}) {
     },
     setDonateRank(rank) {
       this.userData.donateRank = rank || null;
+      if (this.billboard?.userData?.redraw) {
+        this.billboard.userData.redraw();
+        if (this.billboard.userData.texture) this.billboard.userData.texture.needsUpdate = true;
+      }
+    },
+    setFanStatus(isFan = true) {
+      this.userData.isFan = Boolean(isFan);
+      if (this.billboard?.userData?.redraw) {
+        this.billboard.userData.redraw();
+        if (this.billboard.userData.texture) this.billboard.userData.texture.needsUpdate = true;
+      }
+    },
+    setFollowerStatus(isFollower = true) {
+      this.userData.isFollower = Boolean(isFollower);
       if (this.billboard?.userData?.redraw) {
         this.billboard.userData.redraw();
         if (this.billboard.userData.texture) this.billboard.userData.texture.needsUpdate = true;
@@ -840,6 +1031,9 @@ export function createCyberSlime(paletteKey = 'cyan', rawUserData = {}) {
       tail: tailGroup,
       halo: haloGroup,
       auraRing: auraGroup,
+      footRings: footRingsGroup,
+      bodyAura: goldenBodyAuraMesh,
+      auraController,
       headphones: headphonesGroup,
       miniPet: miniPetGroup,
       catEars: catEarsGroup,
@@ -856,33 +1050,63 @@ export function createCyberSlime(paletteKey = 'cyan', rawUserData = {}) {
       activeFlourish: null, // { type: 'spin' | 'flip', dir: 1 | -1, timer: 0, duration: number, height: number }
       flourishCooldown: Math.random() * 2.0 + 1.0, // Cooldown ngẫu nhiên cho từng avatar
       tier: 1,
+      danceMode: 2, // 1 = Z-axis continuous spin, 2 = default rhythmic bounce
+      zSpinAngle: 0,
+      footRings: 0,
+      hasBodyAura: false,
+      auraType: null,
       expression: 'normal',
       isBlinking: false,
       blinkTimer: 0,
       isPaused: false,
       isLionCelebrating: false,
       lionTimer: 0,
-      donateFx: null
+      donateFx: null,
+      likeJump: null
+    },
+
+    setFootRings(level = 0) {
+      this.state.footRings = Number(level) || 0;
+      if (this.accessories.footRings) {
+        const { ring1, ring2, ring3 } = this.accessories.footRings;
+        if (ring1) ring1.visible = this.state.footRings >= 1;
+        if (ring2) ring2.visible = this.state.footRings >= 2;
+        if (ring3) ring3.visible = this.state.footRings >= 3;
+      }
+    },
+
+    setBodyAura(typeOrBool = false) {
+      if (this.accessories.auraController) {
+        this.accessories.auraController.setAura(typeOrBool);
+        this.state.hasBodyAura = this.accessories.auraController.isVisible;
+        this.state.auraType = this.accessories.auraController.currentType;
+      } else if (this.accessories.bodyAura) {
+        this.state.hasBodyAura = Boolean(typeOrBool);
+        this.accessories.bodyAura.visible = this.state.hasBodyAura;
+      }
     },
 
     setPalette(newKey) {
       if (!sharedMaterialsPool[newKey]) return;
       this.currentPaletteKey = newKey;
-      const pal = SLIME_PALETTES[newKey];
-      this.slimeMesh.material = sharedMaterialsPool[newKey].clone();
+      const pal = SLIME_PALETTES[newKey] || ULTRA_PALETTES[newKey];
+      const newMat = getClonedSlimeMaterial(newKey);
+      this.slimeMesh.material = newMat;
+      if (this.userData) this.userData.slimeMat = newMat;
+      if (this.mesh && this.mesh.userData) this.mesh.userData.slimeMat = newMat;
       if (this.accessories.sideMochis) {
         if (this.accessories.sideMochis.mochiL) {
-          this.accessories.sideMochis.mochiL.material = sharedMaterialsPool[newKey].clone();
+          this.accessories.sideMochis.mochiL.material = getClonedSlimeMaterial(newKey);
         }
         if (this.accessories.sideMochis.mochiR) {
-          this.accessories.sideMochis.mochiR.material = sharedMaterialsPool[newKey].clone();
+          this.accessories.sideMochis.mochiR.material = getClonedSlimeMaterial(newKey);
         }
       }
       if (this.accessories.horns && this.accessories.horns.hornMat) {
         this.accessories.horns.hornMat.emissive.setHex(pal.eyeGlow);
       }
       if (this.accessories.tail && this.accessories.tail.tailSegment) {
-        this.accessories.tail.tailSegment.material = sharedMaterialsPool[newKey] || sharedMaterialsPool.cyan;
+        this.accessories.tail.tailSegment.material = getClonedSlimeMaterial(newKey);
       }
       // Vòng chân (auraRing) và Halo luôn luôn cố định là Gold hoàng gia, không bị đổi màu theo Chubby!
       if (this.accessories.auraRing) {
@@ -892,6 +1116,12 @@ export function createCyberSlime(paletteKey = 'cyan', rawUserData = {}) {
       }
       this.eyeLeft.rim.material.color.setHex(pal.eyeGlow);
       this.eyeRight.rim.material.color.setHex(pal.eyeGlow);
+      if (this.eyeLeft.cornea?.material) {
+        this.eyeLeft.cornea.material.color.setHex(pal.corneaColor || 0x05050e);
+      }
+      if (this.eyeRight.cornea?.material) {
+        this.eyeRight.cornea.material.color.setHex(pal.corneaColor || 0x05050e);
+      }
       this.blushL.material.color.setHex(pal.blushColor);
       this.blushR.material.color.setHex(pal.blushColor);
     },
@@ -978,12 +1208,29 @@ export function createCyberSlime(paletteKey = 'cyan', rawUserData = {}) {
       if (exp === 'wink') {
         this.eyeLeft.eyeHolder.scale.set(1.0, 1.0, 1.0);
         this.eyeRight.eyeHolder.scale.set(1.0, 0.15, 1.0);
-      } else if (exp === 'smile') {
+      } else if (exp === 'smile' || exp === 'funny' || exp === 'happy') {
         this.eyeLeft.eyeHolder.scale.set(1.0, 0.2, 1.0);
         this.eyeRight.eyeHolder.scale.set(1.0, 0.2, 1.0);
       } else {
         this.eyeLeft.eyeHolder.scale.set(1.0, 1.0, 1.0);
         this.eyeRight.eyeHolder.scale.set(1.0, 1.0, 1.0);
+      }
+    },
+
+    setDanceMode(mode = null) {
+      if (mode === 1 || mode === '1' || mode === 'spin' || mode === 'z') {
+        this.state.danceMode = 1;
+      } else if (mode === 2 || mode === '2' || mode === 'default') {
+        this.state.danceMode = 2;
+        this.state.zSpinAngle = 0;
+        this.rootNode.rotation.z = 0;
+      } else {
+        // Toggle if no explicit mode provided
+        this.state.danceMode = (this.state.danceMode === 1) ? 2 : 1;
+        if (this.state.danceMode === 2) {
+          this.state.zSpinAngle = 0;
+          this.rootNode.rotation.z = 0;
+        }
       }
     },
 
@@ -1044,6 +1291,27 @@ export function createCyberSlime(paletteKey = 'cyan', rawUserData = {}) {
       return { success: false, reason: 'unknown_move' };
     },
 
+    triggerLikeJump() {
+      if (this.state.isPaused || this.state.isLionCelebrating || this.state.donateFx || this.sinkAnim) return;
+      this.state.likeJump = {
+        timer: 0,
+        duration: LIKE_JUMP_CONFIG.duration || 0.65,
+        apex: LIKE_JUMP_CONFIG.apexHeight || 1.65
+      };
+      this.setExpression('smile');
+    },
+
+    triggerSink(onComplete = null) {
+      this.state.isSinking = true;
+      this.setExpression('squint');
+      this.sinkAnim = {
+        timer: 0,
+        duration: 1.1,
+        startY: this.mesh.position.y,
+        onComplete
+      };
+    },
+
     shuffleDanceMove() {
       if (this.state.isPaused || this.state.isLionCelebrating || this.state.donateFx) return;
       const currentTier = this.state.tier || 1;
@@ -1076,44 +1344,154 @@ export function createCyberSlime(paletteKey = 'cyan', rawUserData = {}) {
     // - Quà nhỏ ('small'): Tặng 1 xu nhảy 1 cái (1.0s); Tặng 5 xu nhảy 3 lần liên tiếp (1.8s).
     // - Quà trung ('medium') & Quà cao cấp ('high'): Nhảy lên cao trong 1s + xoay vòng tròn 0.5s rồi rớt xuống.
     // - Quà xa xỉ ('ultra'): Giữ nguyên Coronation sequence 7.6s.
-    triggerDonateAnimation(type = 'small', upgradeTier = false, targetTier = 1, coins = 1) {
-      if (type === 'ultra') {
-        this.triggerLionCelebration(upgradeTier);
+    /**
+     * Triggers a categorized donate animation on the Slime.
+     * Accepts either legacy positional params OR a config object with explicit subType.
+     *
+     * Config object fields (when first arg is object):
+     *   subType: 'drop_single'|'drop_cascade'|'drop_burst'|'orbit_narrow'|'orbit_double'|'orbit_triple'|'vip_celebrate'
+     *   coins: number
+     *   upgradeTier: boolean
+     *   targetTier: number
+     *
+     * Legacy positional: triggerDonateAnimation(type, upgradeTier, targetTier, coins)
+     */
+    triggerDonateAnimation(typeOrConfig = 'small', upgradeTier = false, targetTier = 1, coins = 1) {
+      // Support config object API: triggerDonateAnimation({ subType, coins, upgradeTier, targetTier })
+      let type = typeOrConfig;
+      let subType = null;
+
+      if (typeOrConfig && typeof typeOrConfig === 'object') {
+        subType   = typeOrConfig.subType   || null;
+        coins     = typeOrConfig.coins     || 1;
+        upgradeTier = typeOrConfig.upgradeTier || false;
+        targetTier  = typeOrConfig.targetTier  || 1;
+        // Map subType → legacy type for the animation state machine
+        if (subType === 'vip_celebrate' || subType?.startsWith('vip_')) {
+          type = 'high';
+        } else if (subType === 'orbit_triple' || subType === 'orbit_double' || subType === 'orbit_narrow' || subType === 'orbit_trail' || subType?.startsWith('orbit_')) {
+          type = 'medium';
+        } else {
+          type = 'small';
+        }
+      }
+
+      if (type === 'ultra' || type === 'high') {
+        this.state.isLionCelebrating = false;
+        this.state.donateFx = null;
+        if (upgradeTier) {
+          this.setTier(targetTier || (type === 'ultra' ? 5 : 3));
+        }
         return;
       }
       this.state.isLionCelebrating = false;
 
       let jumpCount = 1;
-      let duration = 1.0;
-      if (type === 'small') {
-        if (coins >= 5) {
-          jumpCount = 3; // Tặng 5 xu: nhảy 3 lần liên tiếp!
-          duration = 1.8;
-        } else if (coins >= 2) {
-          jumpCount = 2;
-          duration = 1.3;
-        } else {
-          jumpCount = 1; // Tặng 1 xu: nhảy 1 lần!
-          duration = 1.0;
+      let duration  = 1.0;
+      let apexOverride = null; // metres — explicit apex height per design spec
+
+      // ── Explicit subType branch (new granular spec) ─────────────────────
+      if (subType) {
+        switch (subType) {
+          case 'drop_single':
+            // 1 coin: 1 jump
+            jumpCount     = DONATE_CELEBRATION_CONFIG.coin1?.jumpCount ?? 1;
+            duration      = DONATE_CELEBRATION_CONFIG.coin1?.duration ?? 1.0;
+            apexOverride  = DONATE_CELEBRATION_CONFIG.coin1?.apexHeight ?? 3.8;
+            break;
+          case 'drop_cascade':
+            // 2–9 coin: happy bounces
+            jumpCount     = DONATE_CELEBRATION_CONFIG.coin5?.jumpCount ?? 3;
+            duration      = DONATE_CELEBRATION_CONFIG.coin5?.duration ?? 2.0;
+            apexOverride  = DONATE_CELEBRATION_CONFIG.coin5?.apexHeight ?? 3.0;
+            break;
+          case 'drop_burst':
+            // 10 coin: excited high jump, halo spin
+            jumpCount     = DONATE_CELEBRATION_CONFIG.coin10?.jumpCount ?? 1;
+            duration      = DONATE_CELEBRATION_CONFIG.coin10?.duration ?? 2.0;
+            apexOverride  = DONATE_CELEBRATION_CONFIG.coin10?.apexHeight ?? 4.2;
+            break;
+          case 'orbit_narrow':
+          case 'orbit_trail':
+            // 20–49 coin: 360° spin + land, chibi blush
+            jumpCount     = 1;
+            duration      = coins >= 30 ? 2.5 : 2.0;
+            apexOverride  = 4.8;
+            break;
+          case 'orbit_double':
+            // 50–79 coin: 360° spin, eye-wink smile, 3.0s
+            jumpCount     = 1;
+            duration      = 3.0;
+            apexOverride  = 4.8;
+            break;
+          case 'orbit_triple':
+            // 80–100 coin: peak 360° spin, halo glow, 3.5-4.0s
+            jumpCount     = 1;
+            duration      = coins >= 80 ? (coins >= 100 ? 4.0 : 3.5) : 3.5;
+            apexOverride  = 4.8;
+            break;
+          case 'vip_celebrate':
+            // 500+ coin VIP: hover + 360° with halo
+            jumpCount     = 1;
+            duration      = 2.0;
+            apexOverride  = 4.2;
+            break;
+          default:
+            break;
         }
       } else {
-        duration = 1.5;
-        jumpCount = 1;
+        // ── Legacy type branch (backward-compatible) ───────────────────────
+        if (type === 'small') {
+          if (coins >= 10) {
+            jumpCount = 1;
+            duration  = 2.0;
+            apexOverride = 4.2;
+          } else if (coins >= 5) {
+            jumpCount = 3; // Tặng 5 xu: nhảy 3 lần liên tiếp!
+            duration  = 1.8;
+          } else if (coins >= 2) {
+            jumpCount = 2;
+            duration  = 1.3;
+          } else {
+            jumpCount = 1; // Tặng 1 xu: nhảy 1 lần!
+            duration  = 1.0;
+          }
+        } else {
+          duration  = 1.5;
+          jumpCount = 1;
+        }
       }
+
+      // Add spin flag for orbit/vip subtypes so update() can render 360° rotation
+      const needsSpin = subType
+        ? ['orbit_narrow','orbit_trail','orbit_double','orbit_triple','drop_burst','vip_celebrate'].includes(subType)
+        : (type === 'medium' || type === 'high');
 
       this.state.donateFx = {
         type,
-        timer: 0,
+        subType,
+        timer:        0,
         duration,
         jumpCount,
         coins,
         upgradeTier,
-        targetTier
+        targetTier,
+        apexOverride, // metres for explicit apex height
+        needsSpin     // triggers 360° Y-rotation in update()
       };
+
       if (upgradeTier) {
         this.setTier(targetTier);
       }
-      this.setExpression('smile');
+
+      // Expression per subType
+      if (subType === 'drop_cascade' || subType === 'drop_single') {
+        this.setExpression('happy');
+      } else if (subType === 'orbit_narrow') {
+        this.setExpression('squint'); // Chibi blush
+      } else {
+        this.setExpression('smile');
+      }
     },
 
     triggerLionCelebration(upgradeTier = false) {
@@ -1129,6 +1507,45 @@ export function createCyberSlime(paletteKey = 'cyan', rawUserData = {}) {
 
     update(deltaTime, audioKick = 0) {
       if (this.state.isPaused) return;
+
+      // Handle Slime Sinking animation on Leave / Idle Culling
+      if (this.sinkAnim) {
+        this.sinkAnim.timer += deltaTime;
+        const p = Math.min(1.0, this.sinkAnim.timer / this.sinkAnim.duration);
+        if (p < 0.35) {
+          const hop = Math.sin((p / 0.35) * Math.PI) * 0.45;
+          this.mesh.position.y = this.sinkAnim.startY + hop;
+        } else {
+          const sinkP = (p - 0.35) / 0.65;
+          this.mesh.position.y = this.sinkAnim.startY - sinkP * 1.5;
+          const alpha = Math.max(0, 1.0 - sinkP);
+          this.mesh.traverse((c) => {
+            if (c.material) {
+              const mats = Array.isArray(c.material) ? c.material : [c.material];
+              mats.forEach((m) => {
+                if (m.userData?.isGlobalPool) return;
+                m.transparent = true;
+                m.opacity = alpha;
+              });
+            }
+          });
+          if (this.billboard) {
+            this.billboard.visible = alpha > 0.05;
+          }
+        }
+        if (p >= 1.0) {
+          const cb = this.sinkAnim.onComplete;
+          this.sinkAnim = null;
+          this.mesh.visible = false;
+          if (cb) cb();
+        }
+        return;
+      }
+
+      // 0. Update rotating body aura and rising bubbles
+      if (this.accessories.auraController) {
+        this.accessories.auraController.update(deltaTime);
+      }
 
       // 1. Lion Celebration (Quà xa xỉ / Siêu xa xỉ: 7.6s)
       if (this.state.isLionCelebrating) {
@@ -1313,11 +1730,16 @@ export function createCyberSlime(paletteKey = 'cyan', rawUserData = {}) {
               this.eyeRight.eyeHolder.scale.set(1.0, 1.0, 1.0);
             }
           }
-        } else if (fxType === 'medium' || fxType === 'high') {
-          // QUÀ TRUNG & CAO CẤP: Nhảy vọt lên cao 4.8m + xoay 360 độ rồi rớt xuống (tổng thời gian: 1.5s)
-          if (t < 0.50) {
+        } else if (fxType === 'medium') {
+          // QUÀ TRUNG 20 - 100 COIN: Nhảy vút 4.8m + xoay 360 độ (2.0s - 4.0s tương ứng, default 1.5s)
+          const totalDur = this.state.donateFx.duration || 1.5;
+          const launchDur = 0.50;
+          const landDur = (totalDur <= 1.5) ? 0.50 : 0.40;
+          const hoverDur = (totalDur <= 1.5) ? 0.50 : Math.max(0.50, totalDur - launchDur - landDur);
+
+          if (t < launchDur) {
             // Phase 1: Phóng vút lên cao (y: 0.12 -> 4.8m)
-            const p = t / 0.50;
+            const p = t / launchDur;
             const easeUp = Math.sin(p * Math.PI * 0.5);
             this.rootNode.position.y = 0.12 + easeUp * 4.68;
             this.rootNode.rotation.set(0, 0, 0);
@@ -1325,9 +1747,9 @@ export function createCyberSlime(paletteKey = 'cyan', rawUserData = {}) {
             const stretchY = 1.0 + Math.sin(p * Math.PI) * 0.48;
             const pinchXZ = 1.0 - Math.sin(p * Math.PI) * 0.20;
             this.rootNode.scale.set(pinchXZ, stretchY, pinchXZ);
-          } else if (t <= 1.00) {
-            // Phase 2: Lơ lửng tại đỉnh và xoay trọn 1 vòng tròn 360 độ trong đúng 0.5s (từ 0.5s đến 1.0s)
-            const p = Math.min(1.0, Math.max(0, (t - 0.50) / 0.50));
+          } else if (t <= (launchDur + hoverDur)) {
+            // Phase 2: Lơ lửng tại đỉnh và xoay trọn 1 vòng tròn 360 độ trong hoverDur
+            const p = Math.min(1.0, Math.max(0, (t - launchDur) / hoverDur));
             const hoverFloat = Math.sin(p * Math.PI) * 0.15;
             this.rootNode.position.y = 4.8 + hoverFloat;
             this.rootNode.rotation.x = 0;
@@ -1335,22 +1757,22 @@ export function createCyberSlime(paletteKey = 'cyan', rawUserData = {}) {
             this.rootNode.rotation.y = p * Math.PI * 2; // Xoay vòng tròn 360 độ quanh trục Y
 
             this.rootNode.scale.set(1.0, 1.0, 1.0);
-          } else if (t < 1.38) {
+          } else if (t < (totalDur - 0.12)) {
             // Phase 3: Rớt xuống đất (y: 4.8m -> 0.12m) theo gia tốc rơi tự do
-            const p = (t - 1.00) / 0.38;
+            const p = (t - (launchDur + hoverDur)) / Math.max(0.01, totalDur - 0.12 - (launchDur + hoverDur));
             const easeDown = Math.pow(p, 2.2);
             this.rootNode.position.y = THREE.MathUtils.lerp(4.8, 0.12, easeDown);
             this.rootNode.rotation.y = THREE.MathUtils.lerp(Math.PI * 2, 0, p);
             this.rootNode.scale.set(1.0, 1.0, 1.0);
-          } else if (t < 1.50) {
+          } else if (t < totalDur) {
             // Phase 4: Tiếp đất đàn hồi (impact squish & bounce)
-            const p = (t - 1.38) / 0.12;
+            const p = (t - (totalDur - 0.12)) / 0.12;
             const squish = Math.sin(p * Math.PI) * 0.38;
             this.rootNode.position.y = 0.12;
             this.rootNode.rotation.set(0, 0, 0);
             this.rootNode.scale.set(1.0 + squish, 1.0 - squish, 1.0 + squish);
           } else {
-            // Hoàn thành 1.5s: Khôi phục trạng thái chuẩn
+            // Hoàn thành: Khôi phục trạng thái chuẩn
             this.state.donateFx = null;
             this.rootNode.position.y = 0.12;
             this.rootNode.rotation.set(0, 0, 0);
@@ -1370,10 +1792,52 @@ export function createCyberSlime(paletteKey = 'cyan', rawUserData = {}) {
         return;
       }
 
+      // 3. Like Jump (Nhảy 1 lần khi người xem like)
+      if (this.state.likeJump) {
+        this.state.likeJump.timer += deltaTime;
+        const lj = this.state.likeJump;
+        const p = Math.min(1.0, lj.timer / lj.duration);
+
+        if (p < 0.35) {
+          // Bật nhảy lên cao (Leap up with squash anticipation into stretch)
+          const pUp = p / 0.35;
+          const easeUp = Math.sin(pUp * Math.PI * 0.5);
+          this.rootNode.position.y = 0.12 + easeUp * (lj.apex - 0.12);
+          this.rootNode.rotation.set(0, 0, 0);
+          const stretchY = 1.0 + Math.sin(pUp * Math.PI) * 0.35;
+          const pinchXZ = 1.0 - Math.sin(pUp * Math.PI) * 0.14;
+          this.rootNode.scale.set(pinchXZ, stretchY, pinchXZ);
+        } else if (p < 0.80) {
+          // Rơi xuống lại mặt sàn (Fall down)
+          const pDown = (p - 0.35) / 0.45;
+          const easeDown = Math.pow(pDown, 2.0);
+          this.rootNode.position.y = THREE.MathUtils.lerp(lj.apex, 0.12, easeDown);
+          this.rootNode.rotation.set(0, 0, 0);
+          this.rootNode.scale.set(1.0, 1.0, 1.0);
+        } else {
+          // Tiếp đất đàn hồi (Landing squash)
+          const pSquish = (p - 0.80) / 0.20;
+          const squish = Math.sin(pSquish * Math.PI) * 0.28;
+          this.rootNode.position.y = 0.12;
+          this.rootNode.rotation.set(0, 0, 0);
+          this.rootNode.scale.set(1.0 + squish, 1.0 - squish, 1.0 + squish);
+        }
+
+        if (p >= 1.0) {
+          this.state.likeJump = null;
+          this.rootNode.position.y = 0.12;
+          this.rootNode.rotation.set(0, 0, 0);
+          this.rootNode.scale.set(1.0, 1.0, 1.0);
+          this.setExpression('normal');
+        }
+        return;
+      }
+
       // Standard Kinematics & Tier Dance Choreography
       const bps = this.state.bpm / 60;
       this.state.bpmPhase = (this.state.bpmPhase + deltaTime * bps * Math.PI * 2) % (Math.PI * 2);
-      const kickEffect = Math.max(0, audioKick);
+      // Strictly clamp normalized audio kick effect to [0, 1.0] to prevent erratic jerking
+      const kickEffect = Math.min(1.0, Math.max(0, audioKick));
       const tier = this.state.tier || 1;
 
       let scaleY = 1.0, scaleXZ = 1.0, jumpY = 0;
@@ -1387,7 +1851,7 @@ export function createCyberSlime(paletteKey = 'cyan', rawUserData = {}) {
 
         if (action.type === 'spin' && tier >= 3) {
           // Xoay tròn 360 độ quanh trục Y (Tier 3, 4, 5)
-          jumpY = Math.sin(p * Math.PI) * 0.58 + kickEffect * 0.25;
+          jumpY = Math.sin(p * Math.PI) * 0.58 + kickEffect * 0.08;
           rotY = p * Math.PI * 2;
           rotX = 0;
           rotZ = 0;
@@ -1407,7 +1871,7 @@ export function createCyberSlime(paletteKey = 'cyan', rawUserData = {}) {
           }
         } else if (action.type === 'flip' && tier >= 4) {
           // Lộn vòng 360 độ quanh trục X (Somersault Flip - Tier 4 & 5)
-          jumpY = Math.sin(p * Math.PI) * 0.82 + kickEffect * 0.35;
+          jumpY = Math.sin(p * Math.PI) * 0.82 + kickEffect * 0.08;
           rotX = -p * Math.PI * 2;
           rotY = 0;
           rotZ = 0;
@@ -1440,7 +1904,7 @@ export function createCyberSlime(paletteKey = 'cyan', rawUserData = {}) {
 
         if (fl.type === 'spin' && tier >= 3) {
           // Xoay tròn ngẫu hứng 360 độ (chiều quay ngẫu nhiên fl.dir: ±1, độ cao biến thiên)
-          jumpY = Math.sin(p * Math.PI) * fl.height + kickEffect * 0.25;
+          jumpY = Math.sin(p * Math.PI) * fl.height + kickEffect * 0.08;
           rotY = p * Math.PI * 2 * fl.dir;
           rotX = 0;
           rotZ = 0;
@@ -1460,7 +1924,7 @@ export function createCyberSlime(paletteKey = 'cyan', rawUserData = {}) {
           }
         } else if (fl.type === 'flip' && tier >= 4) {
           // Lộn vòng ngẫu hứng 360 độ (lộn tới hoặc lộn lùi fl.dir: ±1)
-          jumpY = Math.sin(p * Math.PI) * fl.height + kickEffect * 0.35;
+          jumpY = Math.sin(p * Math.PI) * fl.height + kickEffect * 0.08;
           rotX = p * Math.PI * 2 * fl.dir;
           rotY = 0;
           rotZ = 0;
@@ -1491,19 +1955,24 @@ export function createCyberSlime(paletteKey = 'cyan', rawUserData = {}) {
         // 3. Nhún nhảy Rhythmic Bounce cơ bản & Hệ thống kích hoạt ngẫu hứng tự nhiên
         rotX = 0;
         rotY = 0;
-        rotZ = 0;
+        if (this.state.danceMode === 1) {
+          this.state.zSpinAngle = (this.state.zSpinAngle || 0) + deltaTime * Math.PI * 2.0;
+          rotZ = this.state.zSpinAngle;
+        } else {
+          rotZ = 0;
+        }
 
         const sinVal = Math.sin(this.state.bpmPhase);
         if (sinVal < 0) {
           const squash = Math.abs(sinVal);
-          scaleY = 1.0 - (squash * 0.25 + kickEffect * 0.2);
-          scaleXZ = 1.0 + (squash * 0.15 + kickEffect * 0.15);
+          scaleY = 1.0 - (squash * 0.22 + kickEffect * 0.05);
+          scaleXZ = 1.0 + (squash * 0.12 + kickEffect * 0.04);
           jumpY = 0;
         } else {
           const stretch = sinVal;
-          scaleY = 1.0 + (stretch * 0.25 + kickEffect * 0.3);
-          scaleXZ = 1.0 - (stretch * 0.10);
-          jumpY = (stretch * 0.32 + kickEffect * 0.45);
+          scaleY = 1.0 + (stretch * 0.20 + kickEffect * 0.08);
+          scaleXZ = 1.0 - (stretch * 0.08 + kickEffect * 0.03);
+          jumpY = (stretch * 0.26 + kickEffect * 0.08);
         }
 
         // Tự động kích hoạt ngẫu hứng sinh động nếu bật autoDanceRoutine
@@ -1551,7 +2020,7 @@ export function createCyberSlime(paletteKey = 'cyan', rawUserData = {}) {
       this.rootNode.position.y = 0.12 + jumpY;
       this.rootNode.rotation.set(rotX, rotY, rotZ);
 
-      if (this.billboard) {
+      if (this.billboard && !this.sinkAnim && !this.state.isSinking) {
         this.billboard.position.y = 1.62 + jumpY;
       }
 

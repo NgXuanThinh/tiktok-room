@@ -1,6 +1,6 @@
 // src/ui-overlay.js - Responsive OBS HUD overlay & Streamer Admin Drawer
 const RANDOM_NICKNAMES = [
-  'DaiGiaBinhDuong',
+  'Bot',
   'QuangLinhVlog',
   'HaLinhOfficial',
   'CyberSlime_007',
@@ -17,13 +17,9 @@ const RANDOM_COMMENTS = [
   'Quẩy lên nào anh em ơi! 🔥',
   '!dance 1',
   '!dance 2',
-  '!dance 3',
-  '!dance 4',
-  '!dance 5',
-  '!dance 6',
-  '!jump',
-  '!cheer',
-  '!wave',
+  '!color',
+  '!face smile',
+  '!face wink',
   'DJ đánh căng đét! 🎧',
   'Drop the bass! 🔊',
   'Slime cute xỉu 😍',
@@ -336,6 +332,62 @@ export class UiOverlay {
       if (this.ws) this.ws.send(JSON.stringify({ type: 'mock_trigger', action: 'likes', count: 10, user }));
     });
 
+    this.bindMockButton('btn-mock-fan', () => {
+      const user = this.getTargetUser();
+      if (this.ws) this.ws.send(JSON.stringify({ type: 'mock_trigger', action: 'fan', user }));
+    });
+
+    this.bindMockButton('btn-mock-follow', () => {
+      const user = this.getTargetUser();
+      if (this.ws) this.ws.send(JSON.stringify({ type: 'mock_trigger', action: 'follow', user }));
+    });
+
+    // Stream Interactive Like Button (Thả tim)
+    const streamLikeBtn = document.getElementById('btn-stream-like');
+    const streamLikeCounter = document.getElementById('like-btn-counter');
+    let localLikes = 0;
+
+    const triggerLikeAction = () => {
+      localLikes++;
+      if (streamLikeCounter) streamLikeCounter.textContent = String(localLikes);
+
+      if (streamLikeBtn) {
+        streamLikeBtn.classList.remove('like-btn-pop');
+        void streamLikeBtn.offsetWidth;
+        streamLikeBtn.classList.add('like-btn-pop');
+      }
+
+      const user = this.getTargetUser();
+
+      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+        this.ws.send(JSON.stringify({
+          type: 'mock_trigger',
+          action: 'likes',
+          count: 1,
+          user
+        }));
+      } else {
+        // Direct event dispatch for offline / standalone mode
+        window.dispatchEvent(new CustomEvent('app_local_like', {
+          detail: { user, count: 1 }
+        }));
+      }
+    };
+
+    if (streamLikeBtn) {
+      streamLikeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        triggerLikeAction();
+      });
+    }
+
+    // Keyboard shortcut: Press 'L' to like
+    window.addEventListener('keydown', (e) => {
+      if ((e.key === 'l' || e.key === 'L') && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+        triggerLikeAction();
+      }
+    });
+
     // Epic Lion Coronation Button
     this.bindMockButton('btn-mock-lion-epic', () => {
       const user = this.getTargetUser();
@@ -369,15 +421,20 @@ export class UiOverlay {
         const user = this.getTargetUser();
         const tier = Number(btn.dataset.tier || 1);
         const giftName = btn.dataset.name || 'Gift';
+        const giftKey = btn.dataset.gift || giftName;
         const coins = Number(btn.dataset.coins || 1);
+        const toggleTierUp = document.getElementById('toggle-tier-up');
+        const forceTierUp = toggleTierUp ? toggleTierUp.checked : false;
         if (this.ws) {
           this.ws.send(JSON.stringify({
             type: 'mock_trigger',
             action: 'gift',
             tier,
             giftName,
+            giftKey,
             coins,
-            user
+            user,
+            forceTierUp
           }));
         }
       });
@@ -460,7 +517,7 @@ export class UiOverlay {
     const levelEl = document.getElementById('mock-custom-level');
     const colorEl = document.getElementById('mock-custom-color');
 
-    const baseName = usernameEl?.value?.trim() || 'DaiGiaBinhDuong';
+    const baseName = usernameEl?.value?.trim() || 'Bot';
     const username = spawnIdx > 0 ? `${baseName}_${spawnIdx}` : baseName;
     const tier = Number(tierEl?.value || 1);
     const level = levelEl?.value || 'Lv.1';

@@ -1,9 +1,9 @@
 {
-  "scannedAt": "2026-11-08T05:02:54.873Z",
+  "scannedAt": "2026-11-11T05:20:37.285Z",
   "files": [
     {
       "filePath": "server/avatar-proxy.js",
-      "absolutePath": "/Users/thinhng/WorkSpace/personal/tiktok-room/server/avatar-proxy.js",
+      "absolutePath": "/app/server/avatar-proxy.js",
       "imports": [
         "lru-cache"
       ],
@@ -36,62 +36,93 @@
     },
     {
       "filePath": "server/event-normalizer.js",
-      "absolutePath": "/Users/thinhng/WorkSpace/personal/tiktok-room/server/event-normalizer.js",
+      "absolutePath": "/app/server/event-normalizer.js",
       "imports": [],
       "functions": [
         {
           "name": "parseColorCommand",
           "params": "comment",
-          "startLine": 38,
-          "endLine": 55
+          "startLine": 40,
+          "endLine": 65
         },
         {
           "name": "sanitizeComment",
           "params": "text",
-          "startLine": 81,
-          "endLine": 84
+          "startLine": 91,
+          "endLine": 94
         },
         {
           "name": "extractUser",
           "params": "raw",
-          "startLine": 89,
-          "endLine": 101
+          "startLine": 99,
+          "endLine": 170
         },
         {
           "name": "normalizeChat",
           "params": "raw",
-          "startLine": 106,
-          "endLine": 117
+          "startLine": 175,
+          "endLine": 186
         },
         {
           "name": "normalizeGift",
           "params": "raw",
-          "startLine": 126,
-          "endLine": 152
+          "startLine": 195,
+          "endLine": 224
         },
         {
           "name": "normalizeLike",
           "params": "raw",
-          "startLine": 157,
-          "endLine": 164
+          "startLine": 229,
+          "endLine": 236
         },
         {
           "name": "normalizeSocial",
           "params": "type, raw",
-          "startLine": 169,
-          "endLine": 174
+          "startLine": 241,
+          "endLine": 246
         },
         {
           "name": "normalizeTikTokEvent",
           "params": "type, raw = {}",
-          "startLine": 182,
-          "endLine": 182
+          "startLine": 254,
+          "endLine": 254
+        }
+      ]
+    },
+    {
+      "filePath": "server/inspect-live.js",
+      "absolutePath": "/app/server/inspect-live.js",
+      "imports": [
+        "fs",
+        "path",
+        "url",
+        "tiktok-live-connector",
+        "./event-normalizer.js"
+      ],
+      "functions": [
+        {
+          "name": "formatTime",
+          "params": "",
+          "startLine": 52,
+          "endLine": 55
+        },
+        {
+          "name": "logEvent",
+          "params": "type, rawData",
+          "startLine": 57,
+          "endLine": 129
+        },
+        {
+          "name": "start",
+          "params": "",
+          "startLine": 153,
+          "endLine": 168
         }
       ]
     },
     {
       "filePath": "server/mock-simulator.js",
-      "absolutePath": "/Users/thinhng/WorkSpace/personal/tiktok-room/server/mock-simulator.js",
+      "absolutePath": "/app/server/mock-simulator.js",
       "imports": [
         "./event-normalizer.js"
       ],
@@ -128,33 +159,33 @@
         },
         {
           "name": "simulateGift",
-          "params": "tier = 1, customGiftName = null, customCoins = null, user = null",
+          "params": "tier = 1, customGiftName = null, customCoins = null, user = null, customGiftKey = null, forceTierUp = undefined",
           "startLine": 100,
-          "endLine": 117
+          "endLine": 120
         },
         {
           "name": "simulateSpawn",
           "params": "user = null",
-          "startLine": 119,
-          "endLine": 130
+          "startLine": 122,
+          "endLine": 134
         },
         {
           "name": "startAutoSimulation",
           "params": "intervalMs = 1500",
-          "startLine": 132,
-          "endLine": 147
+          "startLine": 136,
+          "endLine": 151
         },
         {
           "name": "stopAutoSimulation",
           "params": "",
-          "startLine": 149,
-          "endLine": 155
+          "startLine": 153,
+          "endLine": 159
         }
       ]
     },
     {
       "filePath": "server/rate-limiter.js",
-      "absolutePath": "/Users/thinhng/WorkSpace/personal/tiktok-room/server/rate-limiter.js",
+      "absolutePath": "/app/server/rate-limiter.js",
       "imports": [],
       "functions": [
         {
@@ -197,7 +228,7 @@
     },
     {
       "filePath": "server/server.js",
-      "absolutePath": "/Users/thinhng/WorkSpace/personal/tiktok-room/server/server.js",
+      "absolutePath": "/app/server/server.js",
       "imports": [
         "express",
         "http",
@@ -214,14 +245,14 @@
         {
           "name": "broadcast",
           "params": "payload",
-          "startLine": 40,
-          "endLine": 47
+          "startLine": 58,
+          "endLine": 65
         }
       ]
     },
     {
       "filePath": "server/tiktok-service.js",
-      "absolutePath": "/Users/thinhng/WorkSpace/personal/tiktok-room/server/tiktok-service.js",
+      "absolutePath": "/app/server/tiktok-service.js",
       "imports": [
         "events",
         "tiktok-live-connector"
@@ -237,37 +268,43 @@
           "name": "connect",
           "params": "username",
           "startLine": 25,
-          "endLine": 58
+          "endLine": 60
         },
         {
           "name": "_bindEvents",
           "params": "",
-          "startLine": 63,
-          "endLine": 94
+          "startLine": 65,
+          "endLine": 110
         },
         {
           "name": "_scheduleReconnect",
           "params": "",
-          "startLine": 99,
-          "endLine": 111
+          "startLine": 115,
+          "endLine": 127
         },
         {
           "name": "disconnect",
           "params": "",
-          "startLine": 116,
-          "endLine": 130
+          "startLine": 132,
+          "endLine": 146
         },
         {
           "name": "getStatus",
           "params": "",
-          "startLine": 135,
-          "endLine": 142
+          "startLine": 151,
+          "endLine": 158
         }
       ]
     },
     {
+      "filePath": "src/animation-constants.js",
+      "absolutePath": "/app/src/animation-constants.js",
+      "imports": [],
+      "functions": []
+    },
+    {
       "filePath": "src/audio-system.js",
-      "absolutePath": "/Users/thinhng/WorkSpace/personal/tiktok-room/src/audio-system.js",
+      "absolutePath": "/app/src/audio-system.js",
       "imports": [],
       "functions": [
         {
@@ -285,98 +322,166 @@
         {
           "name": "synthesizeSfxParams",
           "params": "name",
-          "startLine": 88,
-          "endLine": 90
+          "startLine": 138,
+          "endLine": 150
         },
         {
           "name": "getBeatStepEvents",
           "params": "step",
-          "startLine": 122,
-          "endLine": 135
+          "startLine": 182,
+          "endLine": 195
         },
         {
           "name": "constructor",
           "params": "audioCtx = null, destinationNode = null",
-          "startLine": 142,
-          "endLine": 150
+          "startLine": 202,
+          "endLine": 210
         },
         {
           "name": "start",
           "params": "audioCtx = this.ctx, destinationNode = this.destination",
-          "startLine": 152,
-          "endLine": 171
+          "startLine": 212,
+          "endLine": 231
         },
         {
           "name": "_playStep",
           "params": "step",
-          "startLine": 173,
-          "endLine": 247
+          "startLine": 233,
+          "endLine": 307
         },
         {
           "name": "stop",
           "params": "",
-          "startLine": 249,
-          "endLine": 255
+          "startLine": 309,
+          "endLine": 315
         },
         {
           "name": "setVolume",
           "params": "v",
-          "startLine": 257,
-          "endLine": 262
+          "startLine": 317,
+          "endLine": 322
         },
         {
           "name": "unlockAudio",
           "params": "instance = null",
-          "startLine": 268,
-          "endLine": 273
+          "startLine": 328,
+          "endLine": 333
         },
         {
           "name": "constructor",
           "params": "",
-          "startLine": 279,
-          "endLine": 289
+          "startLine": 339,
+          "endLine": 349
         },
         {
           "name": "init",
           "params": "",
-          "startLine": 291,
-          "endLine": 308
+          "startLine": 351,
+          "endLine": 368
         },
         {
           "name": "unlockAudio",
           "params": "",
-          "startLine": 310,
-          "endLine": 319
+          "startLine": 370,
+          "endLine": 379
         },
         {
           "name": "getBands",
           "params": "",
-          "startLine": 321,
-          "endLine": 346
+          "startLine": 381,
+          "endLine": 406
         },
         {
           "name": "playSfx",
           "params": "name",
-          "startLine": 348,
-          "endLine": 411
+          "startLine": 408,
+          "endLine": 471
         },
         {
           "name": "setVolume",
           "params": "val",
-          "startLine": 413,
-          "endLine": 420
+          "startLine": 473,
+          "endLine": 480
         },
         {
           "name": "toggleMute",
           "params": "",
-          "startLine": 422,
-          "endLine": 428
+          "startLine": 482,
+          "endLine": 488
+        }
+      ]
+    },
+    {
+      "filePath": "src/avatar-coordinator.js",
+      "absolutePath": "/app/src/avatar-coordinator.js",
+      "imports": [
+        "three",
+        "./floor-slots.js",
+        "./avatar-manager.js",
+        "./vip-lounge-manager.js",
+        "./cinematic-config.js",
+        "./equipment-config.js"
+      ],
+      "functions": [
+        {
+          "name": "getOrCreateAvatarMesh",
+          "params": "userData, coins = 0, context",
+          "startLine": 17,
+          "endLine": 94
+        },
+        {
+          "name": "sinkAndRemoveAvatar",
+          "params": "userId, context",
+          "startLine": 99,
+          "endLine": 110
+        },
+        {
+          "name": "deleteAvatar",
+          "params": "userId, context",
+          "startLine": 115,
+          "endLine": 156
+        },
+        {
+          "name": "clearAllAvatars",
+          "params": "context",
+          "startLine": 161,
+          "endLine": 197
+        },
+        {
+          "name": "syncActiveFloorAvatars",
+          "params": "avatarMeshes, uiOverlay, ws",
+          "startLine": 202,
+          "endLine": 221
+        },
+        {
+          "name": "_updateCyberSlime",
+          "params": "mesh, data, delta, bands",
+          "startLine": 227,
+          "endLine": 240
+        },
+        {
+          "name": "_updateProceduralSlime",
+          "params": "mesh, data, phase, isBouncing, time, delta",
+          "startLine": 245,
+          "endLine": 282
+        },
+        {
+          "name": "_updateHumanoid",
+          "params": "data, style, phase",
+          "startLine": 287,
+          "endLine": 306
+        },
+        {
+          "name": "updateAvatarKinematics",
+          "params": "mesh, delta, time, bpmSpeed, frenzyMultiplier, bands, camera, isFrenzy = false",
+          "startLine": 311,
+          "endLine": 343
         }
       ]
     },
     {
       "filePath": "src/avatar-manager.js",
-      "absolutePath": "/Users/thinhng/WorkSpace/personal/tiktok-room/src/avatar-manager.js",
+      "absolutePath": "/app/src/avatar-manager.js",
       "imports": [
         "three"
       ],
@@ -384,92 +489,242 @@
         {
           "name": "parseColorCommand",
           "params": "comment",
-          "startLine": 39,
-          "endLine": 54
+          "startLine": 40,
+          "endLine": 65
         },
         {
           "name": "getSlimeKinematics",
           "params": "bpmPhase, isBouncing = false",
-          "startLine": 76,
-          "endLine": 96
+          "startLine": 87,
+          "endLine": 107
         },
         {
           "name": "getDanceKinematics",
           "params": "style, phase",
-          "startLine": 101,
-          "endLine": 174
+          "startLine": 112,
+          "endLine": 185
         },
         {
           "name": "constructor",
           "params": "options = {}",
-          "startLine": 180,
-          "endLine": 180
+          "startLine": 191,
+          "endLine": 191
         },
         {
           "name": "touch",
           "params": "userId, username, coins = 0, isPinned = null",
-          "startLine": 187,
-          "endLine": 234
+          "startLine": 198,
+          "endLine": 245
+        },
+        {
+          "name": "cullIdle",
+          "params": "now = Date.now()",
+          "startLine": 247,
+          "endLine": 263
+        },
+        {
+          "name": "getAvatarMesh",
+          "params": "userId",
+          "startLine": 271,
+          "endLine": 273
         },
         {
           "name": "removeAvatar",
           "params": "userId",
-          "startLine": 260,
-          "endLine": 269
+          "startLine": 275,
+          "endLine": 284
         },
         {
           "name": "clearAll",
           "params": "",
-          "startLine": 271,
-          "endLine": 276
+          "startLine": 286,
+          "endLine": 291
         },
         {
           "name": "disposeAvatar",
           "params": "avatar",
-          "startLine": 278,
-          "endLine": 288
+          "startLine": 293,
+          "endLine": 303
         },
         {
           "name": "createSlimeGeometry",
           "params": "",
-          "startLine": 294,
-          "endLine": 305
+          "startLine": 309,
+          "endLine": 320
         },
         {
           "name": "createSlimeFaceTexture",
           "params": "isSmiling = true",
-          "startLine": 310,
-          "endLine": 345
+          "startLine": 325,
+          "endLine": 360
         },
         {
           "name": "createAvatarMesh",
           "params": "userData, forcedColor = null",
-          "startLine": 350,
-          "endLine": 387
+          "startLine": 365,
+          "endLine": 402
         },
         {
           "name": "applyWhaleSlimeAesthetics",
           "params": "group, tier = 3",
-          "startLine": 392,
-          "endLine": 420
+          "startLine": 407,
+          "endLine": 435
         },
         {
           "name": "setSlimeColor",
           "params": "slimeGroup, colorKey",
-          "startLine": 425,
-          "endLine": 441
+          "startLine": 440,
+          "endLine": 456
         },
         {
           "name": "createBillboardSprite",
           "params": "userData",
-          "startLine": 446,
-          "endLine": 448
+          "startLine": 461,
+          "endLine": 463
         }
       ]
     },
     {
-      "filePath": "src/club-environment.js",
-      "absolutePath": "/Users/thinhng/WorkSpace/personal/tiktok-room/src/club-environment.js",
+      "filePath": "src/avatar-ornaments.js",
+      "absolutePath": "/app/src/avatar-ornaments.js",
+      "imports": [],
+      "functions": [
+        {
+          "name": "renderAvatarOrnament",
+          "params": "tierClass, coins, giftKey",
+          "startLine": 2,
+          "endLine": 621
+        }
+      ]
+    },
+    {
+      "filePath": "src/billboard-constants.js",
+      "absolutePath": "/app/src/billboard-constants.js",
+      "imports": [],
+      "functions": []
+    },
+    {
+      "filePath": "src/camera-constants.js",
+      "absolutePath": "/app/src/camera-constants.js",
+      "imports": [
+        "three"
+      ],
+      "functions": []
+    },
+    {
+      "filePath": "src/chibi-mascot.js",
+      "absolutePath": "/app/src/chibi-mascot.js",
+      "imports": [],
+      "functions": [
+        {
+          "name": "startChibiSlimeMascot",
+          "params": "canvas, slimeColorHex = '#00f2fe'",
+          "startLine": 5,
+          "endLine": 81
+        },
+        {
+          "name": "render",
+          "params": "",
+          "startLine": 12,
+          "endLine": 77
+        },
+        {
+          "name": "stopChibiSlimeMascot",
+          "params": "",
+          "startLine": 83,
+          "endLine": 88
+        }
+      ]
+    },
+    {
+      "filePath": "src/cinematic-config.js",
+      "absolutePath": "/app/src/cinematic-config.js",
+      "imports": [],
+      "functions": []
+    },
+    {
+      "filePath": "src/cinematic-particles.js",
+      "absolutePath": "/app/src/cinematic-particles.js",
+      "imports": [],
+      "functions": [
+        {
+          "name": "startCinematicParticles",
+          "params": "canvas, gift, duration",
+          "startLine": 3,
+          "endLine": 1641
+        },
+        {
+          "name": "renderFx",
+          "params": "",
+          "startLine": 368,
+          "endLine": 1637
+        },
+        {
+          "name": "stopCinematicParticles",
+          "params": "",
+          "startLine": 1643,
+          "endLine": 1653
+        }
+      ]
+    },
+    {
+      "filePath": "src/cinematic-showcase.js",
+      "absolutePath": "/app/src/cinematic-showcase.js",
+      "imports": [
+        "./cinematic-particles.js",
+        "./foreground-slime.js",
+        "./chibi-mascot.js",
+        "./avatar-ornaments.js",
+        "./preview-audio.js"
+      ],
+      "functions": [
+        {
+          "name": "initCinematicShowcase",
+          "params": "ctx = {}",
+          "startLine": 19,
+          "endLine": 19
+        },
+        {
+          "name": "getScreenCoords",
+          "params": "worldPos",
+          "startLine": 23,
+          "endLine": 36
+        },
+        {
+          "name": "generateSvgAvatar",
+          "params": "name = 'Viewer'",
+          "startLine": 38,
+          "endLine": 59
+        },
+        {
+          "name": "enqueueHighTierShowcase",
+          "params": "item",
+          "startLine": 61,
+          "endLine": 66
+        },
+        {
+          "name": "processNextHighTier",
+          "params": "",
+          "startLine": 68,
+          "endLine": 99
+        },
+        {
+          "name": "runCinematic2DShowcase",
+          "params": "item, onFinished",
+          "startLine": 101,
+          "endLine": 379
+        },
+        {
+          "name": "cleanupShowcase",
+          "params": "",
+          "startLine": 302,
+          "endLine": 351
+        }
+      ]
+    },
+    {
+      "filePath": "src/club-constants.js",
+      "absolutePath": "/app/src/club-constants.js",
       "imports": [
         "three"
       ],
@@ -477,847 +732,2210 @@
         {
           "name": "count",
           "params": "",
-          "startLine": 39,
-          "endLine": 39
+          "startLine": 33,
+          "endLine": 33
         },
         {
           "name": "clampSpotlightToFloor",
           "params": "target = { x: 0, y: 0, z: 0 }",
-          "startLine": 42,
-          "endLine": 42
-        },
-        {
-          "name": "constructor",
-          "params": "scene",
-          "startLine": 67,
-          "endLine": 91
-        },
-        {
-          "name": "init",
-          "params": "",
-          "startLine": 93,
-          "endLine": 105
-        },
-        {
-          "name": "createStarfield",
-          "params": "",
-          "startLine": 110,
-          "endLine": 161
-        },
-        {
-          "name": "createAccentLights",
-          "params": "",
-          "startLine": 166,
-          "endLine": 198
-        },
-        {
-          "name": "createLedFloor",
-          "params": "",
-          "startLine": 204,
-          "endLine": 298
-        },
-        {
-          "name": "createVipPodium",
-          "params": "",
-          "startLine": 310,
-          "endLine": 508
-        },
-        {
-          "name": "createDjBooth",
-          "params": "",
-          "startLine": 514,
-          "endLine": 709
-        },
-        {
-          "name": "createWallsAndNeon",
-          "params": "",
-          "startLine": 714,
-          "endLine": 738
-        },
-        {
-          "name": "createMovingHeads",
-          "params": "",
-          "startLine": 743,
-          "endLine": 798
-        },
-        {
-          "name": "createLightBeams",
-          "params": "",
-          "startLine": 805,
-          "endLine": 840
-        },
-        {
-          "name": "triggerWhiteLightBeam",
-          "params": "targetX = 0, targetZ = 0, duration = 2.5",
-          "startLine": 842,
-          "endLine": 851
-        },
-        {
-          "name": "triggerGoldenLightBeam",
-          "params": "targetX = 0, targetZ = 0, duration = 7.6",
-          "startLine": 853,
-          "endLine": 862
-        },
-        {
-          "name": "focusSpotlights",
-          "params": "categoryOrTier = 1, targetPosition = null, duration = null",
-          "startLine": 871,
-          "endLine": 926
-        },
-        {
-          "name": "createLaserBeams",
-          "params": "",
-          "startLine": 931,
-          "endLine": 949
-        },
-        {
-          "name": "createFireworksSystem",
-          "params": "",
-          "startLine": 954,
-          "endLine": 989
-        },
-        {
-          "name": "createFlyingHeartsSystem",
-          "params": "",
-          "startLine": 994,
-          "endLine": 1016
-        },
-        {
-          "name": "emitFlyingHearts",
-          "params": "count = 10",
-          "startLine": 1061,
-          "endLine": 1084
-        },
-        {
-          "name": "update",
-          "params": "delta, bands = {}, camera = null",
-          "startLine": 1086,
-          "endLine": 1086
+          "startLine": 144,
+          "endLine": 144
         }
       ]
     },
     {
+      "filePath": "src/club-environment.js",
+      "absolutePath": "/app/src/club-environment.js",
+      "imports": [
+        "three",
+        "./gift-props.js",
+        "./cinematic-config.js"
+      ],
+      "functions": [
+        {
+          "name": "createHeartBubbleTexture",
+          "params": "",
+          "startLine": 55,
+          "endLine": 111
+        },
+        {
+          "name": "constructor",
+          "params": "scene",
+          "startLine": 114,
+          "endLine": 157
+        },
+        {
+          "name": "init",
+          "params": "",
+          "startLine": 159,
+          "endLine": 174
+        },
+        {
+          "name": "getSlimeMetrics",
+          "params": "target",
+          "startLine": 181,
+          "endLine": 217
+        },
+        {
+          "name": "getSlimeEffectiveRadius",
+          "params": "targetAvatarOrOrigin",
+          "startLine": 224,
+          "endLine": 235
+        },
+        {
+          "name": "createStarfield",
+          "params": "",
+          "startLine": 240,
+          "endLine": 291
+        },
+        {
+          "name": "createAccentLights",
+          "params": "",
+          "startLine": 296,
+          "endLine": 328
+        },
+        {
+          "name": "createLedFloor",
+          "params": "",
+          "startLine": 334,
+          "endLine": 426
+        },
+        {
+          "name": "getTileIndexAtPosition",
+          "params": "pos",
+          "startLine": 431,
+          "endLine": 443
+        },
+        {
+          "name": "setSlotFloorColor",
+          "params": "slotPos, targetColor = 'default'",
+          "startLine": 452,
+          "endLine": 454
+        },
+        {
+          "name": "clearSlotFloorColors",
+          "params": "",
+          "startLine": 456,
+          "endLine": 458
+        },
+        {
+          "name": "createVipPodium",
+          "params": "",
+          "startLine": 470,
+          "endLine": 670
+        },
+        {
+          "name": "createDjBooth",
+          "params": "",
+          "startLine": 676,
+          "endLine": 871
+        },
+        {
+          "name": "createWallsAndNeon",
+          "params": "",
+          "startLine": 876,
+          "endLine": 900
+        },
+        {
+          "name": "createMovingHeads",
+          "params": "",
+          "startLine": 905,
+          "endLine": 960
+        },
+        {
+          "name": "createLightBeams",
+          "params": "",
+          "startLine": 967,
+          "endLine": 1002
+        },
+        {
+          "name": "triggerWhiteLightBeam",
+          "params": "targetX = 0, targetZ = 0, duration = 2.5",
+          "startLine": 1004,
+          "endLine": 1013
+        },
+        {
+          "name": "triggerGoldenLightBeam",
+          "params": "targetX = 0, targetZ = 0, duration = 7.6",
+          "startLine": 1015,
+          "endLine": 1024
+        },
+        {
+          "name": "focusSpotlights",
+          "params": "categoryOrTier = 1, targetPosition = null, duration = null, avatarManager = null, userId = null",
+          "startLine": 1033,
+          "endLine": 1100
+        },
+        {
+          "name": "createLaserBeams",
+          "params": "",
+          "startLine": 1105,
+          "endLine": 1123
+        },
+        {
+          "name": "createFireworksSystem",
+          "params": "",
+          "startLine": 1128,
+          "endLine": 1163
+        },
+        {
+          "name": "createFlyingHeartsSystem",
+          "params": "",
+          "startLine": 1168,
+          "endLine": 1190
+        },
+        {
+          "name": "triggerFireworks",
+          "params": "tier = 1, origin = new THREE.Vector3(0, 1.2, 0)",
+          "startLine": 1192,
+          "endLine": 1233
+        },
+        {
+          "name": "emitFlyingHearts",
+          "params": "count = 10",
+          "startLine": 1235,
+          "endLine": 1258
+        },
+        {
+          "name": "spawnHeartBubbles",
+          "params": "origin = new THREE.Vector3(0, 0, 0), count = 4",
+          "startLine": 1264,
+          "endLine": 1302
+        },
+        {
+          "name": "createDroppingCoinsSystem",
+          "params": "",
+          "startLine": 1307,
+          "endLine": 1352
+        },
+        {
+          "name": "spawnSingleCoinInstance",
+          "params": "origin, cfg = {}",
+          "startLine": 1357,
+          "endLine": 1357
+        },
+        {
+          "name": "spawnDroppingCoins",
+          "params": "origin = new THREE.Vector3(0, 0, 0), count = 1, subType = 'drop_single', targetAvatar = null",
+          "startLine": 1393,
+          "endLine": 1438
+        },
+        {
+          "name": "spawnOrbitingCoinRings",
+          "params": "targetAvatarOrOrigin = new THREE.Vector3(0, 0, 0), coins = 20, duration = 2.0",
+          "startLine": 1445,
+          "endLine": 1552
+        },
+        {
+          "name": "createShockwaveSystem",
+          "params": "",
+          "startLine": 1557,
+          "endLine": 1559
+        },
+        {
+          "name": "triggerShockwave",
+          "params": "origin = new THREE.Vector3(0, 0, 0), category = 'high'",
+          "startLine": 1561,
+          "endLine": 1603
+        },
+        {
+          "name": "createMythicCrownSystem",
+          "params": "",
+          "startLine": 1608,
+          "endLine": 1661
+        },
+        {
+          "name": "triggerMythicCrown",
+          "params": "origin = new THREE.Vector3(0, 0, 0), duration = 7.6",
+          "startLine": 1663,
+          "endLine": 1672
+        },
+        {
+          "name": "triggerGiftProp",
+          "params": "giftKey, origin = new THREE.Vector3(0, 0, 0), coins = 1",
+          "startLine": 1678,
+          "endLine": 1683
+        },
+        {
+          "name": "update",
+          "params": "delta, bands = {}, camera = null",
+          "startLine": 1685,
+          "endLine": 1685
+        }
+      ]
+    },
+    {
+      "filePath": "src/donate-overlay.js",
+      "absolutePath": "/app/src/donate-overlay.js",
+      "imports": [],
+      "functions": [
+        {
+          "name": "resolveFxConfig",
+          "params": "coins",
+          "startLine": 30,
+          "endLine": 35
+        },
+        {
+          "name": "constructor",
+          "params": "{ container, sceneManager, audioSystem, avatarManager = null }",
+          "startLine": 52,
+          "endLine": 52
+        },
+        {
+          "name": "_buildDOM",
+          "params": "",
+          "startLine": 69,
+          "endLine": 179
+        },
+        {
+          "name": "_resizeCanvas",
+          "params": "",
+          "startLine": 181,
+          "endLine": 186
+        },
+        {
+          "name": "trigger",
+          "params": "{ coins, user, giftName = '', donorMeshPos = null, slimePaletteKey = 'cyan' }",
+          "startLine": 199,
+          "endLine": 199
+        },
+        {
+          "name": "_playSmallFx",
+          "params": "cfg, coins, meshPos",
+          "startLine": 224,
+          "endLine": 248
+        },
+        {
+          "name": "tick",
+          "params": "now",
+          "startLine": 233,
+          "endLine": 246
+        },
+        {
+          "name": "_drainVipQueue",
+          "params": "",
+          "startLine": 252,
+          "endLine": 260
+        },
+        {
+          "name": "_playVipFx",
+          "params": "{ coins, user, giftName, donorMeshPos, slimePaletteKey, cfg }, onComplete",
+          "startLine": 264,
+          "endLine": 264
+        },
+        {
+          "name": "tick",
+          "params": "now",
+          "startLine": 304,
+          "endLine": 320
+        },
+        {
+          "name": "_beginFlyBack",
+          "params": "donorMeshPos, totalDuration, onComplete",
+          "startLine": 326,
+          "endLine": 362
+        },
+        {
+          "name": "_setupStage",
+          "params": "user, giftName, coins, subType, slimePaletteKey",
+          "startLine": 366,
+          "endLine": 397
+        },
+        {
+          "name": "_calcAvatarSize",
+          "params": "coins",
+          "startLine": 399,
+          "endLine": 404
+        },
+        {
+          "name": "_applyFallbackAvatar",
+          "params": "",
+          "startLine": 406,
+          "endLine": 420
+        },
+        {
+          "name": "_drawChibiSlime",
+          "params": "paletteKey",
+          "startLine": 424,
+          "endLine": 483
+        },
+        {
+          "name": "_getRimStyle",
+          "params": "subType",
+          "startLine": 487,
+          "endLine": 495
+        },
+        {
+          "name": "_drawRim",
+          "params": "angle, rimStyle, avatarSize, subType",
+          "startLine": 497,
+          "endLine": 528
+        },
+        {
+          "name": "_spawnCoinParticles",
+          "params": "subType, coins, meshPos",
+          "startLine": 532,
+          "endLine": 576
+        },
+        {
+          "name": "_spawnVipParticles",
+          "params": "subType, coins",
+          "startLine": 578,
+          "endLine": 632
+        },
+        {
+          "name": "_updateAndDrawParticles",
+          "params": "particles, elapsed, pct",
+          "startLine": 634,
+          "endLine": 691
+        },
+        {
+          "name": "dispose",
+          "params": "",
+          "startLine": 695,
+          "endLine": 699
+        }
+      ]
+    },
+    {
+      "filePath": "src/equipment-config.js",
+      "absolutePath": "/app/src/equipment-config.js",
+      "imports": [],
+      "functions": [
+        {
+          "name": "loadThresholds",
+          "params": "",
+          "startLine": 21,
+          "endLine": 37
+        },
+        {
+          "name": "saveThresholds",
+          "params": "newThresholds",
+          "startLine": 42,
+          "endLine": 53
+        },
+        {
+          "name": "resetThresholds",
+          "params": "",
+          "startLine": 58,
+          "endLine": 66
+        },
+        {
+          "name": "evaluateEquipment",
+          "params": "totalCoins = 0, thresholds = null, isTop1 = undefined",
+          "startLine": 75,
+          "endLine": 127
+        }
+      ]
+    },
+    {
+      "filePath": "src/floor-slots.js",
+      "absolutePath": "/app/src/floor-slots.js",
+      "imports": [
+        "three",
+        "./club-environment.js"
+      ],
+      "functions": [
+        {
+          "name": "generateDanceFloorSlots",
+          "params": "config = FLOOR_GRID_CONFIG",
+          "startLine": 26,
+          "endLine": 69
+        },
+        {
+          "name": "findRandomAvailableFloorSlot",
+          "params": "floorSlots, avatarMeshes",
+          "startLine": 78,
+          "endLine": 100
+        }
+      ]
+    },
+    {
+      "filePath": "src/foreground-slime.js",
+      "absolutePath": "/app/src/foreground-slime.js",
+      "imports": [
+        "three",
+        "./slime-model.js"
+      ],
+      "functions": [
+        {
+          "name": "initForegroundSlimeStage",
+          "params": "",
+          "startLine": 26,
+          "endLine": 74
+        },
+        {
+          "name": "spawnFgStardust",
+          "params": "pos, count = 2, colorHex = 0xffe066, scaleMul = 1.0",
+          "startLine": 78,
+          "endLine": 101
+        },
+        {
+          "name": "spawnFgSonicRing",
+          "params": "pos, colorHex = 0xffd700",
+          "startLine": 103,
+          "endLine": 120
+        },
+        {
+          "name": "create3DJetPlane",
+          "params": "",
+          "startLine": 125,
+          "endLine": 232
+        },
+        {
+          "name": "create3DParachute",
+          "params": "",
+          "startLine": 234,
+          "endLine": 267
+        },
+        {
+          "name": "createPantherFeatures",
+          "params": "slime",
+          "startLine": 269,
+          "endLine": 312
+        },
+        {
+          "name": "createTigerFeatures",
+          "params": "slime",
+          "startLine": 314,
+          "endLine": 387
+        },
+        {
+          "name": "createLionManeFeatures",
+          "params": "",
+          "startLine": 389,
+          "endLine": 449
+        },
+        {
+          "name": "create3DCelestialWings",
+          "params": "",
+          "startLine": 451,
+          "endLine": 485
+        },
+        {
+          "name": "createPegasusFeatures",
+          "params": "",
+          "startLine": 487,
+          "endLine": 530
+        },
+        {
+          "name": "create3DUniverseMoons",
+          "params": "",
+          "startLine": 532,
+          "endLine": 554
+        },
+        {
+          "name": "startForegroundSlime",
+          "params": "donorAvatar, duration, giftKey = 'money_gun'",
+          "startLine": 556,
+          "endLine": 1533
+        },
+        {
+          "name": "renderFg",
+          "params": "currentTime",
+          "startLine": 660,
+          "endLine": 1529
+        },
+        {
+          "name": "stopForegroundSlime",
+          "params": "",
+          "startLine": 1535,
+          "endLine": 1583
+        }
+      ]
+    },
+    {
+      "filePath": "src/gift-props.js",
+      "absolutePath": "/app/src/gift-props.js",
+      "imports": [
+        "three"
+      ],
+      "functions": [
+        {
+          "name": "normalizeVietnameseKey",
+          "params": "str",
+          "startLine": 49,
+          "endLine": 59
+        },
+        {
+          "name": "constructor",
+          "params": "scene",
+          "startLine": 62,
+          "endLine": 65
+        },
+        {
+          "name": "trigger",
+          "params": "giftKey = 'rose', origin = new THREE.Vector3(0, 0, 0), coins = 1",
+          "startLine": 71,
+          "endLine": 174
+        },
+        {
+          "name": "_spawnJet",
+          "params": "origin",
+          "startLine": 179,
+          "endLine": 308
+        },
+        {
+          "name": "_spawnCyberPanther",
+          "params": "origin",
+          "startLine": 313,
+          "endLine": 417
+        },
+        {
+          "name": "addNeonMesh",
+          "params": "geom, pos = [0, 0, 0], rot = [0, 0, 0]",
+          "startLine": 333,
+          "endLine": 341
+        },
+        {
+          "name": "_spawnFireTiger",
+          "params": "origin",
+          "startLine": 422,
+          "endLine": 424
+        },
+        {
+          "name": "_spawnUniverse",
+          "params": "origin",
+          "startLine": 429,
+          "endLine": 545
+        },
+        {
+          "name": "_spawnPhoenix",
+          "params": "origin",
+          "startLine": 550,
+          "endLine": 603
+        },
+        {
+          "name": "_spawnGoldenLion",
+          "params": "origin",
+          "startLine": 608,
+          "endLine": 661
+        },
+        {
+          "name": "_spawnPegasus",
+          "params": "origin",
+          "startLine": 666,
+          "endLine": 706
+        },
+        {
+          "name": "_spawnDiscoBall",
+          "params": "origin",
+          "startLine": 711,
+          "endLine": 767
+        },
+        {
+          "name": "_spawnMoneyGun",
+          "params": "origin",
+          "startLine": 772,
+          "endLine": 832
+        },
+        {
+          "name": "_spawnRose",
+          "params": "origin",
+          "startLine": 837,
+          "endLine": 878
+        },
+        {
+          "name": "_spawnFingerHeart",
+          "params": "origin",
+          "startLine": 883,
+          "endLine": 920
+        },
+        {
+          "name": "_spawnCyberSunglasses",
+          "params": "origin",
+          "startLine": 925,
+          "endLine": 958
+        },
+        {
+          "name": "_spawnRainbow",
+          "params": "origin",
+          "startLine": 963,
+          "endLine": 995
+        },
+        {
+          "name": "_spawnConicalHat",
+          "params": "origin",
+          "startLine": 1000,
+          "endLine": 1034
+        },
+        {
+          "name": "_spawnExcalibur",
+          "params": "origin",
+          "startLine": 1039,
+          "endLine": 1078
+        },
+        {
+          "name": "_spawnElectricGuitar",
+          "params": "origin",
+          "startLine": 1083,
+          "endLine": 1110
+        },
+        {
+          "name": "_spawnLoveBalloons",
+          "params": "origin",
+          "startLine": 1115,
+          "endLine": 1145
+        },
+        {
+          "name": "_spawnGenericGiftProp",
+          "params": "origin, key, coins",
+          "startLine": 1150,
+          "endLine": 1180
+        },
+        {
+          "name": "update",
+          "params": "delta",
+          "startLine": 1185,
+          "endLine": 1216
+        }
+      ]
+    },
+    {
+      "filePath": "src/live-event-handler.js",
+      "absolutePath": "/app/src/live-event-handler.js",
+      "imports": [
+        "./avatar-manager.js",
+        "./gift-props.js",
+        "./cinematic-showcase.js",
+        "./equipment-config.js",
+        "./animation-constants.js"
+      ],
+      "functions": [
+        {
+          "name": "resolveGiftCategory",
+          "params": "coins",
+          "startLine": 16,
+          "endLine": 21
+        },
+        {
+          "name": "calculateSlimeTier",
+          "params": "totalCoins",
+          "startLine": 29,
+          "endLine": 31
+        },
+        {
+          "name": "_handleChatCommands",
+          "params": "comment, mesh, syncActiveFloorAvatars",
+          "startLine": 40,
+          "endLine": 117
+        },
+        {
+          "name": "_triggerUltraCelebration",
+          "params": "mesh, origin, giftKey, coins, shouldUpgradeTier, newTier, context, evt = {}",
+          "startLine": 123,
+          "endLine": 123
+        },
+        {
+          "name": "_triggerHighCelebration",
+          "params": "mesh, origin, giftKey, coins, shouldUpgradeTier, newTier, context, evt = {}",
+          "startLine": 163,
+          "endLine": 163
+        },
+        {
+          "name": "_triggerMediumCelebration",
+          "params": "mesh, origin, giftKey, coins, shouldUpgradeTier, newTier, context",
+          "startLine": 201,
+          "endLine": 233
+        },
+        {
+          "name": "_triggerSmallCelebration",
+          "params": "mesh, origin, giftKey, coins, shouldUpgradeTier, newTier, context",
+          "startLine": 238,
+          "endLine": 273
+        },
+        {
+          "name": "_scheduleDeferredVipSwap",
+          "params": "mesh, giftCategory, sortedDonors, executeVipPromotionAndSwap",
+          "startLine": 278,
+          "endLine": 289
+        },
+        {
+          "name": "handleLikeEvent",
+          "params": "evt, context",
+          "startLine": 294,
+          "endLine": 342
+        },
+        {
+          "name": "handleChatEvent",
+          "params": "evt, context",
+          "startLine": 347,
+          "endLine": 354
+        },
+        {
+          "name": "handleGiftEvent",
+          "params": "evt, context",
+          "startLine": 359,
+          "endLine": 454
+        },
+        {
+          "name": "handleAdminCommand",
+          "params": "evt, context",
+          "startLine": 459,
+          "endLine": 571
+        },
+        {
+          "name": "handleRoomRanksEvent",
+          "params": "evt, context",
+          "startLine": 578,
+          "endLine": 618
+        },
+        {
+          "name": "handleSessionResetEvent",
+          "params": "evt, context",
+          "startLine": 623,
+          "endLine": 628
+        },
+        {
+          "name": "handleMemberEvent",
+          "params": "evt, context",
+          "startLine": 634,
+          "endLine": 650
+        },
+        {
+          "name": "handleFanEvent",
+          "params": "evt, context",
+          "startLine": 656,
+          "endLine": 673
+        },
+        {
+          "name": "handleFollowEvent",
+          "params": "evt, context",
+          "startLine": 679,
+          "endLine": 699
+        },
+        {
+          "name": "handleLiveEvent",
+          "params": "evt, context",
+          "startLine": 707,
+          "endLine": 781
+        }
+      ]
+    },
+    {
+      "filePath": "src/main-constants.js",
+      "absolutePath": "/app/src/main-constants.js",
+      "imports": [],
+      "functions": []
+    },
+    {
       "filePath": "src/main.js",
-      "absolutePath": "/Users/thinhng/WorkSpace/personal/tiktok-room/src/main.js",
+      "absolutePath": "/app/src/main.js",
       "imports": [
         "three",
         "./scene-manager.js",
         "./club-environment.js",
         "./audio-system.js",
-        "./audio-system.js",
-        "./ui-overlay.js"
+        "./avatar-manager.js",
+        "./ui-overlay.js",
+        "./equipment-config.js",
+        "./floor-slots.js",
+        "./vip-podium-scheduler.js",
+        "./vip-lounge-manager.js",
+        "./live-event-handler.js",
+        "./cinematic-showcase.js"
       ],
       "functions": [
         {
-          "name": "constructor",
-          "params": "{ duration = 15.0, podiumPos = { x: 0, y: 0.55, z: 0 }, preserveDonorPosition = false } = {}",
-          "startLine": 26,
-          "endLine": 26
-        },
-        {
-          "name": "enqueue",
-          "params": "user, mesh, tier, returnSlot",
-          "startLine": 34,
-          "endLine": 59
-        },
-        {
-          "name": "promote",
-          "params": "item",
-          "startLine": 61,
-          "endLine": 92
-        },
-        {
-          "name": "update",
-          "params": "delta, onPromote = null, onVacate = null",
-          "startLine": 94,
-          "endLine": 120
-        },
-        {
-          "name": "generateDanceFloorSlots",
-          "params": "config = FLOOR_GRID_CONFIG",
-          "startLine": 124,
-          "endLine": 167
-        },
-        {
           "name": "initClientApp",
           "params": "",
-          "startLine": 186,
-          "endLine": 896
+          "startLine": 92,
+          "endLine": 303
         },
         {
-          "name": "findRandomAvailableFloorSlot",
-          "params": "",
-          "startLine": 201,
-          "endLine": 223
-        },
-        {
-          "name": "handleLiveEvent",
-          "params": "evt",
-          "startLine": 258,
-          "endLine": 444
-        },
-        {
-          "name": "triggerLeapAnimation",
-          "params": "mesh, targetPos, targetRotY, onComplete = null",
-          "startLine": 453,
-          "endLine": 474
-        },
-        {
-          "name": "executeVipPromotionAndSwap",
-          "params": "sortedDonors",
-          "startLine": 482,
-          "endLine": 574
-        },
-        {
-          "name": "updateVipLoungeOccupants",
-          "params": "sortedDonors",
-          "startLine": 577,
-          "endLine": 579
-        },
-        {
-          "name": "deleteAvatar",
-          "params": "userId",
-          "startLine": 582,
-          "endLine": 600
-        },
-        {
-          "name": "clearAllAvatars",
-          "params": "",
-          "startLine": 602,
-          "endLine": 616
-        },
-        {
-          "name": "getOrCreateAvatarMesh",
-          "params": "userData, coins = 0",
-          "startLine": 637,
-          "endLine": 697
-        },
-        {
-          "name": "syncActiveFloorAvatars",
-          "params": "",
-          "startLine": 699,
-          "endLine": 714
+          "name": "onThresholdsUpdated",
+          "params": "newThresholds",
+          "startLine": 199,
+          "endLine": 220
         },
         {
           "name": "animate",
           "params": "",
-          "startLine": 720,
-          "endLine": 892
+          "startLine": 239,
+          "endLine": 300
+        }
+      ]
+    },
+    {
+      "filePath": "src/preview-audio.js",
+      "absolutePath": "/app/src/preview-audio.js",
+      "imports": [],
+      "functions": [
+        {
+          "name": "getPreviewAudioCtx",
+          "params": "",
+          "startLine": 5,
+          "endLine": 13
+        },
+        {
+          "name": "playPreviewSfx",
+          "params": "type",
+          "startLine": 15,
+          "endLine": 127
         }
       ]
     },
     {
       "filePath": "src/scene-manager.js",
-      "absolutePath": "/Users/thinhng/WorkSpace/personal/tiktok-room/src/scene-manager.js",
+      "absolutePath": "/app/src/scene-manager.js",
       "imports": [
-        "three"
+        "three",
+        "./cinematic-config.js"
       ],
       "functions": [
         {
           "name": "getOrbitCameraPosition",
           "params": "theta, phi = 0.85, radius = ORBIT_CONFIG.radius",
-          "startLine": 31,
-          "endLine": 40
+          "startLine": 29,
+          "endLine": 38
         },
         {
           "name": "constructor",
           "params": "container",
-          "startLine": 75,
-          "endLine": 106
+          "startLine": 42,
+          "endLine": 73
         },
         {
           "name": "init",
           "params": "",
-          "startLine": 108,
-          "endLine": 199
+          "startLine": 75,
+          "endLine": 166
         },
         {
           "name": "setCameraPreset",
           "params": "key, duration = null, customTarget = null",
-          "startLine": 201,
-          "endLine": 231
+          "startLine": 168,
+          "endLine": 202
         },
         {
           "name": "setOrbitRadius",
           "params": "radius",
-          "startLine": 233,
-          "endLine": 237
+          "startLine": 204,
+          "endLine": 208
         },
         {
           "name": "setFov",
           "params": "fov",
-          "startLine": 239,
-          "endLine": 245
+          "startLine": 210,
+          "endLine": 216
         },
         {
           "name": "revertVipCamera",
           "params": "",
-          "startLine": 247,
-          "endLine": 250
+          "startLine": 218,
+          "endLine": 221
         },
         {
           "name": "toggleChromaKey",
           "params": "",
-          "startLine": 252,
-          "endLine": 264
+          "startLine": 223,
+          "endLine": 235
         },
         {
           "name": "toggleAlpha",
           "params": "",
-          "startLine": 266,
-          "endLine": 273
+          "startLine": 237,
+          "endLine": 244
         },
         {
           "name": "onResize",
           "params": "",
-          "startLine": 275,
-          "endLine": 281
+          "startLine": 246,
+          "endLine": 252
         },
         {
           "name": "triggerCameraShake",
           "params": "intensity = 0.35, duration = 1.0",
-          "startLine": 283,
-          "endLine": 287
+          "startLine": 254,
+          "endLine": 258
         },
         {
           "name": "startLionTracking",
           "params": "heroMesh, duration = 7.6",
-          "startLine": 289,
-          "endLine": 299
+          "startLine": 260,
+          "endLine": 274
         },
         {
           "name": "update",
           "params": "deltaTime = 0.016, bassPunch = 0",
-          "startLine": 301,
-          "endLine": 387
+          "startLine": 276,
+          "endLine": 390
+        },
+        {
+          "name": "getScreenCoords",
+          "params": "worldPos",
+          "startLine": 398,
+          "endLine": 407
+        },
+        {
+          "name": "focusSlimeCinematic",
+          "params": "slimePos, onArrived = null, duration = 1.0, avatarMesh = null",
+          "startLine": 422,
+          "endLine": 484
+        },
+        {
+          "name": "revertFromCinematic",
+          "params": "",
+          "startLine": 489,
+          "endLine": 501
+        },
+        {
+          "name": "startDonateShowcase",
+          "params": "slimePos, onArrived = null, duration = 1.0",
+          "startLine": 503,
+          "endLine": 505
+        },
+        {
+          "name": "endDonateShowcase",
+          "params": "",
+          "startLine": 507,
+          "endLine": 509
+        },
+        {
+          "name": "focusOnAvatar",
+          "params": "avatarMesh, options = {}",
+          "startLine": 518,
+          "endLine": 518
+        },
+        {
+          "name": "clearAvatarFocus",
+          "params": "",
+          "startLine": 543,
+          "endLine": 556
         }
       ]
     },
     {
-      "filePath": "src/slime-model.js",
-      "absolutePath": "/Users/thinhng/WorkSpace/personal/tiktok-room/src/slime-model.js",
+      "filePath": "src/slime-aura.js",
+      "absolutePath": "/app/src/slime-aura.js",
       "imports": [
         "three"
       ],
       "functions": [
         {
+          "name": "createBubbleSpriteTexture",
+          "params": "",
+          "startLine": 12,
+          "endLine": 33
+        },
+        {
+          "name": "createSlimeAura",
+          "params": "",
+          "startLine": 52,
+          "endLine": 203
+        },
+        {
+          "name": "setAura",
+          "params": "type",
+          "startLine": 141,
+          "endLine": 160
+        },
+        {
+          "name": "update",
+          "params": "deltaTime",
+          "startLine": 162,
+          "endLine": 192
+        },
+        {
+          "name": "currentType",
+          "params": "",
+          "startLine": 200,
+          "endLine": 200
+        },
+        {
+          "name": "isVisible",
+          "params": "",
+          "startLine": 201,
+          "endLine": 201
+        }
+      ]
+    },
+    {
+      "filePath": "src/slime-constants.js",
+      "absolutePath": "/app/src/slime-constants.js",
+      "imports": [],
+      "functions": []
+    },
+    {
+      "filePath": "src/slime-model.js",
+      "absolutePath": "/app/src/slime-model.js",
+      "imports": [
+        "three",
+        "./animation-constants.js",
+        "./slime-aura.js"
+      ],
+      "functions": [
+        {
           "name": "createBasicHalfSphereGeometry",
           "params": "",
-          "startLine": 46,
-          "endLine": 57
+          "startLine": 37,
+          "endLine": 48
         },
         {
           "name": "createChubbyMochiSlimeGeometry",
           "params": "",
-          "startLine": 63,
-          "endLine": 97
+          "startLine": 55,
+          "endLine": 89
         },
         {
           "name": "sharedMiniSlimeGeom",
           "params": "(",
-          "startLine": 120,
-          "endLine": 129
+          "startLine": 121,
+          "endLine": 130
         },
         {
           "name": "sharedHornGeom",
           "params": "(",
-          "startLine": 144,
-          "endLine": 148
+          "startLine": 145,
+          "endLine": 150
         },
         {
           "name": "sharedTailSegmentGeom",
           "params": "(",
-          "startLine": 150,
-          "endLine": 154
+          "startLine": 152,
+          "endLine": 157
         },
         {
           "name": "sharedTailTipGeom",
           "params": "(",
-          "startLine": 156,
-          "endLine": 161
+          "startLine": 159,
+          "endLine": 165
         },
         {
           "name": "sharedSideMochiGeom",
           "params": "(",
-          "startLine": 164,
-          "endLine": 169
+          "startLine": 168,
+          "endLine": 174
         },
         {
           "name": "createBillboardSprite",
           "params": "userData = {}",
-          "startLine": 187,
-          "endLine": 187
+          "startLine": 197,
+          "endLine": 197
         },
         {
           "name": "redraw",
           "params": "img = null",
-          "startLine": 205,
-          "endLine": 308
+          "startLine": 220,
+          "endLine": 414
+        },
+        {
+          "name": "drawBorderRing",
+          "params": "radius, borderCfg",
+          "startLine": 283,
+          "endLine": 293
         },
         {
           "name": "createCyberSlime",
           "params": "paletteKey = 'cyan', rawUserData = {}",
-          "startLine": 341,
-          "endLine": 341
+          "startLine": 459,
+          "endLine": 459
         },
         {
           "name": "create3DEye",
           "params": "isLeft = true",
-          "startLine": 384,
-          "endLine": 409
+          "startLine": 503,
+          "endLine": 529
         },
         {
           "name": "setLabelVisible",
           "params": "visible",
-          "startLine": 785,
-          "endLine": 787
+          "startLine": 944,
+          "endLine": 946
+        },
+        {
+          "name": "setBillboardScale",
+          "params": "scale = 1.0",
+          "startLine": 947,
+          "endLine": 953
         },
         {
           "name": "setTikTokLevel",
           "params": "lvl",
-          "startLine": 788,
-          "endLine": 794
+          "startLine": 954,
+          "endLine": 960
         },
         {
           "name": "setDonateRank",
           "params": "rank",
-          "startLine": 795,
-          "endLine": 801
+          "startLine": 961,
+          "endLine": 967
+        },
+        {
+          "name": "setFanStatus",
+          "params": "isFan = true",
+          "startLine": 968,
+          "endLine": 974
+        },
+        {
+          "name": "setFollowerStatus",
+          "params": "isFollower = true",
+          "startLine": 975,
+          "endLine": 981
         },
         {
           "name": "updateBillboard",
           "params": "coinsToAdd = 0, newLevel = null, newRank = null",
-          "startLine": 802,
-          "endLine": 828
+          "startLine": 982,
+          "endLine": 1008
+        },
+        {
+          "name": "setFootRings",
+          "params": "level = 0",
+          "startLine": 1057,
+          "endLine": 1065
+        },
+        {
+          "name": "setBodyAura",
+          "params": "typeOrBool = false",
+          "startLine": 1067,
+          "endLine": 1076
         },
         {
           "name": "setPalette",
           "params": "newKey",
-          "startLine": 868,
-          "endLine": 897
+          "startLine": 1078,
+          "endLine": 1113
         },
         {
           "name": "setGender",
           "params": "gender",
-          "startLine": 899,
-          "endLine": 904
+          "startLine": 1115,
+          "endLine": 1120
         },
         {
           "name": "setTier",
           "params": "tierNum",
-          "startLine": 914,
-          "endLine": 974
+          "startLine": 1130,
+          "endLine": 1190
         },
         {
           "name": "setExpression",
           "params": "exp",
-          "startLine": 976,
-          "endLine": 988
+          "startLine": 1192,
+          "endLine": 1204
+        },
+        {
+          "name": "setDanceMode",
+          "params": "mode = null",
+          "startLine": 1206,
+          "endLine": 1221
         },
         {
           "name": "setPaused",
           "params": "paused",
-          "startLine": 990,
-          "endLine": 1004
+          "startLine": 1223,
+          "endLine": 1237
         },
         {
           "name": "triggerDanceMove",
           "params": "moveType",
-          "startLine": 1012,
-          "endLine": 1045
+          "startLine": 1245,
+          "endLine": 1278
+        },
+        {
+          "name": "triggerLikeJump",
+          "params": "",
+          "startLine": 1280,
+          "endLine": 1288
+        },
+        {
+          "name": "triggerSink",
+          "params": "onComplete = null",
+          "startLine": 1290,
+          "endLine": 1299
         },
         {
           "name": "shuffleDanceMove",
           "params": "",
-          "startLine": 1047,
-          "endLine": 1065
+          "startLine": 1301,
+          "endLine": 1319
         },
         {
           "name": "setAutoDanceRoutine",
           "params": "enabled",
-          "startLine": 1067,
-          "endLine": 1073
+          "startLine": 1321,
+          "endLine": 1327
         },
         {
           "name": "triggerDonateAnimation",
-          "params": "type = 'small', upgradeTier = false, targetTier = 1",
-          "startLine": 1079,
-          "endLine": 1096
+          "params": "typeOrConfig = 'small', upgradeTier = false, targetTier = 1, coins = 1",
+          "startLine": 1345,
+          "endLine": 1481
         },
         {
           "name": "triggerLionCelebration",
           "params": "upgradeTier = false",
-          "startLine": 1098,
-          "endLine": 1107
+          "startLine": 1483,
+          "endLine": 1492
         },
         {
           "name": "update",
           "params": "deltaTime, audioKick = 0",
-          "startLine": 1109,
-          "endLine": 1506
+          "startLine": 1494,
+          "endLine": 2055
         }
       ]
     },
     {
       "filePath": "src/ui-overlay.js",
-      "absolutePath": "/Users/thinhng/WorkSpace/personal/tiktok-room/src/ui-overlay.js",
+      "absolutePath": "/app/src/ui-overlay.js",
       "imports": [],
       "functions": [
         {
-          "name": "constructor",
-          "params": "options = {}",
-          "startLine": 37,
-          "endLine": 37
-        },
-        {
-          "name": "initElements",
-          "params": "",
-          "startLine": 59,
-          "endLine": 71
-        },
-        {
-          "name": "bindEvents",
-          "params": "",
-          "startLine": 73,
-          "endLine": 335
-        },
-        {
-          "name": "unlockAudioHandler",
-          "params": "",
-          "startLine": 75,
-          "endLine": 87
-        },
-        {
-          "name": "setDistHelper",
-          "params": "val",
+          "name": "getGiftLogo",
+          "params": "giftKeyOrName",
           "startLine": 124,
           "endLine": 128
         },
         {
+          "name": "constructor",
+          "params": "options = {}",
+          "startLine": 131,
+          "endLine": 131
+        },
+        {
+          "name": "initElements",
+          "params": "",
+          "startLine": 153,
+          "endLine": 166
+        },
+        {
+          "name": "bindEvents",
+          "params": "",
+          "startLine": 168,
+          "endLine": 491
+        },
+        {
+          "name": "unlockAudioHandler",
+          "params": "",
+          "startLine": 170,
+          "endLine": 182
+        },
+        {
+          "name": "setDistHelper",
+          "params": "val",
+          "startLine": 219,
+          "endLine": 223
+        },
+        {
+          "name": "triggerLikeAction",
+          "params": "",
+          "startLine": 350,
+          "endLine": 375
+        },
+        {
           "name": "getTargetUser",
           "params": "",
-          "startLine": 337,
-          "endLine": 356
+          "startLine": 493,
+          "endLine": 512
         },
         {
           "name": "getCustomMockUser",
           "params": "spawnIdx = 0",
-          "startLine": 358,
-          "endLine": 383
+          "startLine": 514,
+          "endLine": 539
         },
         {
           "name": "updateActiveAvatars",
           "params": "avatarList = []",
-          "startLine": 385,
-          "endLine": 403
+          "startLine": 541,
+          "endLine": 559
         },
         {
           "name": "bindMockButton",
           "params": "id, fn",
-          "startLine": 405,
-          "endLine": 408
+          "startLine": 561,
+          "endLine": 564
         },
         {
           "name": "toggleAdminDrawer",
           "params": "",
-          "startLine": 410,
-          "endLine": 419
+          "startLine": 566,
+          "endLine": 575
         },
         {
           "name": "updateTikTokStatus",
           "params": "status",
-          "startLine": 421,
-          "endLine": 430
+          "startLine": 577,
+          "endLine": 586
         },
         {
           "name": "addHype",
           "params": "points = 1",
-          "startLine": 432,
-          "endLine": 443
+          "startLine": 588,
+          "endLine": 599
         },
         {
           "name": "triggerFrenzy",
           "params": "duration = 15",
-          "startLine": 445,
-          "endLine": 447
+          "startLine": 601,
+          "endLine": 603
         },
         {
           "name": "triggerFrenzyMode",
           "params": "",
-          "startLine": 449,
-          "endLine": 469
+          "startLine": 605,
+          "endLine": 625
         },
         {
           "name": "showGiftAlert",
           "params": "giftEvent",
-          "startLine": 471,
-          "endLine": 504
+          "startLine": 627,
+          "endLine": 688
         },
         {
           "name": "updateLeaderboard",
           "params": "donors = []",
-          "startLine": 506,
-          "endLine": 527
+          "startLine": 690,
+          "endLine": 711
         }
       ]
     },
     {
-      "filePath": "preview/slime-model.js",
-      "absolutePath": "/Users/thinhng/WorkSpace/personal/tiktok-room/preview/slime-model.js",
+      "filePath": "src/vip-lounge-manager.js",
+      "absolutePath": "/app/src/vip-lounge-manager.js",
+      "imports": [
+        "three",
+        "./floor-slots.js"
+      ],
+      "functions": [
+        {
+          "name": "triggerLeapAnimation",
+          "params": "mesh, targetPos, targetRotY, onComplete = null",
+          "startLine": 13,
+          "endLine": 34
+        },
+        {
+          "name": "updateLeapAnimation",
+          "params": "mesh, delta",
+          "startLine": 42,
+          "endLine": 71
+        },
+        {
+          "name": "constructor",
+          "params": "",
+          "startLine": 79,
+          "endLine": 82
+        },
+        {
+          "name": "getCurrentTop1",
+          "params": "",
+          "startLine": 84,
+          "endLine": 86
+        },
+        {
+          "name": "getCurrentTop2",
+          "params": "",
+          "startLine": 88,
+          "endLine": 90
+        },
+        {
+          "name": "clear",
+          "params": "",
+          "startLine": 92,
+          "endLine": 95
+        },
+        {
+          "name": "removeUser",
+          "params": "userId",
+          "startLine": 97,
+          "endLine": 101
+        },
+        {
+          "name": "_promoteToTop1",
+          "params": "mesh, userId",
+          "startLine": 106,
+          "endLine": 115
+        },
+        {
+          "name": "_promoteToTop2",
+          "params": "mesh, userId",
+          "startLine": 120,
+          "endLine": 129
+        },
+        {
+          "name": "_demoteDisplacedAvatar",
+          "params": "mesh, prevUserId, returnSlot, userCoinsMap",
+          "startLine": 134,
+          "endLine": 158
+        },
+        {
+          "name": "executeVipPromotionAndSwap",
+          "params": "{ sortedDonors, avatarMeshes, userCoinsMap, floorSlots }",
+          "startLine": 169,
+          "endLine": 169
+        }
+      ]
+    },
+    {
+      "filePath": "src/vip-podium-scheduler.js",
+      "absolutePath": "/app/src/vip-podium-scheduler.js",
+      "imports": [],
+      "functions": [
+        {
+          "name": "constructor",
+          "params": "{ duration = 15.0, podiumPos = { x: 0, y: 0.55, z: 0 }, preserveDonorPosition = false } = {}",
+          "startLine": 7,
+          "endLine": 7
+        },
+        {
+          "name": "enqueue",
+          "params": "user, mesh, tier, returnSlot",
+          "startLine": 15,
+          "endLine": 40
+        },
+        {
+          "name": "promote",
+          "params": "item",
+          "startLine": 42,
+          "endLine": 73
+        },
+        {
+          "name": "update",
+          "params": "delta, onPromote = null, onVacate = null",
+          "startLine": 75,
+          "endLine": 101
+        }
+      ]
+    },
+    {
+      "filePath": "preview/avatar-ornaments.js",
+      "absolutePath": "/app/preview/avatar-ornaments.js",
+      "imports": [],
+      "functions": [
+        {
+          "name": "renderAvatarOrnament",
+          "params": "tierClass, coins, giftKey",
+          "startLine": 2,
+          "endLine": 621
+        }
+      ]
+    },
+    {
+      "filePath": "preview/billboard-constants.js",
+      "absolutePath": "/app/preview/billboard-constants.js",
+      "imports": [],
+      "functions": []
+    },
+    {
+      "filePath": "preview/chibi-mascot.js",
+      "absolutePath": "/app/preview/chibi-mascot.js",
+      "imports": [],
+      "functions": [
+        {
+          "name": "startChibiSlimeMascot",
+          "params": "canvas, slimeColorHex = '#00f2fe'",
+          "startLine": 5,
+          "endLine": 81
+        },
+        {
+          "name": "render",
+          "params": "",
+          "startLine": 12,
+          "endLine": 77
+        },
+        {
+          "name": "stopChibiSlimeMascot",
+          "params": "",
+          "startLine": 83,
+          "endLine": 88
+        }
+      ]
+    },
+    {
+      "filePath": "preview/cinematic-particles.js",
+      "absolutePath": "/app/preview/cinematic-particles.js",
+      "imports": [],
+      "functions": [
+        {
+          "name": "startCinematicParticles",
+          "params": "canvas, gift, duration",
+          "startLine": 3,
+          "endLine": 1641
+        },
+        {
+          "name": "renderFx",
+          "params": "",
+          "startLine": 368,
+          "endLine": 1637
+        },
+        {
+          "name": "stopCinematicParticles",
+          "params": "",
+          "startLine": 1643,
+          "endLine": 1653
+        }
+      ]
+    },
+    {
+      "filePath": "preview/cinematic-showcase.js",
+      "absolutePath": "/app/preview/cinematic-showcase.js",
+      "imports": [
+        "./cinematic-particles.js",
+        "./foreground-slime.js",
+        "./chibi-mascot.js",
+        "./avatar-ornaments.js",
+        "./preview-audio.js"
+      ],
+      "functions": [
+        {
+          "name": "initCinematicShowcase",
+          "params": "ctx = {}",
+          "startLine": 18,
+          "endLine": 18
+        },
+        {
+          "name": "getScreenCoords",
+          "params": "worldPos",
+          "startLine": 22,
+          "endLine": 35
+        },
+        {
+          "name": "generateSvgAvatar",
+          "params": "name = 'Viewer'",
+          "startLine": 37,
+          "endLine": 58
+        },
+        {
+          "name": "enqueueHighTierShowcase",
+          "params": "item",
+          "startLine": 60,
+          "endLine": 65
+        },
+        {
+          "name": "processNextHighTier",
+          "params": "",
+          "startLine": 67,
+          "endLine": 79
+        },
+        {
+          "name": "runCinematic2DShowcase",
+          "params": "item, onFinished",
+          "startLine": 81,
+          "endLine": 350
+        },
+        {
+          "name": "cleanupShowcase",
+          "params": "",
+          "startLine": 279,
+          "endLine": 323
+        }
+      ]
+    },
+    {
+      "filePath": "preview/foreground-slime.js",
+      "absolutePath": "/app/preview/foreground-slime.js",
+      "imports": [
+        "three",
+        "./slime-model.js"
+      ],
+      "functions": [
+        {
+          "name": "initForegroundSlimeStage",
+          "params": "",
+          "startLine": 26,
+          "endLine": 74
+        },
+        {
+          "name": "spawnFgStardust",
+          "params": "pos, count = 2, colorHex = 0xffe066, scaleMul = 1.0",
+          "startLine": 78,
+          "endLine": 101
+        },
+        {
+          "name": "spawnFgSonicRing",
+          "params": "pos, colorHex = 0xffd700",
+          "startLine": 103,
+          "endLine": 120
+        },
+        {
+          "name": "create3DJetPlane",
+          "params": "",
+          "startLine": 125,
+          "endLine": 232
+        },
+        {
+          "name": "create3DParachute",
+          "params": "",
+          "startLine": 234,
+          "endLine": 267
+        },
+        {
+          "name": "createPantherFeatures",
+          "params": "slime",
+          "startLine": 269,
+          "endLine": 312
+        },
+        {
+          "name": "createTigerFeatures",
+          "params": "slime",
+          "startLine": 314,
+          "endLine": 387
+        },
+        {
+          "name": "createLionManeFeatures",
+          "params": "",
+          "startLine": 389,
+          "endLine": 449
+        },
+        {
+          "name": "create3DCelestialWings",
+          "params": "",
+          "startLine": 451,
+          "endLine": 485
+        },
+        {
+          "name": "createPegasusFeatures",
+          "params": "",
+          "startLine": 487,
+          "endLine": 530
+        },
+        {
+          "name": "create3DUniverseMoons",
+          "params": "",
+          "startLine": 532,
+          "endLine": 554
+        },
+        {
+          "name": "startForegroundSlime",
+          "params": "donorAvatar, duration, giftKey = 'money_gun'",
+          "startLine": 556,
+          "endLine": 1531
+        },
+        {
+          "name": "renderFg",
+          "params": "currentTime",
+          "startLine": 658,
+          "endLine": 1527
+        },
+        {
+          "name": "stopForegroundSlime",
+          "params": "",
+          "startLine": 1533,
+          "endLine": 1581
+        }
+      ]
+    },
+    {
+      "filePath": "preview/gift-props.js",
+      "absolutePath": "/app/preview/gift-props.js",
       "imports": [
         "three"
       ],
       "functions": [
         {
+          "name": "normalizeVietnameseKey",
+          "params": "str",
+          "startLine": 8,
+          "endLine": 18
+        },
+        {
+          "name": "constructor",
+          "params": "scene",
+          "startLine": 21,
+          "endLine": 24
+        },
+        {
+          "name": "trigger",
+          "params": "giftKey = 'rose', origin = new THREE.Vector3(0, 0, 0), coins = 1",
+          "startLine": 30,
+          "endLine": 133
+        },
+        {
+          "name": "_spawnJet",
+          "params": "origin",
+          "startLine": 138,
+          "endLine": 267
+        },
+        {
+          "name": "_spawnCyberPanther",
+          "params": "origin",
+          "startLine": 272,
+          "endLine": 376
+        },
+        {
+          "name": "addNeonMesh",
+          "params": "geom, pos = [0, 0, 0], rot = [0, 0, 0]",
+          "startLine": 292,
+          "endLine": 300
+        },
+        {
+          "name": "_spawnFireTiger",
+          "params": "origin",
+          "startLine": 381,
+          "endLine": 383
+        },
+        {
+          "name": "_spawnUniverse",
+          "params": "origin",
+          "startLine": 388,
+          "endLine": 504
+        },
+        {
+          "name": "_spawnPhoenix",
+          "params": "origin",
+          "startLine": 509,
+          "endLine": 562
+        },
+        {
+          "name": "_spawnGoldenLion",
+          "params": "origin",
+          "startLine": 567,
+          "endLine": 620
+        },
+        {
+          "name": "_spawnPegasus",
+          "params": "origin",
+          "startLine": 625,
+          "endLine": 665
+        },
+        {
+          "name": "_spawnDiscoBall",
+          "params": "origin",
+          "startLine": 670,
+          "endLine": 726
+        },
+        {
+          "name": "_spawnMoneyGun",
+          "params": "origin",
+          "startLine": 731,
+          "endLine": 791
+        },
+        {
+          "name": "_spawnRose",
+          "params": "origin",
+          "startLine": 796,
+          "endLine": 837
+        },
+        {
+          "name": "_spawnFingerHeart",
+          "params": "origin",
+          "startLine": 842,
+          "endLine": 879
+        },
+        {
+          "name": "_spawnCyberSunglasses",
+          "params": "origin",
+          "startLine": 884,
+          "endLine": 917
+        },
+        {
+          "name": "_spawnRainbow",
+          "params": "origin",
+          "startLine": 922,
+          "endLine": 954
+        },
+        {
+          "name": "_spawnConicalHat",
+          "params": "origin",
+          "startLine": 959,
+          "endLine": 993
+        },
+        {
+          "name": "_spawnExcalibur",
+          "params": "origin",
+          "startLine": 998,
+          "endLine": 1037
+        },
+        {
+          "name": "_spawnElectricGuitar",
+          "params": "origin",
+          "startLine": 1042,
+          "endLine": 1069
+        },
+        {
+          "name": "_spawnLoveBalloons",
+          "params": "origin",
+          "startLine": 1074,
+          "endLine": 1104
+        },
+        {
+          "name": "_spawnGenericGiftProp",
+          "params": "origin, key, coins",
+          "startLine": 1109,
+          "endLine": 1139
+        },
+        {
+          "name": "update",
+          "params": "delta",
+          "startLine": 1144,
+          "endLine": 1175
+        }
+      ]
+    },
+    {
+      "filePath": "preview/preview-audio.js",
+      "absolutePath": "/app/preview/preview-audio.js",
+      "imports": [],
+      "functions": [
+        {
+          "name": "getPreviewAudioCtx",
+          "params": "",
+          "startLine": 5,
+          "endLine": 13
+        },
+        {
+          "name": "playPreviewSfx",
+          "params": "type",
+          "startLine": 15,
+          "endLine": 127
+        }
+      ]
+    },
+    {
+      "filePath": "preview/slime-aura.js",
+      "absolutePath": "/app/preview/slime-aura.js",
+      "imports": [
+        "three"
+      ],
+      "functions": [
+        {
+          "name": "createBubbleSpriteTexture",
+          "params": "",
+          "startLine": 9,
+          "endLine": 30
+        },
+        {
+          "name": "createSlimeAura",
+          "params": "",
+          "startLine": 34,
+          "endLine": 179
+        },
+        {
+          "name": "setAura",
+          "params": "type",
+          "startLine": 123,
+          "endLine": 139
+        },
+        {
+          "name": "update",
+          "params": "deltaTime",
+          "startLine": 141,
+          "endLine": 168
+        },
+        {
+          "name": "currentType",
+          "params": "",
+          "startLine": 176,
+          "endLine": 176
+        },
+        {
+          "name": "isVisible",
+          "params": "",
+          "startLine": 177,
+          "endLine": 177
+        }
+      ]
+    },
+    {
+      "filePath": "preview/slime-constants.js",
+      "absolutePath": "/app/preview/slime-constants.js",
+      "imports": [],
+      "functions": []
+    },
+    {
+      "filePath": "preview/slime-model.js",
+      "absolutePath": "/app/preview/slime-model.js",
+      "imports": [
+        "three",
+        "./slime-aura.js"
+      ],
+      "functions": [
+        {
           "name": "createBasicHalfSphereGeometry",
           "params": "",
-          "startLine": 46,
-          "endLine": 57
+          "startLine": 36,
+          "endLine": 47
         },
         {
           "name": "createChubbyMochiSlimeGeometry",
           "params": "",
-          "startLine": 63,
-          "endLine": 97
+          "startLine": 53,
+          "endLine": 87
         },
         {
           "name": "sharedMiniSlimeGeom",
           "params": "(",
-          "startLine": 120,
-          "endLine": 129
+          "startLine": 116,
+          "endLine": 125
         },
         {
           "name": "sharedHornGeom",
           "params": "(",
-          "startLine": 144,
-          "endLine": 148
+          "startLine": 140,
+          "endLine": 144
         },
         {
           "name": "sharedTailSegmentGeom",
           "params": "(",
-          "startLine": 150,
-          "endLine": 154
+          "startLine": 146,
+          "endLine": 150
         },
         {
           "name": "sharedTailTipGeom",
           "params": "(",
-          "startLine": 156,
-          "endLine": 161
+          "startLine": 152,
+          "endLine": 157
         },
         {
           "name": "sharedSideMochiGeom",
           "params": "(",
-          "startLine": 164,
-          "endLine": 169
+          "startLine": 160,
+          "endLine": 165
         },
         {
           "name": "createBillboardSprite",
           "params": "userData = {}",
-          "startLine": 187,
-          "endLine": 187
+          "startLine": 188,
+          "endLine": 188
         },
         {
           "name": "redraw",
           "params": "img = null",
-          "startLine": 205,
-          "endLine": 308
+          "startLine": 211,
+          "endLine": 390
+        },
+        {
+          "name": "drawBorderRing",
+          "params": "radius, borderCfg",
+          "startLine": 274,
+          "endLine": 284
         },
         {
           "name": "createCyberSlime",
           "params": "paletteKey = 'cyan', rawUserData = {}",
-          "startLine": 341,
-          "endLine": 341
+          "startLine": 435,
+          "endLine": 435
         },
         {
           "name": "create3DEye",
           "params": "isLeft = true",
-          "startLine": 384,
-          "endLine": 409
+          "startLine": 478,
+          "endLine": 504
         },
         {
           "name": "setLabelVisible",
           "params": "visible",
-          "startLine": 785,
-          "endLine": 787
+          "startLine": 919,
+          "endLine": 921
+        },
+        {
+          "name": "setBillboardScale",
+          "params": "scale = 1.0",
+          "startLine": 922,
+          "endLine": 928
         },
         {
           "name": "setTikTokLevel",
           "params": "lvl",
-          "startLine": 788,
-          "endLine": 794
+          "startLine": 929,
+          "endLine": 935
         },
         {
           "name": "setDonateRank",
           "params": "rank",
-          "startLine": 795,
-          "endLine": 801
+          "startLine": 936,
+          "endLine": 942
+        },
+        {
+          "name": "setFanStatus",
+          "params": "isFan = true",
+          "startLine": 943,
+          "endLine": 949
+        },
+        {
+          "name": "setFollowerStatus",
+          "params": "isFollower = true",
+          "startLine": 950,
+          "endLine": 956
         },
         {
           "name": "updateBillboard",
           "params": "coinsToAdd = 0, newLevel = null, newRank = null",
-          "startLine": 802,
-          "endLine": 828
+          "startLine": 957,
+          "endLine": 983
+        },
+        {
+          "name": "setFootRings",
+          "params": "level = 0",
+          "startLine": 1030,
+          "endLine": 1038
+        },
+        {
+          "name": "setBodyAura",
+          "params": "typeOrBool = false",
+          "startLine": 1040,
+          "endLine": 1049
         },
         {
           "name": "setPalette",
           "params": "newKey",
-          "startLine": 868,
-          "endLine": 897
+          "startLine": 1051,
+          "endLine": 1086
         },
         {
           "name": "setGender",
           "params": "gender",
-          "startLine": 899,
-          "endLine": 904
+          "startLine": 1088,
+          "endLine": 1093
         },
         {
           "name": "setTier",
           "params": "tierNum",
-          "startLine": 914,
-          "endLine": 974
+          "startLine": 1103,
+          "endLine": 1163
         },
         {
           "name": "setExpression",
           "params": "exp",
-          "startLine": 976,
-          "endLine": 988
+          "startLine": 1165,
+          "endLine": 1177
         },
         {
           "name": "setPaused",
           "params": "paused",
-          "startLine": 990,
-          "endLine": 1004
+          "startLine": 1179,
+          "endLine": 1193
         },
         {
           "name": "triggerDanceMove",
           "params": "moveType",
-          "startLine": 1012,
-          "endLine": 1045
+          "startLine": 1201,
+          "endLine": 1234
+        },
+        {
+          "name": "triggerLikeJump",
+          "params": "",
+          "startLine": 1236,
+          "endLine": 1244
         },
         {
           "name": "shuffleDanceMove",
           "params": "",
-          "startLine": 1047,
-          "endLine": 1065
+          "startLine": 1246,
+          "endLine": 1264
         },
         {
           "name": "setAutoDanceRoutine",
           "params": "enabled",
-          "startLine": 1067,
-          "endLine": 1073
+          "startLine": 1266,
+          "endLine": 1272
         },
         {
           "name": "triggerDonateAnimation",
-          "params": "type = 'small', upgradeTier = false, targetTier = 1",
-          "startLine": 1079,
-          "endLine": 1096
+          "params": "typeOrConfig = 'small', upgradeTier = false, targetTier = 1, coins = 1",
+          "startLine": 1282,
+          "endLine": 1358
         },
         {
           "name": "triggerLionCelebration",
           "params": "upgradeTier = false",
-          "startLine": 1098,
-          "endLine": 1107
+          "startLine": 1360,
+          "endLine": 1369
         },
         {
           "name": "update",
           "params": "deltaTime, audioKick = 0",
-          "startLine": 1109,
-          "endLine": 1506
+          "startLine": 1371,
+          "endLine": 1913
         }
       ]
     },
     {
       "filePath": "preview/slime-preview.js",
-      "absolutePath": "/Users/thinhng/WorkSpace/personal/tiktok-room/preview/slime-preview.js",
+      "absolutePath": "/app/preview/slime-preview.js",
       "imports": [
         "three",
         "three/examples/jsm/controls/OrbitControls.js",
-        "./slime-model.js?v=20261106_1645"
+        "./slime-model.js?v=20261106_1645",
+        "./gift-props.js",
+        "./preview-audio.js"
       ],
       "functions": [
         {
           "name": "triggerWhiteLightBeam",
           "params": "targetX = 0, targetZ = 0, duration = 1.5",
-          "startLine": 108,
-          "endLine": 115
+          "startLine": 116,
+          "endLine": 123
         },
         {
           "name": "triggerFireworks",
           "params": "originY = 4.2, originX = 0, originZ = 0, customColor = 0xffe066",
-          "startLine": 141,
-          "endLine": 158
+          "startLine": 149,
+          "endLine": 166
         },
         {
           "name": "getViewerProfile",
           "params": "idx",
-          "startLine": 188,
-          "endLine": 201
+          "startLine": 197,
+          "endLine": 210
         },
         {
           "name": "createAvatarInstance",
           "params": "paletteKey, index = 0",
-          "startLine": 203,
-          "endLine": 224
+          "startLine": 212,
+          "endLine": 234
         },
         {
           "name": "clearShowcaseLabels",
           "params": "",
-          "startLine": 229,
-          "endLine": 237
+          "startLine": 239,
+          "endLine": 247
         },
         {
           "name": "createTierLabelSprite",
           "params": "title, desc, colorHex",
-          "startLine": 239,
-          "endLine": 272
+          "startLine": 249,
+          "endLine": 282
         },
         {
           "name": "showcaseAllTiers",
           "params": "",
-          "startLine": 274,
-          "endLine": 317
+          "startLine": 284,
+          "endLine": 327
         },
         {
           "name": "repositionGrid",
           "params": "",
-          "startLine": 319,
-          "endLine": 343
+          "startLine": 329,
+          "endLine": 353
         },
         {
           "name": "updateMetricHUD",
           "params": "",
-          "startLine": 345,
-          "endLine": 350
+          "startLine": 355,
+          "endLine": 360
         },
         {
           "name": "addAvatars",
           "params": "countToAdd",
-          "startLine": 352,
-          "endLine": 361
+          "startLine": 362,
+          "endLine": 371
         },
         {
           "name": "removeAvatars",
           "params": "countToRemove",
-          "startLine": 363,
-          "endLine": 371
+          "startLine": 373,
+          "endLine": 381
         },
         {
           "name": "setAvatarCount",
           "params": "targetCount",
-          "startLine": 373,
-          "endLine": 380
+          "startLine": 383,
+          "endLine": 390
         },
         {
           "name": "triggerLionCelebrationEvent",
           "params": "targetAvatar = null, upgradeTier = false",
-          "startLine": 392,
-          "endLine": 425
+          "startLine": 402,
+          "endLine": 408
         },
         {
           "name": "togglePause",
           "params": "",
-          "startLine": 465,
-          "endLine": 480
+          "startLine": 448,
+          "endLine": 463
         },
         {
           "name": "setHeroLevel",
@@ -1346,38 +2964,80 @@
         {
           "name": "triggerCameraShake",
           "params": "intensity = 0.25, duration = 0.7",
-          "startLine": 628,
-          "endLine": 644
+          "startLine": 634,
+          "endLine": 650
         },
         {
           "name": "showGiftToast",
           "params": "username, gift",
-          "startLine": 647,
-          "endLine": 673
+          "startLine": 653,
+          "endLine": 679
+        },
+        {
+          "name": "spawnDroppingCoins",
+          "params": "origin, count = 1, subType = 'drop_single'",
+          "startLine": 723,
+          "endLine": 762
+        },
+        {
+          "name": "spawnSingleCoinInstance",
+          "params": "origin, cfg",
+          "startLine": 764,
+          "endLine": 787
+        },
+        {
+          "name": "getSlimeEffectiveRadius",
+          "params": "targetAvatarOrOrigin",
+          "startLine": 796,
+          "endLine": 806
+        },
+        {
+          "name": "spawnOrbitingCoinRings",
+          "params": "targetAvatarOrOrigin, coins = 20, duration = 2.0",
+          "startLine": 808,
+          "endLine": 908
+        },
+        {
+          "name": "triggerFloorShockwave",
+          "params": "origin, maxScale = 4.0, duration = 1.2",
+          "startLine": 910,
+          "endLine": 926
         },
         {
           "name": "triggerDonation",
           "params": "giftKey, targetAvatar = null, forceTierUp = null",
-          "startLine": 675,
-          "endLine": 748
+          "startLine": 959,
+          "endLine": 1074
         },
         {
           "name": "bindDonateButtons",
           "params": "",
-          "startLine": 751,
-          "endLine": 758
+          "startLine": 1077,
+          "endLine": 1084
         },
         {
           "name": "toggleDonateStorm",
           "params": "",
-          "startLine": 778,
-          "endLine": 813
+          "startLine": 1104,
+          "endLine": 1139
+        },
+        {
+          "name": "createHeartBubbleTexture",
+          "params": "",
+          "startLine": 1226,
+          "endLine": 1265
+        },
+        {
+          "name": "triggerHeartBubbles",
+          "params": "pos, count = 5",
+          "startLine": 1267,
+          "endLine": 1298
         },
         {
           "name": "animate",
           "params": "",
-          "startLine": 1000,
-          "endLine": 1129
+          "startLine": 1421,
+          "endLine": 1692
         }
       ]
     }

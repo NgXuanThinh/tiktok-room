@@ -11,6 +11,7 @@
     "preview": "vite preview",
     "mock": "node server/mock-simulator.js",
     "preview:slime": "vite --config vite.preview.config.js",
+    "inspect": "node server/inspect-live.js",
     "test": "node tests/full-system.test.js"
   },
   "dependencies": {

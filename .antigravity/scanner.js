@@ -51,11 +51,11 @@ function parseFile(relPath) {
     let startLine = i + 1;
 
     // Pattern A: standard function / export function / async function
-    const fnMatch = line.match(/(?:export\s+)?(?:async\s+)?function\s+([a-zA-Z0-9_$]+)\s*\(([^)]*)\)/);
+    const fnMatch = line.match(/(?:export\s+)?(?:async\s+)?function\s+([a-zA-Z0-9_$]+)\s*\((.*)\)\s*\{?/);
     // Pattern B: const/let/var func = (params) => or function(params)
-    const arrowMatch = line.match(/(?:export\s+)?(?:const|let|var)\s+([a-zA-Z0-9_$]+)\s*=\s*(?:async\s*)?(?:\(([^)]*)\)|([a-zA-Z0-9_$]+))\s*=>/);
+    const arrowMatch = line.match(/(?:export\s+)?(?:const|let|var)\s+([a-zA-Z0-9_$]+)\s*=\s*(?:async\s*)?(?:\((.*)\)|([a-zA-Z0-9_$]+))\s*=>/);
     // Pattern C: class methods: methodName(params) {
-    const methodMatch = line.match(/^\s*(?:async\s+)?(?:get\s+|set\s+)?(?:static\s+)?([a-zA-Z0-9_$]+)\s*\(([^)]*)\)\s*\{/);
+    const methodMatch = line.match(/^\s*(?:async\s+)?(?:get\s+|set\s+)?(?:static\s+)?([a-zA-Z0-9_$]+)\s*\((.*)\)\s*\{/);
 
     if (fnMatch) {
       fnName = fnMatch[1];

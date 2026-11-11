@@ -10,46 +10,57 @@ export const DANCE_STYLES = ['bounce', 'wave', 'spin', 'jump', 'shuffle', 'sway'
 export const SLIME_COLORS = {
   green: { name: 'green', hex: '#00FF66', threeColor: 0x00ff66 },
   red: { name: 'red', hex: '#FF2A6D', threeColor: 0xff2a6d },
-  blue: { name: 'blue', hex: '#00F0FF', threeColor: 0x00f0ff },
-  yellow: { name: 'yellow', hex: '#FFE600', threeColor: 0xffe600 }
+  blue: { name: 'blue', hex: '#00F0FF', threeColor: 0x00f0ff }
 };
 
 const COLOR_ALIASES = {
   green: 'green',
+  lime: 'green',
   xanhla: 'green',
   xanh_la: 'green',
   'xanh lá': 'green',
   emerald: 'green',
+  luc: 'green',
+  'lục': 'green',
   red: 'red',
+  pink: 'red',
   do: 'red',
   'đỏ': 'red',
   rose: 'red',
+  hong: 'red',
+  'hồng': 'red',
   blue: 'blue',
+  cyan: 'blue',
   xanh: 'blue',
   xanhduong: 'blue',
   'xanh_duong': 'blue',
-  'xanh dương': 'blue',
-  cyan: 'blue',
-  yellow: 'yellow',
-  vang: 'yellow',
-  'vàng': 'yellow',
-  gold: 'yellow'
+  'xanh dương': 'blue'
 };
 
 export function parseColorCommand(comment) {
   if (!comment || typeof comment !== 'string') return null;
-  const match = comment.trim().match(/^!color\s+(.+)$/i);
+  const trimmed = comment.trim();
+  const match = trimmed.match(/^!color(?:\s+(.+))?$/i);
   if (!match) return null;
 
-  const rawInput = match[1].trim().toLowerCase();
-  if (/^(#|0x)?[0-9a-f]{3,8}$/i.test(rawInput) && !COLOR_ALIASES[rawInput]) {
-    return null;
+  const rawInput = match[1] ? match[1].trim().toLowerCase() : '';
+  if (!rawInput) {
+    return { isRandom: true };
   }
 
-  const resolved = COLOR_ALIASES[rawInput];
+  const tokens = rawInput.split(/\s+/);
+  const oneWord = tokens[0];
+  const twoWords = tokens.slice(0, 2).join(' ');
+
+  const resolved = COLOR_ALIASES[rawInput] || COLOR_ALIASES[twoWords] || COLOR_ALIASES[oneWord];
   if (resolved && SLIME_COLORS[resolved]) {
     return SLIME_COLORS[resolved];
   }
+
+  if (/^(#|0x)?[0-9a-f]{3,8}$/i.test(oneWord) && !COLOR_ALIASES[oneWord]) {
+    return null;
+  }
+
   return null;
 }
 
@@ -179,7 +190,7 @@ export function getDanceKinematics(style, phase) {
 export class AvatarOccupancyManager {
   constructor(options = {}) {
     this.maxCapacity = options.maxCapacity || 100;
-    this.idleTimeoutMs = options.idleTimeoutMs || 120000; // 120 seconds
+    this.idleTimeoutMs = options.idleTimeoutMs || 90000; // 90 seconds
     this.disableAutoCull = options.disableAutoCull === true;
     this.avatars = new Map();
   }
@@ -246,15 +257,19 @@ export class AvatarOccupancyManager {
       }
     }
 
-    for (const id of culled) {
-      const av = this.avatars.get(id);
-      if (av) {
-        this.disposeAvatar(av);
-        this.avatars.delete(id);
-      }
-    }
-
+    // Do NOT prematurely dispose or delete here - let sinkAndRemoveAvatar perform
+    // smooth hop-and-sink animation, which calls deleteAvatar() upon completion.
     return culled;
+  }
+
+  /**
+   * Returns the Three.js mesh for a given userId, or null if not found.
+   * Used by focusSpotlights() to auto-target the donating Slime's position.
+   * @param {string} userId
+   * @returns {THREE.Object3D|null}
+   */
+  getAvatarMesh(userId) {
+    return this.meshMap?.get(String(userId)) || null;
   }
 
   removeAvatar(userId) {

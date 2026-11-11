@@ -64,6 +64,51 @@
     <div id="audio-unlock-banner" class="glass-panel audio-unlock-pill hud-interactive">
       🎵 Click anywhere to enable Club Music & Sound
     </div>
+
+    <!-- Interactive Stream Like Button (Thả tim) -->
+    <div id="like-button-container" class="hud-interactive">
+      <button id="btn-stream-like" class="stream-like-btn" title="Thả tim (phím L hoặc Space)">
+        <span class="like-btn-icon">❤️</span>
+        <span class="like-btn-text">LIKE</span>
+        <span id="like-btn-counter" class="like-btn-counter">0</span>
+      </button>
+    </div>
+
+    <!-- CINEMATIC 2D OVERLAY (HIGH-TIER DONATE SHOWCASE) -->
+    <div id="cinematic-overlay">
+      <div class="cinematic-backdrop" id="cinematic-backdrop"></div>
+      <canvas id="cinematic-fx-canvas"></canvas>
+
+      <div class="cinematic-stage" id="cinematic-stage">
+        <div class="cinematic-avatar-wrapper" id="cinematic-avatar-wrap">
+          <div class="cinematic-wings" id="cinematic-wings">
+            <div class="wing wing-left"></div>
+            <div class="wing wing-right"></div>
+          </div>
+          <div class="cinematic-crown" id="cinematic-crown">👑</div>
+          <div class="avatar-ornament" id="avatar-ornament"></div>
+          <div class="avatar-ring-glow" id="avatar-ring-glow"></div>
+          <div class="avatar-frame" id="avatar-frame">
+            <img id="cinematic-avatar-img" class="avatar-img" src="" alt="Donor Avatar" />
+          </div>
+          <canvas id="cinematic-chibi-canvas" width="90" height="90"></canvas>
+        </div>
+
+        <div class="cinematic-info" id="cinematic-info">
+          <div class="cinematic-donor-title" id="cinematic-donor-title">✨ VIP DONOR ✨</div>
+          <div class="cinematic-donor-name" id="cinematic-donor-name">@ThinhPro</div>
+          <div class="cinematic-gift-badge" id="cinematic-gift-badge">
+            <span id="cinematic-gift-emoji">🎁</span>
+            <span id="cinematic-gift-name">Quà Cao Cấp</span>
+            <span id="cinematic-gift-coins">500🪙</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- FOREGROUND 3D SLIME CANVAS (Z-INDEX 10: NHẢY PHÍA TRƯỚC TOÀN BỘ) -->
+      <canvas id="cinematic-slime-canvas"></canvas>
+      <div class="cinematic-skip-hint" id="cinematic-skip-btn">✕ Bấm để bỏ qua</div>
+    </div>
   </div>
 
   <script type="module" src="./main.js"></script>

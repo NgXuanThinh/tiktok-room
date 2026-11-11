@@ -1,6 +1,47 @@
 // src/gift-props.js - Procedural 3D Signature Gift Props & High-Impact Animators
 import * as THREE from 'three';
 
+export const DONATE_GIFTS = {
+  // 1. Quà nhỏ (1 - 10 xu | ~200đ - 3.500đ)
+  rose: { name: 'Hoa hồng', emoji: '🌹', coins: 1, vnd: '200 - 350đ', tier: 1, cat: 'small', color: 0xff0874, desc: 'Mini bounce + Cánh hoa hồng bay' },
+  gg: { name: 'GG Game', emoji: '⚡', coins: 1, vnd: '200 - 350đ', tier: 1, cat: 'small', color: 0x00f2fe, desc: 'Tia chớp Neon + Pop ding' },
+  ice_cream: { name: 'Kem ốc quế', emoji: '🍦', coins: 1, vnd: '200 - 350đ', tier: 1, cat: 'small', color: 0xffbe1a, desc: 'Nốt nhạc ngọt ngào + Nảy nhẹ' },
+  finger_heart: { name: 'Finger Heart', emoji: '💖', coins: 5, vnd: '1.000 - 1.700đ', tier: 1, cat: 'small', color: 0xff007f, desc: 'Chùm 10 trái tim Neon bay lượn' },
+  panda: { name: 'Gấu trúc', emoji: '🐼', coins: 5, vnd: '1.000 - 1.700đ', tier: 1, cat: 'small', color: 0x43e97b, desc: 'Mặt cười Chibi + Nhún nảy dài' },
+  wave_hand: { name: 'Sóng tay', emoji: '👋', coins: 9, vnd: '2.000 - 3.500đ', tier: 1, cat: 'small', color: 0x00d2ff, desc: 'Sóng xung kích lan tỏa dưới chân' },
+  conical_hat: { name: 'Nón lá', emoji: '👒', coins: 10, vnd: '2.000 - 3.500đ', tier: 1, cat: 'small', color: 0xffd700, desc: 'Vòng xoay 360 độ + Bass kick' },
+
+  // 2. Quà trung (20 - 199 xu | ~4.000đ - 70.000đ)
+  perfume: { name: 'Nước hoa', emoji: '🧴', coins: 20, vnd: '4.000 - 7.000đ', tier: 2, cat: 'medium', color: 0xff00aa, desc: 'Thăng cấp Tie 2 Chubby + Làn khói nước hoa' },
+  sunscreen: { name: 'Kem chống nắng', emoji: '🧴', coins: 50, vnd: '10.000 - 17.500đ', tier: 2, cat: 'medium', color: 0xffe066, desc: 'Spotlight chiếu rọi + Hạt bụi lấp lánh' },
+  confetti: { name: 'Pháo hoa giấy', emoji: '🎊', coins: 100, vnd: '20.000 - 35.000đ', tier: 2, cat: 'medium', color: 0x00ff88, desc: 'Cơn mưa hoa giấy đa sắc phủ kín avatar' },
+  rainbow: { name: 'Cầu vồng', emoji: '🌈', coins: 100, vnd: '20.000 - 35.000đ', tier: 2, cat: 'medium', color: 0x00f2fe, desc: 'Vòm quang phổ 7 sắc rực rỡ' },
+  sunglasses: { name: 'Kính râm Cyber', emoji: '🕶️', coins: 199, vnd: '40.000 - 70.000đ', tier: 2, cat: 'medium', color: 0x9d4edd, desc: 'Kính ngầu + Dàn chiếu kép đan chéo' },
+
+  // 3. Quà cao cấp (500 - 5.000 xu | ~100.000đ - 1.750.000đ)
+  money_gun: { name: 'Súng tiền (Money Gun)', emoji: '🔫', coins: 500, vnd: '100.000 - 175.000đ', tier: 3, cat: 'high', color: 0x00ff88, desc: 'Đại bác bắn tiền & ngọc lục bảo rào rạt' },
+  money_rain: { name: 'Mưa tiền', emoji: '💸', coins: 500, vnd: '100.000 - 175.000đ', tier: 3, cat: 'high', color: 0x00ff88, desc: 'Thăng cấp Tie 3 Tai Mochi + Mưa tiền vàng rơi' },
+  concert: { name: 'Buổi hòa nhạc', emoji: '🎸', coins: 500, vnd: '100.000 - 175.000đ', tier: 3, cat: 'high', color: 0xff0874, desc: 'Pháo hoa nổ dài + Dàn sân khấu quét mạnh' },
+  swan: { name: 'Thiên nga', emoji: '🦢', coins: 699, vnd: '140.000 - 240.000đ', tier: 3, cat: 'high', color: 0xff758f, desc: 'Đôi thiên nga hộ trang + Lông vũ phát quang' },
+  love_balloon: { name: 'Bóng bay tình yêu', emoji: '🎈', coins: 699, vnd: '140.000 - 240.000đ', tier: 3, cat: 'high', color: 0xff3366, desc: 'Bóng bay trái tim khổng lồ bay lên trần' },
+  galaxy: { name: 'Vũ trụ Galaxy', emoji: '🌌', coins: 1000, vnd: '200.000 - 350.000đ', tier: 4, cat: 'high', color: 0x00f2fe, desc: 'Hố xoáy thiên hà spiral + Mưa bụi tinh vân' },
+  disco_ball: { name: 'Quả cầu Disco', emoji: '🪩', coins: 1000, vnd: '200.000 - 350.000đ', tier: 4, cat: 'high', color: 0x00f2fe, desc: 'Thăng cấp Tie 4 Sừng+Đuôi + Cầu disco phản quang laser' },
+  legend: { name: 'Huyền thoại', emoji: '⚔️', coins: 1000, vnd: '200.000 - 350.000đ', tier: 4, cat: 'high', color: 0xffd700, desc: 'Gươm ánh sáng cắm xuống sàn + Air horn' },
+  whale_diving: { name: 'Cá voi lặn (Whale Diving)', emoji: '🐋', coins: 2150, vnd: '450.000 - 700.000đ', tier: 4, cat: 'high', color: 0x00b4d8, desc: 'Cá voi khổng lồ lặn tung bọt biển neon dạ quang' },
+  private_jet: { name: 'Chuyên cơ Private Jet', emoji: '🛩️', coins: 4888, vnd: '1.000.000 - 1.600.000đ', tier: 5, cat: 'high', color: 0xffaa00, desc: 'Chuyên cơ lướt xé gió để lại vệt khói lửa vàng' },
+  diamond_gun: { name: 'Pháo Kim Cương (Diamond Gun)', emoji: '💎', coins: 5000, vnd: '1.000.000 - 1.750.000đ', tier: 5, cat: 'high', color: 0xff007f, desc: 'Pháo kim cương hồng nổ vụn 1000 mảnh pha lê' },
+  drama_queen: { name: 'Drama Queen', emoji: '👑', coins: 5000, vnd: '1.000.000 - 1.750.000đ', tier: 5, cat: 'high', color: 0xff0055, desc: 'Thăng cấp Tie 5 Max VIP + Frenzy Mode toàn sàn!' },
+
+  // 4. Quà siêu xa xỉ & Thần thoại (6.000 - 44.999 xu | ~1.200.000đ - 15.700.000đ)
+  jet: { name: 'Máy bay (Airplane)', emoji: '✈️', coins: 6000, vnd: '1.2 - 2.1 Tr VND', tier: 5, cat: 'ultra', color: 0x00f2fe, desc: 'Cưỡi phi cơ phản lực + Rơi tự do + Bung dù 3D vàng kim' },
+  panther: { name: 'Báo đốm (Shadow Panther)', emoji: '🐆', coins: 10000, vnd: '2.0 - 3.5 Tr VND', tier: 5, cat: 'ultra', color: 0x7b2cbf, desc: 'Báo đốm bứt tốc + Vệt bóng ma 2D + 3 cú cào xé không gian' },
+  phoenix: { name: 'Phượng hoàng (Phoenix)', emoji: '🦅', coins: 25999, vnd: '5.2 - 9.0 Tr VND', tier: 5, cat: 'ultra', color: 0xff0055, desc: 'Trứng lửa nứt vỡ + Phượng hoàng 2D khổng lồ bay vút lên bầu trời' },
+  tiger: { name: 'Hổ lửa (Fire Tiger)', emoji: '🐅', coins: 26999, vnd: '5.4 - 9.4 Tr VND', tier: 5, cat: 'ultra', color: 0xff5400, desc: 'Nhảy xuyên Vòng Lửa 2D + Đầu Hổ Lửa 2D gầm thét phun bão lửa' },
+  lion: { name: 'Sư tử (Lion King)', emoji: '🦁', coins: 29999, vnd: '6.0 - 10.5 Tr VND', tier: 5, cat: 'ultra', color: 0xffd700, desc: 'Thăng thiên cột sáng 24K + Thác thỏi vàng và kim cương trút xuống' },
+  pegasus: { name: 'Ngựa thần (Celestial Pegasus)', emoji: '🦄', coins: 34000, vnd: '7.0 - 12.0 Tr VND', tier: 5, cat: 'ultra', color: 0xb2ebf2, desc: 'Ngựa thần Pegasus phi nước đại trên Dải Cực Quang Aurora 2D' },
+  universe: { name: 'Vũ trụ TikTok (TikTok Universe)', emoji: '🪐', coins: 44999, vnd: '9.0 - 15.7 Tr VND', tier: 5, cat: 'ultra', color: 0x00f2fe, desc: 'Đại vụ nổ Big Bang cực đại + 4 hành tinh 2D quay quanh Avatar' }
+};
+
 /**
  * Normalizes Vietnamese accents, diacritics, spaces and symbols into a clean ASCII key
  * e.g. "Máy bay" -> "may_bay", "Báo đen" -> "bao_den", "Vũ trụ TikTok" -> "vu_tru_tiktok"

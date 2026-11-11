@@ -39,7 +39,21 @@ const suites = [
   // Categorized Donation VFX Tiers (1 coin drop/jump, 5 coin 3-jumps, 1-5 orbiting rings, shockwave, mythic crown)
   { name: 'donation-vfx-tiers', path: './donation-vfx-tiers.test.js' },
   // 3D Signature Gift Props, Clean Honoring Alert & Short SFX
-  { name: 'gift-props-signatures', path: './gift-props-signatures.test.js' }
+  { name: 'gift-props-signatures', path: './gift-props-signatures.test.js' },
+  // Refactored Mainline Modular Architecture
+  { name: 'mainline-refactor-modules', path: './mainline-refactor-modules.test.js' },
+  // Interactive Like Button, Slime Jump & Floating Red Heart Bubbles
+  { name: 'like-slime-jump', path: './like-slime-jump.test.js' },
+  // Equipment & Slime Tier Evolution based on Cumulative Coins
+  { name: 'equipment-evolution', path: './equipment-evolution.test.js' },
+  // Camera Focus on Selected Slime (Admin Cockpit)
+  { name: 'camera-focus-slime', path: './camera-focus-slime.test.js' },
+  // 3D Billboard Label Improvement (Number-only level, Colored & Double borders, Dynamic Pills, Fan/Follow)
+  { name: 'billboard-improvement', path: './billboard-improvement.test.js' },
+  // Chat Commands, Animation Constants & Geometry Lifecycle Preservation
+  { name: 'chat-commands-and-lifecycle', path: './chat-commands-and-lifecycle.test.js' },
+  // Admin Threshold Adherence & Strict Tier 5 Exclusivity
+  { name: 'verify-tier5-and-threshold-adherence', path: './verify-tier5-and-threshold-adherence.test.js' }
 ];
 
 async function runAll() {

@@ -30,22 +30,20 @@ export async function run() {
 
   const testCases = [
     {
-      name: 'test_canonical_4_color_palette',
+      name: 'test_canonical_3_color_palette',
       fn: () => {
         assert.ok(SLIME_COLORS, 'SLIME_COLORS must be exported');
         const keys = Object.keys(SLIME_COLORS);
-        assert.strictEqual(keys.length, 4, 'Must have exactly 4 canonical colors');
-        assert.deepStrictEqual(keys.sort(), ['blue', 'green', 'red', 'yellow']);
+        assert.strictEqual(keys.length, 3, 'Must have exactly 3 canonical colors');
+        assert.deepStrictEqual(keys.sort(), ['blue', 'green', 'red']);
 
         assert.strictEqual(SLIME_COLORS.green.hex.toUpperCase(), '#00FF66');
         assert.strictEqual(SLIME_COLORS.red.hex.toUpperCase(), '#FF2A6D');
         assert.strictEqual(SLIME_COLORS.blue.hex.toUpperCase(), '#00F0FF');
-        assert.strictEqual(SLIME_COLORS.yellow.hex.toUpperCase(), '#FFE600');
 
         assert.strictEqual(SLIME_COLORS.green.threeColor, 0x00ff66);
         assert.strictEqual(SLIME_COLORS.red.threeColor, 0xff2a6d);
         assert.strictEqual(SLIME_COLORS.blue.threeColor, 0x00f0ff);
-        assert.strictEqual(SLIME_COLORS.yellow.threeColor, 0xffe600);
       }
     },
     {
@@ -55,7 +53,6 @@ export async function run() {
         assert.strictEqual(parseColorCommand('!color green')?.name, 'green');
         assert.strictEqual(parseColorCommand('!color red')?.name, 'red');
         assert.strictEqual(parseColorCommand('!color blue')?.name, 'blue');
-        assert.strictEqual(parseColorCommand('!color yellow')?.name, 'yellow');
         assert.strictEqual(parseColorCommand('  !color   GREEN  ')?.name, 'green');
       }
     },
@@ -71,8 +68,6 @@ export async function run() {
         assert.strictEqual(parseColorCommand('!color xanh')?.name, 'blue');
         assert.strictEqual(parseColorCommand('!color xanhduong')?.name, 'blue');
         assert.strictEqual(parseColorCommand('!color xanh dương')?.name, 'blue');
-        assert.strictEqual(parseColorCommand('!color vang')?.name, 'yellow');
-        assert.strictEqual(parseColorCommand('!color vàng')?.name, 'yellow');
       }
     },
     {
@@ -92,11 +87,12 @@ export async function run() {
       fn: () => {
         assert.strictEqual(typeof parseColorCommand, 'function', 'parseColorCommand must be a function');
         assert.strictEqual(parseColorCommand('!color purple'), null, 'Must reject non-palette color purple');
+        assert.strictEqual(parseColorCommand('!color yellow'), null, 'Must reject yellow (no longer supported)');
         assert.strictEqual(parseColorCommand('!color black'), null, 'Must reject black');
         assert.strictEqual(parseColorCommand('!color white'), null, 'Must reject white');
         assert.strictEqual(parseColorCommand('!dance 1'), null, 'Must ignore non-color commands');
         assert.strictEqual(parseColorCommand('hello world'), null, 'Must ignore normal chat');
-        assert.strictEqual(parseColorCommand('!color'), null, 'Must reject empty color argument');
+        assert.deepStrictEqual(parseColorCommand('!color'), { isRandom: true }, 'Empty color argument returns isRandom');
       }
     },
     {

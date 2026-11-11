@@ -64,6 +64,10 @@ function broadcast(payload) {
   }
 }
 
+// Session State Caches for Late-joining Clients (Port 3000 F5 / Reconnect)
+const sessionActiveUsers = new Map();
+let sessionTopDonors = [];
+
 // Rate Limiter with 500ms combo aggregation and VIP bypass
 const rateLimiter = new EventQueueRateLimiter({
   maxQueueSize: 100,
@@ -78,10 +82,32 @@ const rateLimiter = new EventQueueRateLimiter({
 const tiktokService = new TikTokService();
 tiktokService.on('raw_event', (type, data) => {
   const normalized = normalizeTikTokEvent(type, data);
+  if (normalized.user && normalized.user.id && normalized.user.id !== '0') {
+    sessionActiveUsers.set(String(normalized.user.id), {
+      ...normalized.user,
+      lastActive: Date.now()
+    });
+    if (sessionActiveUsers.size > 100) {
+      const oldestKey = sessionActiveUsers.keys().next().value;
+      sessionActiveUsers.delete(oldestKey);
+    }
+  }
   rateLimiter.enqueue(normalized);
 });
+
+tiktokService.on('room_ranks', (data) => {
+  sessionTopDonors = data.ranks || [];
+  broadcast({ type: 'room_ranks', data });
+});
+
 tiktokService.on('status', (status) => {
   broadcast({ type: 'tiktok_status', data: status });
+});
+
+tiktokService.on('streamEnd', () => {
+  sessionActiveUsers.clear();
+  sessionTopDonors = [];
+  broadcast({ type: 'session_reset' });
 });
 
 // Mock Simulator
@@ -176,11 +202,18 @@ wss.on('connection', (ws) => {
   ws.isAlive = true;
   ws.on('pong', () => { ws.isAlive = true; });
 
-  // Initial handshake packet
+  // Initial handshake packet with active session state
   ws.send(JSON.stringify({
     type: 'connected',
     message: 'Welcome to TikTok LIVE 3D Bar WS Hub',
     status: tiktokService.getStatus()
+  }));
+
+  ws.send(JSON.stringify({
+    type: 'initial_session_state',
+    status: tiktokService.getStatus(),
+    activeUsers: Array.from(sessionActiveUsers.values()),
+    topDonors: sessionTopDonors
   }));
 
   // Handle incoming messages from frontend client & admin panel
@@ -190,20 +223,52 @@ wss.on('connection', (ws) => {
       if (data.type === 'mock_trigger') {
         if (data.action === 'likes') mockSimulator.simulateLikes(data.count || 10, data.user);
         else if (data.action === 'chat') mockSimulator.simulateChat(data.comment, data.user);
-        else if (data.action === 'gift') mockSimulator.simulateGift(data.tier || 1, data.giftName, data.coins, data.user, data.giftKey);
+        else if (data.action === 'gift') mockSimulator.simulateGift(data.tier || 1, data.giftName, data.coins, data.user, data.giftKey, data.forceTierUp);
         else if (data.action === 'spawn') mockSimulator.simulateSpawn(data.user);
         else if (data.action === 'delete_avatar') broadcast({ type: 'delete_avatar', userId: data.userId });
         else if (data.action === 'clear_avatars') broadcast({ type: 'clear_avatars' });
+        else if (data.action === 'fan') {
+          const userPayload = data.user || mockSimulator.getRandomViewer();
+          const evt = normalizeTikTokEvent('superFan', { ...userPayload, isFan: true });
+          rateLimiter.enqueue(evt);
+        } else if (data.action === 'follow') {
+          const userPayload = data.user || mockSimulator.getRandomViewer();
+          const evt = normalizeTikTokEvent('follow', { ...userPayload, isFollower: true });
+          rateLimiter.enqueue(evt);
+        }
       } else if (data.type === 'tiktok_connect') {
-        tiktokService.connect(data.username).catch(() => {});
+        sessionActiveUsers.clear();
+        sessionTopDonors = [];
+        broadcast({ type: 'session_reset' });
+        tiktokService.connect(data.username).catch((err) => {
+          broadcast({ type: 'tiktok_error', error: err.message });
+        });
       } else if (data.type === 'tiktok_disconnect') {
+        sessionActiveUsers.clear();
+        sessionTopDonors = [];
         tiktokService.disconnect();
+        broadcast({ type: 'session_reset' });
+      } else if (data.type === 'refresh_floor') {
+        sessionActiveUsers.clear();
+        broadcast({
+          type: 'refresh_floor',
+          ranks: sessionTopDonors,
+          total: tiktokService.viewerCount
+        });
       } else if (data.type === 'admin_command') {
         // Forward admin commands from Port 3001 Cockpit to all 3D Room viewers
         broadcast(data);
       } else if (data.type === 'sync_avatars') {
+        const activeList = data.list || [];
         // Broadcast synced active floor avatars to all clients including Admin Cockpit
-        broadcast({ type: 'active_avatars_list', data: data.list || [] });
+        broadcast({ type: 'active_avatars_list', data: activeList });
+        // Synchronize server cache so late-joining clients only receive currently active users
+        const activeIds = new Set(activeList.map((u) => String(u.userId)));
+        for (const id of sessionActiveUsers.keys()) {
+          if (!activeIds.has(id)) {
+            sessionActiveUsers.delete(id);
+          }
+        }
       }
     } catch (e) {}
   });

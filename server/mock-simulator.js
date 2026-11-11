@@ -4,7 +4,7 @@ import { normalizeTikTokEvent } from './event-normalizer.js';
 export const MOCK_LEVELS = ['Lv.1', 'Lv.10', 'Lv.25', 'Lv.50', 'VIP', 'TOP 1'];
 
 export function createCustomMockUser(params = {}) {
-  const username = params.username || 'DaiGiaBinhDuong';
+  const username = params.username || 'Bot';
   const level = params.level || 'TOP 1';
   const slimeColor = params.slimeColor || 'blue';
   const cleanId = username.toLowerCase().replace(/[^a-z0-9]/g, '_');
@@ -66,7 +66,7 @@ const MOCK_GIFTS = [
 
 export class MockSimulator {
   constructor(options = {}) {
-    this.onEvent = typeof options.onEvent === 'function' ? options.onEvent : () => {};
+    this.onEvent = typeof options.onEvent === 'function' ? options.onEvent : () => { };
     this.timer = null;
     this.isRunning = false;
   }
@@ -97,7 +97,7 @@ export class MockSimulator {
     return evt;
   }
 
-  simulateGift(tier = 1, customGiftName = null, customCoins = null, user = null, customGiftKey = null) {
+  simulateGift(tier = 1, customGiftName = null, customCoins = null, user = null, customGiftKey = null, forceTierUp = undefined) {
     const u = user || this.getRandomViewer();
     let giftSpec = MOCK_GIFTS.find((g) => g.tier === tier);
     if (!giftSpec) giftSpec = MOCK_GIFTS[0];
@@ -112,7 +112,8 @@ export class MockSimulator {
       giftName,
       giftKey,
       diamondCount,
-      repeatCount: 1
+      repeatCount: 1,
+      ...(forceTierUp !== undefined ? { forceTierUp } : {})
     });
     this.onEvent(evt);
     return evt;
@@ -125,7 +126,8 @@ export class MockSimulator {
     const evt = normalizeTikTokEvent('chat', {
       ...u,
       tier,
-      comment: `!color ${color} !tier ${tier}`
+      isPinned: u.isPinned !== undefined ? u.isPinned : true,
+      comment: `!color ${color}`
     });
     this.onEvent(evt);
     return evt;

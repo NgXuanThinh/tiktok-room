@@ -101,6 +101,37 @@ export const SFX_CONFIGS = {
     frequencies: [523.25, 659.25, 783.99, 1046.50],
     duration: 1.2,
     decayTarget: 0.0001
+  },
+  goldChime: {
+    type: 'sine',
+    frequencies: [2093, 2637, 3136, 4186],
+    duration: 1.8,
+    decayTarget: 0.0001
+  },
+  swordClash: {
+    type: 'sawtooth',
+    pitchRampStart: 440,
+    pitchRampEnd: 2200,
+    duration: 0.9,
+    decayTarget: 0.0001
+  },
+  royalFanfare: {
+    type: 'sine',
+    frequencies: [392, 523.25, 659.25, 783.99, 1046.50, 1318.51],
+    duration: 1.8,
+    decayTarget: 0.0001
+  },
+  heartWhoosh: {
+    type: 'noise',
+    lowPassCutoff: 600,
+    duration: 0.8,
+    decayTarget: 0.0001
+  },
+  discoLaser: {
+    type: 'sine',
+    frequencies: [880, 1760, 3520],
+    duration: 0.6,
+    decayTarget: 0.0001
   }
 };
 
@@ -110,6 +141,11 @@ export function synthesizeSfxParams(name) {
   if (key === 'boom' || key === 'bassboom') return SFX_CONFIGS.bassBoom;
   if (key === 'jetswoosh') return SFX_CONFIGS.jetSwoosh;
   if (key === 'fanfare') return SFX_CONFIGS.fanfare;
+  if (key === 'goldchime') return SFX_CONFIGS.goldChime;
+  if (key === 'swordclash') return SFX_CONFIGS.swordClash;
+  if (key === 'royalfanfare') return SFX_CONFIGS.royalFanfare;
+  if (key === 'heartwhoosh') return SFX_CONFIGS.heartWhoosh;
+  if (key === 'discolaser') return SFX_CONFIGS.discoLaser;
   return SFX_CONFIGS[name] || SFX_CONFIGS.coin;
 }
 

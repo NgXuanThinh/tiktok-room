@@ -45,14 +45,14 @@ export async function run() {
         );
 
         const user = createCustomMockUser({
-          username: 'DaiGiaBinhDuong',
+          username: 'Bot',
           level: 'TOP 1',
           slimeColor: 'yellow'
         });
 
         assert.ok(user, 'User object must be returned');
-        assert.strictEqual(user.username, 'DaiGiaBinhDuong');
-        assert.strictEqual(user.nickname, 'DaiGiaBinhDuong');
+        assert.strictEqual(user.username, 'Bot');
+        assert.strictEqual(user.nickname, 'Bot');
         assert.strictEqual(user.level, 'TOP 1');
         assert.strictEqual(user.slimeColor, 'yellow');
         assert.ok(user.id.startsWith('custom_'), 'Custom user ID should have custom_ prefix');
@@ -69,8 +69,8 @@ export async function run() {
 
         const customUser = {
           id: 'custom_daigia',
-          username: 'DaiGiaBinhDuong',
-          nickname: 'DaiGiaBinhDuong',
+          username: 'Bot',
+          nickname: 'Bot',
           level: 'TOP 1',
           slimeColor: 'yellow'
         };
@@ -80,7 +80,7 @@ export async function run() {
         assert.strictEqual(dispatched.length, 1, 'Event must be emitted');
         const evt = dispatched[0];
         assert.strictEqual(evt.type, 'gift');
-        assert.strictEqual(evt.user.username, 'DaiGiaBinhDuong');
+        assert.strictEqual(evt.user.username, 'Bot');
         assert.strictEqual(evt.user.level, 'TOP 1');
         assert.strictEqual(evt.user.slimeColor, 'yellow');
         assert.strictEqual(evt.data.giftName, 'Lion');

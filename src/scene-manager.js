@@ -1,28 +1,26 @@
 // src/scene-manager.js - Three.js WebGL scene lifecycle, 4 lerped camera presets, alpha/chroma modes
 import * as THREE from 'three';
+import { CINEMATIC_CONFIG } from './cinematic-config.js';
+import {
+  CAMERA_PRESETS,
+  ORBIT_CONFIG,
+  FULL_VENUE_ORBIT_CONFIG,
+  VIP_ZOOM_CONFIG,
+  CAMERA_SHAKE_CONFIG,
+  LION_TRACKING_CONFIG,
+  AVATAR_FOCUS_CONFIG,
+  CAMERA_LERP_LAMBDA
+} from './camera-constants.js';
 
-export const ORBIT_CONFIG = {
-  radius: 8.5,
-  orbitRadius: 8.5,
-  minPhi: 0.45, // ~25.8 deg
-  maxPhi: 1.30, // ~74.5 deg
-  targetY: 1.2,
-  target: { x: 0, y: 1.2, z: 0 }
-};
-
-export const FULL_VENUE_ORBIT_CONFIG = {
-  radius: 10.0,
-  target: { x: 0, y: 1.4, z: 0 },
-  elevationY: 5.0,
-  fov: 68,
-  minRadius: 6.0,
-  maxRadius: 25.0
-};
-
-export const VIP_ZOOM_CONFIG = {
-  durationSeconds: 5.0,
-  target: { x: 0, y: 2.0, z: 0 },
-  fov: 35
+export {
+  CAMERA_PRESETS,
+  ORBIT_CONFIG,
+  FULL_VENUE_ORBIT_CONFIG,
+  VIP_ZOOM_CONFIG,
+  CAMERA_SHAKE_CONFIG,
+  LION_TRACKING_CONFIG,
+  AVATAR_FOCUS_CONFIG,
+  CAMERA_LERP_LAMBDA
 };
 
 /**
@@ -39,37 +37,6 @@ export function getOrbitCameraPosition(theta, phi = 0.85, radius = ORBIT_CONFIG.
   };
 }
 export const calculateOrbitPosition = getOrbitCameraPosition;
-
-export const CAMERA_PRESETS = {
-  orbit: {
-    name: 'Cinematic Orbit',
-    pos: new THREE.Vector3(0, 5.0, 10.0),
-    target: new THREE.Vector3(0, 1.4, 0),
-    fov: 68,
-    isOrbit: true
-  },
-  dj: {
-    name: 'DJ Front View',
-    pos: new THREE.Vector3(0, 2.2, 5),
-    target: new THREE.Vector3(0, 1.8, -4),
-    fov: 45,
-    isOrbit: false
-  },
-  top: {
-    name: 'Top-Down Dance Floor',
-    pos: new THREE.Vector3(0, 16, 0.1),
-    target: new THREE.Vector3(0, 0, 0),
-    fov: 60,
-    isOrbit: false
-  },
-  vip: {
-    name: 'VIP Lounge Zoom',
-    pos: new THREE.Vector3(-3.0, 5.0, 1.5),
-    target: new THREE.Vector3(-4.8, 0.9, -9.2),
-    fov: 68,
-    isOrbit: false
-  }
-};
 
 export class SceneManager {
   constructor(container) {
@@ -201,6 +168,10 @@ export class SceneManager {
   setCameraPreset(key, duration = null, customTarget = null) {
     if (!CAMERA_PRESETS[key]) return;
 
+    // Reset avatar focus tracking when an explicit camera preset is selected
+    this.focusedAvatarMesh = null;
+    this.focusAvatarOptions = null;
+
     if (key === 'vip') {
       if (this.currentPresetKey !== 'vip') {
         this.previousPresetKey = this.currentPresetKey;
@@ -303,8 +274,36 @@ export class SceneManager {
   }
 
   update(deltaTime = 0.016, bassPunch = 0) {
-    // 1. Dynamic Cinematic King Framing for Lion Celebration (Full 360-degree Orbit around donator)
-    if (this.isLionTracking && this.lionHeroMesh) {
+    // 0. Dynamic Real-Time Tracking of Focused Slime Avatar (Admin Focus Slime)
+    if (this.focusedAvatarMesh) {
+      const hero = this.focusedAvatarMesh;
+      if (!hero.parent) {
+        this.clearAvatarFocus();
+      } else {
+        const rootNode = hero.userData?.controller?.rootNode || hero;
+        const worldPos = new THREE.Vector3();
+        rootNode.getWorldPosition(worldPos);
+
+        const sx = worldPos.x;
+        const sy = worldPos.y;
+        const sz = worldPos.z;
+
+        const slimeTier = hero.userData?.controller?.state?.tier || 1;
+        const baseDist = (this.focusAvatarOptions?.distance) || (slimeTier >= 4 ? AVATAR_FOCUS_CONFIG.defaultDistanceT4T5 : AVATAR_FOCUS_CONFIG.defaultDistanceT1T3);
+        const camElevation = (this.focusAvatarOptions?.elevation) || AVATAR_FOCUS_CONFIG.defaultElevation;
+
+        // Gentle slow orbit around the focused slime
+        this.focusOrbitAngle = (this.focusOrbitAngle || 0) + AVATAR_FOCUS_CONFIG.orbitSpeed * deltaTime;
+        const camX = sx + Math.sin(this.focusOrbitAngle) * baseDist;
+        const camY = Math.max(0.8, sy + camElevation + (bassPunch > 50 ? 0.08 : 0));
+        const camZ = sz + Math.cos(this.focusOrbitAngle) * baseDist;
+
+        // Look at slime upper body and billboard
+        const lookY = sy + (slimeTier >= 4 ? AVATAR_FOCUS_CONFIG.lookOffsetYLarge : AVATAR_FOCUS_CONFIG.lookOffsetYSmall);
+        this.camTargetPos.set(camX, camY, camZ);
+        this.camLookTarget.set(sx, lookY, sz);
+      }
+    } else if (this.isLionTracking && this.lionHeroMesh) {
       this.lionTimer -= deltaTime;
       const elapsed = Math.max(0, this.lionDuration - this.lionTimer);
       const hero = this.lionHeroMesh;
@@ -344,7 +343,7 @@ export class SceneManager {
       }
 
       // Full-venue orbit rotation centered EXACTLY at dance floor center (0, 1.4, 0)
-      if (this.currentPreset.isOrbit) {
+      if (this.currentPreset.isOrbit && !this._cinematicFocusActive && !this._donateShowcaseActive) {
         this.orbitTheta += 0.10 * deltaTime;
         const target = FULL_VENUE_ORBIT_CONFIG.target;
         const r = this.orbitRadius || FULL_VENUE_ORBIT_CONFIG.radius;
@@ -369,7 +368,7 @@ export class SceneManager {
     }
 
     // Exponential Dual-Vector Lerp: P_t = P_{t-1} + (P_target - P_{t-1}) * (1 - e^{-lambda * dt})
-    const lambda = 5.0;
+    const lambda = CAMERA_LERP_LAMBDA;
     const lerpFactor = 1.0 - Math.exp(-lambda * Math.min(deltaTime, 0.1));
 
     this.camera.position.lerp(this.camTargetPos, lerpFactor);
@@ -382,11 +381,177 @@ export class SceneManager {
       const decay = Math.max(0, this.shakeTimer / this.shakeDuration) * this.shakeIntensity;
       this.camera.position.x += (Math.random() - 0.5) * decay;
       this.camera.position.y += (Math.random() - 0.5) * decay;
-    } else if (bassPunch > 60) {
+    } else if (bassPunch > CAMERA_SHAKE_CONFIG.bassPunchThreshold) {
       // Subtle bass camera shake
-      this.camera.position.y += (Math.random() - 0.5) * 0.04;
+      this.camera.position.y += (Math.random() - 0.5) * CAMERA_SHAKE_CONFIG.bassPunchShakeAmount;
     }
 
     this.renderer.render(this.scene, this.camera);
+  }
+
+  /**
+   * Projects a Three.js world position to CSS pixel coordinates on screen.
+   * Used for the CSS→WebGL bridge when the 2D overlay card flies back to the Slime.
+   * @param {THREE.Vector3} worldPos - World space position of the target Slime
+   * @returns {{ x: number, y: number }} CSS pixel coordinates (top-left origin)
+   */
+  getScreenCoords(worldPos) {
+    if (!this.camera || !this.renderer) return { x: 0, y: 0 };
+    const ndc = worldPos.clone().project(this.camera);
+    const width = this.renderer.domElement.clientWidth || window.innerWidth;
+    const height = this.renderer.domElement.clientHeight || window.innerHeight;
+    return {
+      x: Math.round((ndc.x * 0.5 + 0.5) * width),
+      y: Math.round((-ndc.y * 0.5 + 0.5) * height)
+    };
+  }
+
+  /**
+   * Transitions camera to Cinematic VIP Low-Angle for the 2D donate overlay.
+   * Called at t=0.0s when a high-tier donate begins.
+   * @param {THREE.Vector3} slimePos - World position of the donating Slime
+   */
+  /**
+   * Smoothly moves the camera to dynamic framed distance and elevation facing the donating slime avatar.
+   * Uses perspective projection formula: Distance = (FrameHeight / 2) / tan(FOV / 2).
+   * @param {THREE.Vector3|object} slimePos - World position of the donating Slime
+   * @param {Function} [onArrived] - Callback triggered when camera arrives in front of slime
+   * @param {number} [duration=1.0] - Travel duration in seconds before showcase begins
+   * @param {THREE.Object3D|object} [avatarMesh=null] - Avatar mesh to calculate dynamic height and jump apex
+   */
+  focusSlimeCinematic(slimePos, onArrived = null, duration = 1.0, avatarMesh = null) {
+    if (!this._cinematicFocusActive) {
+      this._savedPresetKey = this.currentPresetKey;
+      this._savedOrbitRadius = this.orbitRadius;
+      this._savedFov = this.camera ? this.camera.fov : 68;
+    }
+    this._cinematicFocusActive = true;
+    this._donateShowcaseActive = true;
+
+    const sx = slimePos?.x || 0;
+    const sy = slimePos?.y || 0;
+    const sz = slimePos?.z || 0;
+
+    // Dynamic framing calculations based on avatar height and jump apex
+    let slimeHeight = 0.65;
+    let jumpApex = 1.2;
+    const mesh = avatarMesh?.mesh || (avatarMesh?.isObject3D ? avatarMesh : null);
+    if (mesh) {
+      const scaleY = (mesh.scale?.y || 0.52);
+      slimeHeight = Math.max(0.45, 0.65 * scaleY * 2.0);
+      const donateFx = mesh.userData?.controller?.state?.donateFx;
+      jumpApex = donateFx?.apexOverride ? Number(donateFx.apexOverride) : (slimeHeight + 1.2);
+    }
+    const billboardHeight = 0.55;
+    const totalHeight = Math.max(slimeHeight + jumpApex, slimeHeight + billboardHeight + 0.8);
+
+    // Perspective Projection Framing Formula
+    const camCfg = CINEMATIC_CONFIG?.camera || { fov: 56, screenOccupancy: 0.38, pitchAngleDeg: 20, minDistance: 3.5, maxDistance: 8.0 };
+    const fovDeg = camCfg.fov || 56;
+    const fovRad = (fovDeg * Math.PI) / 180;
+    const occupancy = Math.max(0.2, Math.min(0.8, camCfg.screenOccupancy || 0.38));
+    const frameHeight = totalHeight / occupancy;
+    const calculatedDist = (frameHeight * 0.5) / Math.tan(fovRad * 0.5);
+    const camDist = Math.max(camCfg.minDistance || 3.5, Math.min(camCfg.maxDistance || 8.0, calculatedDist));
+
+    // Pitch Angle Elevation
+    const pitchDeg = camCfg.pitchAngleDeg || 20;
+    const pitchRad = (pitchDeg * Math.PI) / 180;
+    const horizontalDist = camDist * Math.cos(pitchRad);
+    const verticalElevation = camDist * Math.sin(pitchRad);
+
+    const approachAngle = Math.atan2(sx, sz + 2.0) + (camCfg.approachAngleOffset || 0);
+    const camX = sx + Math.sin(approachAngle) * horizontalDist;
+    const camY = Math.max(1.4, sy + verticalElevation);
+    const camZ = sz + Math.cos(approachAngle) * horizontalDist;
+
+    const lookY = sy + Math.min(totalHeight * 0.42, 1.2);
+    this.camTargetPos.set(camX, camY, camZ);
+    this.camLookTarget.set(sx, lookY, sz);
+
+    if (this.camera) {
+      this.camera.fov = fovDeg;
+      this.camera.updateProjectionMatrix();
+    }
+
+    if (onArrived) {
+      setTimeout(() => {
+        if (this._cinematicFocusActive) {
+          onArrived();
+        }
+      }, Math.max(100, duration * 1000));
+    }
+  }
+
+  /**
+   * Reverts camera back to original distance, position, and preset before the showcase.
+   */
+  revertFromCinematic() {
+    this._cinematicFocusActive = false;
+    this._donateShowcaseActive = false;
+    const prevKey = this._savedPresetKey || this.previousPresetKey || 'orbit';
+    this.setCameraPreset(prevKey);
+    if (this._savedOrbitRadius) {
+      this.setOrbitRadius(this._savedOrbitRadius);
+    }
+    if (this._savedFov && this.camera) {
+      this.camera.fov = this._savedFov;
+      this.camera.updateProjectionMatrix();
+    }
+  }
+
+  startDonateShowcase(slimePos, onArrived = null, duration = 1.0) {
+    this.focusSlimeCinematic(slimePos, onArrived, duration);
+  }
+
+  endDonateShowcase() {
+    this.revertFromCinematic();
+  }
+
+  /**
+   * Focuses the camera directly onto a selected Slime avatar.
+   * Tracks the Slime's 3D position in real time with dynamic framing and gentle rotation.
+   *
+   * @param {THREE.Object3D} avatarMesh - The Slime avatar mesh to focus on
+   * @param {object} [options={}] - Custom framing options (e.g., distance, elevation, fov)
+   */
+  focusOnAvatar(avatarMesh, options = {}) {
+    if (!avatarMesh) {
+      this.clearAvatarFocus();
+      return;
+    }
+
+    if (!this.focusedAvatarMesh) {
+      this._savedPresetBeforeFocus = this.currentPresetKey || 'orbit';
+      this._savedOrbitRadiusBeforeFocus = this.orbitRadius;
+      this._savedFovBeforeFocus = this.camera ? this.camera.fov : 68;
+    }
+
+    this.focusedAvatarMesh = avatarMesh;
+    this.focusAvatarOptions = options;
+    this.focusOrbitAngle = Math.PI * 0.25;
+
+    if (this.camera) {
+      this.camera.fov = options.fov || 54;
+      this.camera.updateProjectionMatrix();
+    }
+  }
+
+  /**
+   * Clears avatar focus and restores camera back to previous preset.
+   */
+  clearAvatarFocus() {
+    if (!this.focusedAvatarMesh) return;
+    this.focusedAvatarMesh = null;
+    this.focusAvatarOptions = null;
+    const returnKey = this._savedPresetBeforeFocus || 'orbit';
+    this.setCameraPreset(returnKey);
+    if (this._savedOrbitRadiusBeforeFocus) {
+      this.setOrbitRadius(this._savedOrbitRadiusBeforeFocus);
+    }
+    if (this._savedFovBeforeFocus && this.camera) {
+      this.camera.fov = this._savedFovBeforeFocus;
+      this.camera.updateProjectionMatrix();
+    }
   }
 }

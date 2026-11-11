@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -16,10 +17,12 @@
       box-sizing: border-box;
       overflow-y: auto;
     }
+
     .cockpit-container {
       max-width: 1400px;
       margin: 0 auto;
     }
+
     .cockpit-header {
       display: flex;
       align-items: center;
@@ -31,6 +34,7 @@
       border: 1px solid rgba(0, 242, 254, 0.3);
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
     }
+
     .cockpit-title {
       font-size: 20px;
       font-weight: 800;
@@ -42,11 +46,13 @@
       align-items: center;
       gap: 12px;
     }
+
     .status-group {
       display: flex;
       align-items: center;
       gap: 14px;
     }
+
     .status-pill {
       display: flex;
       align-items: center;
@@ -58,6 +64,7 @@
       background: rgba(10, 10, 20, 0.6);
       border: 1px solid rgba(255, 255, 255, 0.15);
     }
+
     .status-dot {
       width: 10px;
       height: 10px;
@@ -66,15 +73,18 @@
       box-shadow: 0 0 8px #ff4757;
       transition: all 0.3s ease;
     }
+
     .status-dot.connected {
       background: #00ff88;
       box-shadow: 0 0 10px #00ff88;
     }
+
     .cockpit-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
       gap: 20px;
     }
+
     .card {
       background: rgba(18, 14, 32, 0.7);
       backdrop-filter: blur(16px);
@@ -86,6 +96,7 @@
       flex-direction: column;
       gap: 16px;
     }
+
     .card-title {
       font-size: 13px;
       font-weight: 800;
@@ -99,41 +110,58 @@
       padding-bottom: 8px;
       margin: 0;
     }
+
     .form-group {
       display: flex;
       flex-direction: column;
       gap: 6px;
     }
+
     .form-label {
       font-size: 12px;
       font-weight: 600;
       color: #8c90b0;
     }
+
     .btn-group-row {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
       gap: 8px;
     }
+
     .log-box {
-      background: rgba(0, 0, 0, 0.45);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 8px;
-      padding: 10px;
-      font-family: monospace;
-      font-size: 11px;
-      color: #a0aec0;
-      max-height: 120px;
+      background: rgba(8, 6, 18, 0.88);
+      border: 1px solid rgba(0, 242, 254, 0.25);
+      border-radius: 10px;
+      padding: 14px;
+      font-family: 'JetBrains Mono', Consolas, Menlo, Monaco, monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #cbd5e1;
+      height: 480px;
+      max-height: 500px;
       overflow-y: auto;
     }
+
     .log-item {
       margin-bottom: 4px;
       word-break: break-all;
     }
-    .log-item.sent { color: #00f2fe; }
-    .log-item.recv { color: #a78bfa; }
-    .log-item.err { color: #ff6b81; }
+
+    .log-item.sent {
+      color: #00f2fe;
+    }
+
+    .log-item.recv {
+      color: #a78bfa;
+    }
+
+    .log-item.err {
+      color: #ff6b81;
+    }
   </style>
 </head>
+
 <body>
   <div class="cockpit-container">
     <!-- Header -->
@@ -147,7 +175,7 @@
           <span id="ws-status-text">WS 3D Room: Disconnected</span>
         </div>
         <div class="status-pill">
-          <span style="color: #ff007f;">●</span>
+          <span id="tiktok-status-dot" style="color: #ff4757; transition: color 0.3s ease;">●</span>
           <span id="tiktok-status-text">TikTok: Disconnected</span>
         </div>
       </div>
@@ -165,7 +193,10 @@
             <input id="tiktok-username-input" class="admin-input" type="text" placeholder="@username" />
             <button id="btn-tiktok-connect" class="btn">Connect</button>
           </div>
-          <button id="btn-tiktok-disconnect" class="btn btn-secondary" style="margin-top: 4px;">Disconnect</button>
+          <div style="display: flex; gap: 8px; margin-top: 4px;">
+            <button id="btn-tiktok-disconnect" class="btn btn-secondary" style="flex: 1;">Disconnect</button>
+            <button id="btn-refresh-floor" class="btn btn-secondary" style="flex: 1; border-color: #00f2fe; color: #00f2fe;">Refresh Sàn</button>
+          </div>
         </div>
 
         <!-- Camera Angles -->
@@ -185,11 +216,36 @@
             <label class="form-label">Camera Orbit Distance & Zoom:</label>
             <span id="camera-distance-val" style="font-size: 12px; color: #00f2fe; font-weight: bold;">10.0m</span>
           </div>
-          <input id="camera-distance-slider" type="range" min="6" max="25" step="0.5" value="10" style="width: 100%; accent-color: #00f2fe;" />
+          <input id="camera-distance-slider" type="range" min="6" max="25" step="0.5" value="10"
+            style="width: 100%; accent-color: #00f2fe;" />
           <div class="btn-group-row">
             <button class="btn btn-secondary" id="btn-cam-close">Close (7m)</button>
             <button class="btn btn-secondary" id="btn-cam-mid">Normal (10m)</button>
             <button class="btn btn-secondary" id="btn-cam-wide">Wide (16m)</button>
+          </div>
+        </div>
+
+        <!-- Camera Focus on Selected Slime -->
+        <div class="form-group"
+          style="background: rgba(0, 242, 254, 0.06); border: 1px solid rgba(0, 242, 254, 0.3); border-radius: 12px; padding: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <label class="form-label" style="color: #00f2fe; margin-bottom: 0; font-size: 12px; font-weight: 700;">🎥
+              Focus Camera Vào Slime Được Chọn:</label>
+            <span id="camera-focus-status" style="font-size: 11px; color: #aaa; font-weight: 600;">Chưa focus</span>
+          </div>
+          <select id="camera-focus-avatar-select" class="admin-input"
+            style="width: 100%; color: #00f2fe; font-weight: bold; margin-bottom: 8px;">
+            <option value="">-- Chọn Slime để Camera Focus --</option>
+          </select>
+          <div class="btn-group-row">
+            <button id="btn-camera-focus-start" class="btn btn-secondary"
+              style="background: linear-gradient(135deg, rgba(0, 242, 254, 0.25), rgba(79, 172, 254, 0.35)); border-color: #00f2fe; color: #fff; font-weight: bold; flex: 1;">
+              🔍 Focus Slime
+            </button>
+            <button id="btn-camera-focus-clear" class="btn btn-secondary"
+              style="border-color: rgba(255, 255, 255, 0.25); color: #ddd; flex: 1;">
+              ↩️ Bỏ Focus (Về Orbit)
+            </button>
           </div>
         </div>
 
@@ -208,10 +264,12 @@
             <label class="form-label">Club Audio & SFX:</label>
             <span id="volume-val" style="font-size: 12px; color: #00ff88; font-weight: bold;">80%</span>
           </div>
-          <input id="volume-slider" type="range" min="0" max="1" step="0.05" value="0.8" style="width: 100%; accent-color: #00ff88;" />
+          <input id="volume-slider" type="range" min="0" max="1" step="0.05" value="0.8"
+            style="width: 100%; accent-color: #00ff88;" />
           <div class="btn-group-row">
             <button id="btn-mute-sfx" class="btn btn-secondary">Mute SFX</button>
-            <button id="btn-trigger-frenzy" class="btn btn-secondary" style="border-color: rgba(217, 70, 239, 0.6); color: #d946ef;">⚡ Frenzy Party (15s)</button>
+            <button id="btn-trigger-frenzy" class="btn btn-secondary"
+              style="border-color: rgba(217, 70, 239, 0.6); color: #d946ef;">⚡ Frenzy Party (15s)</button>
           </div>
         </div>
       </div>
@@ -224,11 +282,13 @@
         <div class="form-group">
           <label class="form-label">Tạo Slime Nhân Vật:</label>
           <div class="admin-input-group">
-            <input id="mock-custom-username" class="admin-input" type="text" placeholder="Username" value="DaiGiaBinhDuong" />
-            <button id="btn-random-name" class="btn btn-secondary" title="Random Nickname" style="padding: 6px 12px;">🎲</button>
+            <input id="mock-custom-username" class="admin-input" type="text" placeholder="Username" value="Bot" />
+            <button id="btn-random-name" class="btn btn-secondary" title="Random Nickname"
+              style="padding: 6px 12px;">🎲</button>
           </div>
           <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 6px;">
-            <select id="mock-custom-tier" class="admin-input" style="color: #00f2fe; font-weight: bold; padding: 6px 4px; font-size: 11px;">
+            <select id="mock-custom-tier" class="admin-input"
+              style="color: #00f2fe; font-weight: bold; padding: 6px 4px; font-size: 11px;">
               <option value="1">Tier 1 (Bán Cầu)</option>
               <option value="2">Tier 2 (Chubby)</option>
               <option value="3">Tier 3 (Mochi 2 bên)</option>
@@ -249,7 +309,8 @@
               <option value="blue" selected>Blue</option>
             </select>
           </div>
-          <button id="btn-mock-spawn" class="btn" style="margin-top: 8px; justify-content: center; background: linear-gradient(135deg, #00f2fe, #4facfe); color: #000; font-weight: bold;">
+          <button id="btn-mock-spawn" class="btn"
+            style="margin-top: 8px; justify-content: center; background: linear-gradient(135deg, #00f2fe, #4facfe); color: #000; font-weight: bold;">
             ✨ Spawn Slime (Theo Tier & Màu)
           </button>
         </div>
@@ -261,13 +322,100 @@
             <option value="">-- Mục tiêu: Tạo mới / Custom Input --</option>
           </select>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px;">
-            <button id="btn-mock-delete-target" class="btn btn-secondary" style="border-color: rgba(255, 71, 87, 0.6); color: #ff6b81;">
+            <button id="btn-mock-delete-target" class="btn btn-secondary"
+              style="border-color: rgba(255, 71, 87, 0.6); color: #ff6b81;">
               🗑️ Xóa Avatar Đang Chọn
             </button>
-            <button id="btn-mock-clear-all" class="btn btn-secondary" style="border-color: rgba(255, 71, 87, 0.6); color: #ff6b81;">
+            <button id="btn-mock-clear-all" class="btn btn-secondary"
+              style="border-color: rgba(255, 71, 87, 0.6); color: #ff6b81;">
               🧹 Xóa Tất Cả Trên Sàn
             </button>
           </div>
+          <button id="btn-mock-focus-avatar" class="btn btn-secondary"
+            style="width: 100%; margin-top: 6px; border-color: rgba(0, 242, 254, 0.6); color: #00f2fe; font-weight: bold; justify-content: center; background: rgba(0, 242, 254, 0.08);">
+            🎥 Focus Camera Vào Slime Này
+          </button>
+        </div>
+
+        <!-- Billboard Label Scale Slider -->
+        <div class="form-group" style="margin-top: -4px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <label style="color: #00f2fe; font-weight: 700; font-size: 11px;">🏷️ Kích Thước Label Billboard
+              (Scale):</label>
+            <span class="slider-value" id="billboard-scale-val"
+              style="color: #00f2fe; font-weight: 700; font-size: 11px;">1.00x</span>
+          </div>
+          <div class="admin-input-group">
+            <input type="range" id="billboard-scale-slider" min="0.5" max="5" step="0.05" value="2.5"
+              style="flex: 1; accent-color: #00f2fe; cursor: pointer;" />
+          </div>
+        </div>
+
+        <!-- Test Level TikTok & Rank Donate for Selected Avatar -->
+        <div
+          style="background: rgba(16, 18, 35, 0.7); border: 1px solid rgba(0, 242, 254, 0.25); border-radius: 8px; padding: 10px; margin-bottom: 12px;">
+          <div
+            style="font-size: 11px; color: #8c90b0; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center;">
+            <span>Cấp TikTok (Avatar Đang Chọn):</span>
+            <span id="hero-lvl-val" style="color: #00f2fe; font-weight: 700; font-size: 12px;">Lv.45</span>
+          </div>
+          <div style="margin-bottom: 6px;">
+            <input type="range" id="hero-lvl-slider" min="1" max="60" value="45"
+              style="width: 100%; accent-color: #00f2fe; cursor: pointer;" />
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-bottom: 8px;">
+            <button class="btn btn-secondary quick-lvl-btn" data-lvl="1"
+              style="font-size: 10px; padding: 4px; justify-content: center;">Lv.1</button>
+            <button class="btn btn-secondary quick-lvl-btn" data-lvl="15"
+              style="font-size: 10px; padding: 4px; justify-content: center;">Lv.15</button>
+            <button class="btn btn-secondary quick-lvl-btn" data-lvl="30"
+              style="font-size: 10px; padding: 4px; justify-content: center;">Lv.30</button>
+            <button class="btn btn-secondary quick-lvl-btn" data-lvl="60"
+              style="font-size: 10px; padding: 4px; justify-content: center;">Lv.60</button>
+          </div>
+
+          <div style="font-size: 11px; color: #8c90b0; margin-bottom: 4px;">
+            <span>Rank Donate (Avatar Đang Chọn):</span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-bottom: 4px;">
+            <button class="btn rank-test-btn active" data-rank="👑 TOP 1"
+              style="background: rgba(255, 215, 0, 0.15); border-color: #ffd700; color: #ffd700; font-size: 10px; padding: 5px 2px; justify-content: center;">👑
+              TOP 1</button>
+            <button class="btn rank-test-btn" data-rank="🥈 TOP 2"
+              style="background: rgba(224, 224, 235, 0.15); border-color: #e0e0e8; color: #f0f0f5; font-size: 10px; padding: 5px 2px; justify-content: center;">🥈
+              TOP 2</button>
+            <button class="btn rank-test-btn" data-rank="🥉 TOP 3"
+              style="background: rgba(205, 127, 50, 0.15); border-color: #cd7f32; color: #f5a65b; font-size: 10px; padding: 5px 2px; justify-content: center;">🥉
+              TOP 3</button>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
+            <button class="btn rank-test-btn" data-rank="💎 VIP"
+              style="background: rgba(199, 125, 255, 0.15); border-color: #c77dff; color: #e0aaff; font-size: 10px; padding: 5px 2px; justify-content: center;">💎
+              VIP</button>
+            <button class="btn rank-test-btn" data-rank=""
+              style="background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.25); color: #fff; font-size: 10px; padding: 5px 2px; justify-content: center;">⚪
+              Không Rank</button>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 4px;">
+            <button class="btn" id="btn-toggle-fan"
+              style="background: rgba(199, 125, 255, 0.2); border-color: #c77dff; color: #e0aaff; font-size: 10px; padding: 5px 2px; justify-content: center; font-weight: 700;">💜
+              Bật/Tắt Fan</button>
+            <button class="btn" id="btn-toggle-follow"
+              style="background: rgba(216, 180, 254, 0.2); border-color: #d8b4fe; color: #f3e8ff; font-size: 10px; padding: 5px 2px; justify-content: center;">➕
+              Bật/Tắt Follow</button>
+          </div>
+        </div>
+
+        <!-- Crowd Scalability Actions -->
+        <div style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px;">
+          <button class="btn" id="btn-crowd-rank-sim"
+            style="background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(0, 242, 254, 0.2)); border-color: #ffd700; color: #fff; font-weight: 700; padding: 6px 10px; font-size: 11px; justify-content: center;">
+            🏆 Gán Rank Top 1-3 & VIP Cho Đám Đông
+          </button>
+          <button class="btn btn-secondary" id="btn-crowd-clear-rank"
+            style="padding: 5px 10px; font-size: 10px; justify-content: center;">
+            ⚪ Xóa Hết Rank Đám Đông (Chỉ Giữ Level TikTok)
+          </button>
         </div>
 
         <!-- Chat & Likes Simulator -->
@@ -283,17 +431,14 @@
               <span>Random Chat Vui Nhộn</span>
             </label>
             <div style="display: flex; gap: 6px;">
-              <button id="btn-mock-likes-10" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;">+10 Tim</button>
-              <button id="btn-mock-likes-50" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;">+50 Tim</button>
+              <button id="btn-mock-likes-1" class="btn btn-primary"
+                style="padding: 4px 10px; font-size: 11px; background: linear-gradient(135deg, #ff1744, #ff5252);">❤️
+                Thả 1 Tim</button>
+              <button id="btn-mock-likes-10" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;">+10
+                Tim</button>
+              <button id="btn-mock-likes-50" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;">+50
+                Tim</button>
             </div>
-          </div>
-        </div>
-
-        <!-- Real-Time Activity Log -->
-        <div class="form-group">
-          <label class="form-label">Console Hoạt Động:</label>
-          <div id="log-box" class="log-box">
-            <div class="log-item">Sẵn sàng kết nối WebSocket với Port 3000...</div>
           </div>
         </div>
       </div>
@@ -307,6 +452,17 @@
           🦁 VINH DANH LION (BAY LỘN VÒNG SIÊU XA XỈ)
         </button>
 
+        <!-- Toggle Tier-Up vs Keep Shape Option -->
+        <div
+          style="display: flex; align-items: center; justify-content: space-between; background: rgba(16, 18, 35, 0.7); border: 1px solid rgba(0, 242, 254, 0.25); border-radius: 6px; padding: 6px 10px; margin-bottom: 8px;">
+          <span style="font-size: 11px; color: #8c90b0;">Tùy chọn nâng cấp Tier khi Donate:</span>
+          <label
+            style="display: flex; align-items: center; gap: 6px; font-size: 11px; cursor: pointer; color: #00f2fe; font-weight: 700;">
+            <input type="checkbox" id="toggle-tier-up" style="accent-color: #00f2fe;" />
+            <span>Biến hình Slime (Tier-Up)</span>
+          </label>
+        </div>
+
         <!-- Category Selector Tabs -->
         <div class="gift-cat-tabs">
           <div class="gift-cat-tab active" data-cat="small">Nhỏ (1-10🪙)</div>
@@ -317,51 +473,195 @@
 
         <!-- Container 1: Quà Nhỏ (1 - 10 xu) -->
         <div class="gift-grid-container" data-cat="small">
-          <button class="donate-btn" data-gift="rose" data-tier="1" data-coins="1" data-name="Hoa hồng">🌹 Hoa hồng (1🪙)</button>
-          <button class="donate-btn" data-gift="gg" data-tier="1" data-coins="1" data-name="GG Game">⚡ GG Game (1🪙)</button>
-          <button class="donate-btn" data-gift="ice_cream" data-tier="1" data-coins="1" data-name="Kem ốc quế">🍦 Kem ốc quế (1🪙)</button>
-          <button class="donate-btn" data-gift="finger_heart" data-tier="1" data-coins="5" data-name="Finger Heart">💖 Bắn tim (5🪙)</button>
-          <button class="donate-btn" data-gift="panda" data-tier="1" data-coins="5" data-name="Gấu trúc">🐼 Gấu trúc (5🪙)</button>
-          <button class="donate-btn" data-gift="wave_hand" data-tier="1" data-coins="9" data-name="Sóng tay">👋 Sóng tay (9🪙)</button>
-          <button class="donate-btn" data-gift="conical_hat" data-tier="1" data-coins="10" data-name="Nón lá" style="grid-column: span 2;">👒 Nón lá (10🪙)</button>
+          <button class="donate-btn" data-gift="rose" data-tier="1" data-coins="1" data-name="Hoa hồng">🌹 Hoa hồng
+            (1🪙)</button>
+          <button class="donate-btn" data-gift="gg" data-tier="1" data-coins="1" data-name="GG Game">⚡ GG Game
+            (1🪙)</button>
+          <button class="donate-btn" data-gift="ice_cream" data-tier="1" data-coins="1" data-name="Kem ốc quế">🍦 Kem ốc
+            quế (1🪙)</button>
+          <button class="donate-btn" data-gift="finger_heart" data-tier="1" data-coins="5" data-name="Finger Heart">💖
+            Bắn tim (5🪙)</button>
+          <button class="donate-btn" data-gift="panda" data-tier="1" data-coins="5" data-name="Gấu trúc">🐼 Gấu trúc
+            (5🪙)</button>
+          <button class="donate-btn" data-gift="wave_hand" data-tier="1" data-coins="9" data-name="Sóng tay">👋 Sóng tay
+            (9🪙)</button>
+          <button class="donate-btn" data-gift="conical_hat" data-tier="1" data-coins="10" data-name="Nón lá"
+            style="grid-column: span 2;">👒 Nón lá (10🪙)</button>
         </div>
 
         <!-- Container 2: Quà Trung (20 - 199 xu) -->
         <div class="gift-grid-container" data-cat="medium" style="display: none;">
-          <button class="donate-btn" data-gift="perfume" data-tier="2" data-coins="20" data-name="Nước hoa">🧴 Nước hoa (20🪙)</button>
-          <button class="donate-btn" data-gift="sunscreen" data-tier="2" data-coins="50" data-name="Kem chống nắng">🧴 Kem c.nắng (50🪙)</button>
-          <button class="donate-btn" data-gift="confetti" data-tier="2" data-coins="100" data-name="Pháo hoa giấy">🎊 Pháo giấy (100🪙)</button>
-          <button class="donate-btn" data-gift="rainbow" data-tier="2" data-coins="100" data-name="Cầu vồng">🌈 Cầu vồng (100🪙)</button>
-          <button class="donate-btn" data-gift="sunglasses" data-tier="2" data-coins="199" data-name="Kính râm Cyber" style="grid-column: span 2;">🕶️ Kính râm Cyber (199🪙)</button>
+          <button class="donate-btn" data-gift="perfume" data-tier="2" data-coins="20" data-name="Nước hoa">🧴 Nước hoa
+            (20🪙)</button>
+          <button class="donate-btn" data-gift="sunscreen" data-tier="2" data-coins="50" data-name="Kem chống nắng">🧴
+            Kem c.nắng (50🪙)</button>
+          <button class="donate-btn" data-gift="confetti" data-tier="2" data-coins="100" data-name="Pháo hoa giấy">🎊
+            Pháo giấy (100🪙)</button>
+          <button class="donate-btn" data-gift="rainbow" data-tier="2" data-coins="100" data-name="Cầu vồng">🌈 Cầu vồng
+            (100🪙)</button>
+          <button class="donate-btn" data-gift="sunglasses" data-tier="2" data-coins="199" data-name="Kính râm Cyber"
+            style="grid-column: span 2;">🕶️ Kính râm Cyber (199🪙)</button>
         </div>
 
         <!-- Container 3: Quà Cao Cấp (500 - 5.000 xu) -->
         <div class="gift-grid-container" data-cat="high" style="display: none;">
-          <button class="donate-btn" data-gift="money_rain" data-tier="3" data-coins="500" data-name="Mưa tiền">💸 Mưa tiền (500🪙)</button>
-          <button class="donate-btn" data-gift="concert" data-tier="3" data-coins="500" data-name="Buổi hòa nhạc">🎸 Hòa nhạc (500🪙)</button>
-          <button class="donate-btn" data-gift="love_balloon" data-tier="3" data-coins="699" data-name="Bóng bay tình yêu">🎈 Bóng bay tình (699🪙)</button>
-          <button class="donate-btn" data-gift="disco_ball" data-tier="4" data-coins="1000" data-name="Quả cầu Disco">🪩 Cầu Disco (1.000🪙)</button>
-          <button class="donate-btn" data-gift="legend" data-tier="4" data-coins="1000" data-name="Huyền thoại">⚔️ Huyền thoại (1.000🪙)</button>
-          <button class="donate-btn" data-gift="drama_queen" data-tier="5" data-coins="5000" data-name="Drama Queen">👑 Drama Queen (5.000🪙)</button>
+          <button class="donate-btn" data-gift="money_gun" data-tier="3" data-coins="500"
+            data-name="Súng tiền (Money Gun)">🔫 Súng tiền (500🪙)</button>
+          <button class="donate-btn" data-gift="money_rain" data-tier="3" data-coins="500" data-name="Mưa tiền">💸 Mưa
+            tiền (500🪙)</button>
+          <button class="donate-btn" data-gift="concert" data-tier="3" data-coins="500" data-name="Buổi hòa nhạc">🎸 Hòa
+            nhạc (500🪙)</button>
+          <button class="donate-btn" data-gift="swan" data-tier="3" data-coins="699" data-name="Thiên nga">🦢 Thiên nga
+            (699🪙)</button>
+          <button class="donate-btn" data-gift="love_balloon" data-tier="3" data-coins="699"
+            data-name="Bóng bay tình yêu">🎈 Bóng bay tình (699🪙)</button>
+          <button class="donate-btn" data-gift="galaxy" data-tier="4" data-coins="1000" data-name="Vũ trụ Galaxy">🌌 Vũ
+            trụ Galaxy (1.000🪙)</button>
+          <button class="donate-btn" data-gift="disco_ball" data-tier="4" data-coins="1000" data-name="Quả cầu Disco">🪩
+            Cầu Disco (1.000🪙)</button>
+          <button class="donate-btn" data-gift="legend" data-tier="4" data-coins="1000" data-name="Huyền thoại">⚔️ Huyền
+            thoại (1.000🪙)</button>
+          <button class="donate-btn" data-gift="whale_diving" data-tier="4" data-coins="2150"
+            data-name="Cá voi lặn (Whale Diving)">🐋 Cá voi lặn (2.150🪙)</button>
+          <button class="donate-btn" data-gift="private_jet" data-tier="5" data-coins="4888"
+            data-name="Chuyên cơ Private Jet">🛩️ Private Jet (4.888🪙)</button>
+          <button class="donate-btn" data-gift="diamond_gun" data-tier="5" data-coins="5000"
+            data-name="Pháo Kim Cương (Diamond Gun)">💎 Pháo K.Cương (5.000🪙)</button>
+          <button class="donate-btn" data-gift="drama_queen" data-tier="5" data-coins="5000" data-name="Drama Queen">👑
+            Drama Queen (5.000🪙)</button>
         </div>
 
         <!-- Container 4: Quà Siêu Xa Xỉ (6.000 - 44.999 xu) -->
         <div class="gift-grid-container" data-cat="ultra" style="display: none;">
-          <button class="donate-btn" data-gift="jet" data-tier="5" data-coins="6000" data-name="Máy bay">✈️ Máy bay (6.000🪙)</button>
-          <button class="donate-btn" data-gift="panther" data-tier="5" data-coins="15000" data-name="Báo đen">🐆 Báo đen (15.000🪙)</button>
-          <button class="donate-btn" data-gift="tiger" data-tier="5" data-coins="19999" data-name="Hổ lửa">🐅 Hổ lửa (19.999🪙)</button>
-          <button class="donate-btn" data-gift="phoenix" data-tier="5" data-coins="25999" data-name="Phượng hoàng">🦅 Phượng hoàng (25.999🪙)</button>
-          <button class="donate-btn" data-gift="lion" data-tier="5" data-coins="29999" data-name="Sư tử">🦁 Sư tử (29.999🪙)</button>
-          <button class="donate-btn" data-gift="pegasus" data-tier="5" data-coins="42999" data-name="Ngựa thần">🦄 Ngựa thần (42.999🪙)</button>
-          <button class="donate-btn" data-gift="universe" data-tier="5" data-coins="44999" data-name="Vũ trụ TikTok" style="grid-column: span 2; background: linear-gradient(135deg, rgba(0, 242, 254, 0.3), rgba(121, 40, 202, 0.4)); border-color: #00f2fe; color: #fff; font-weight: 800;">
+          <button class="donate-btn" data-gift="jet" data-tier="5" data-coins="6000" data-name="Máy bay">✈️ Máy bay
+            (6.000🪙)</button>
+          <button class="donate-btn" data-gift="panther" data-tier="5" data-coins="10000"
+            data-name="Báo đốm (Shadow Panther)">🐆 Báo đen (10.000🪙)</button>
+          <button class="donate-btn" data-gift="phoenix" data-tier="5" data-coins="25999" data-name="Phượng hoàng">🦅
+            Phượng hoàng (25.999🪙)</button>
+          <button class="donate-btn" data-gift="tiger" data-tier="5" data-coins="26999" data-name="Hổ lửa">🐅 Hổ lửa
+            (26.999🪙)</button>
+          <button class="donate-btn" data-gift="lion" data-tier="5" data-coins="29999" data-name="Sư tử">🦁 Sư tử
+            (29.999🪙)</button>
+          <button class="donate-btn" data-gift="pegasus" data-tier="5" data-coins="34000" data-name="Ngựa thần">🦄 Ngựa
+            thần (34.000🪙)</button>
+          <button class="donate-btn" data-gift="universe" data-tier="5" data-coins="44999" data-name="Vũ trụ TikTok"
+            style="grid-column: span 2; background: linear-gradient(135deg, rgba(0, 242, 254, 0.3), rgba(121, 40, 202, 0.4)); border-color: #00f2fe; color: #fff; font-weight: 800;">
             🪐 Vũ trụ TikTok (44.999🪙)
           </button>
         </div>
 
         <!-- Continuous Donate Storm Toggle -->
-        <button id="btn-donate-storm" class="btn btn-secondary" style="width: 100%; justify-content: center; margin-top: 4px;">
+        <button id="btn-donate-storm" class="btn btn-secondary"
+          style="width: 100%; justify-content: center; margin-top: 4px;">
           🌧️ Bão Donate Liên Tục: OFF
         </button>
+      </div>
+
+      <!-- COLUMN 4: Cấu Hình Ngưỡng Coin Trang Bị & Tiến Hóa -->
+      <div class="card" style="grid-column: 1 / -1;">
+        <h2 class="card-title">⚙️ 4. Cấu Hình Ngưỡng Coin / Kim Cương Cho Trang Bị & Tiến Hóa</h2>
+        <div style="font-size: 12px; color: #a0a5c0; margin-bottom: 8px;">
+          Khi một account donate hoa / coin, tổng coin tích lũy sẽ được so sánh với các ngưỡng bên dưới để tự động mở
+          khóa trang bị và tiến hóa Slime.
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+          <!-- Slime Tiers -->
+          <div
+            style="background: rgba(0, 0, 0, 0.3); padding: 10px; border-radius: 8px; border: 1px solid rgba(0, 242, 254, 0.2);">
+            <div style="font-size: 11px; font-weight: 800; color: #00f2fe; margin-bottom: 6px;">👾 SLIME TIERS (HÌNH
+              THÁI)</div>
+            <div style="display: flex; flex-direction: column; gap: 6px; font-size: 11px;">
+              <label style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Tier 2 (Chubby):</span>
+                <input id="cfg-slime-t2" type="number" min="1" class="admin-input"
+                  style="width: 75px; padding: 3px 6px; font-size: 11px;" />
+              </label>
+              <label style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Tier 3 (Má mochi):</span>
+                <input id="cfg-slime-t3" type="number" min="1" class="admin-input"
+                  style="width: 75px; padding: 3px 6px; font-size: 11px;" />
+              </label>
+              <label style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Tier 4 (Sừng+Đuôi):</span>
+                <input id="cfg-slime-t4" type="number" min="1" class="admin-input"
+                  style="width: 75px; padding: 3px 6px; font-size: 11px;" />
+              </label>
+              <label style="display: flex; justify-content: space-between; align-items: center;">
+                <span title="Chỉ áp dụng cho người TOP 1 donate có tổng coin >= ngưỡng">Tier 5 (Chỉ TOP 1):</span>
+                <input id="cfg-slime-t5" type="number" min="1" class="admin-input"
+                  style="width: 75px; padding: 3px 6px; font-size: 11px;" />
+              </label>
+            </div>
+          </div>
+
+          <!-- Vòng Chân (Tĩnh, tương thích kích thước) -->
+          <div
+            style="background: rgba(0, 0, 0, 0.3); padding: 10px; border-radius: 8px; border: 1px solid rgba(255, 215, 0, 0.2);">
+            <div style="font-size: 11px; font-weight: 800; color: #ffd700; margin-bottom: 6px;">⭕ VÒNG CHÂN DƯỚI ĐẤT
+              (TĨNH)</div>
+            <div style="display: flex; flex-direction: column; gap: 6px; font-size: 11px;">
+              <label style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Vòng 1 (Trắng nhỏ):</span>
+                <input id="cfg-foot-r1" type="number" min="1" class="admin-input"
+                  style="width: 75px; padding: 3px 6px; font-size: 11px;" />
+              </label>
+              <label style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Vòng 2 (Vàng trung):</span>
+                <input id="cfg-foot-r2" type="number" min="1" class="admin-input"
+                  style="width: 75px; padding: 3px 6px; font-size: 11px;" />
+              </label>
+              <label style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Vòng 3 (Cam lớn):</span>
+                <input id="cfg-foot-r3" type="number" min="1" class="admin-input"
+                  style="width: 75px; padding: 3px 6px; font-size: 11px;" />
+              </label>
+            </div>
+          </div>
+
+          <!-- Hệ Thống 3 Aura Quanh Thân (Tím / Cam / Vàng + Mini Bubbles) -->
+          <div
+            style="background: rgba(0, 0, 0, 0.3); padding: 10px; border-radius: 8px; border: 1px solid rgba(255, 170, 0, 0.2);">
+            <div style="font-size: 11px; font-weight: 800; color: #ffaa00; margin-bottom: 6px;">✨ 3 AURA XOAY QUANH
+              NGƯỜI</div>
+            <div style="display: flex; flex-direction: column; gap: 6px; font-size: 11px;">
+              <label style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="color: #c084fc;">Aura Tím (Epic):</span>
+                <input id="cfg-aura-purple" type="number" min="1" class="admin-input"
+                  style="width: 75px; padding: 3px 6px; font-size: 11px;" />
+              </label>
+              <label style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="color: #fb923c;">Aura Cam (Legendary):</span>
+                <input id="cfg-aura-orange" type="number" min="1" class="admin-input"
+                  style="width: 75px; padding: 3px 6px; font-size: 11px;" />
+              </label>
+              <label style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="color: #fde047;">Aura Vàng (+Bubbles):</span>
+                <input id="cfg-aura-gold" type="number" min="1" class="admin-input"
+                  style="width: 75px; padding: 3px 6px; font-size: 11px;" />
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 10px; justify-content: flex-end;">
+          <button id="btn-cfg-reset" class="btn btn-secondary" style="padding: 8px 16px;">🔄 Mặc Định</button>
+          <button id="btn-cfg-save" class="btn btn-primary"
+            style="padding: 8px 20px; background: linear-gradient(135deg, #00f2fe, #4facfe); font-weight: 800;">💾 Lưu &
+            Áp Dụng Ngay</button>
+        </div>
+      </div>
+
+      <!-- Real-Time Activity Log (Expanded Console View) -->
+      <div class="card" style="grid-column: 1 / -1; margin-top: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h2 class="card-title" style="font-size: 16px;">Live Stream Logs (Console Giám Sát Thời Gian Thực)</h2>
+          <button id="btn-clear-logs" class="btn btn-secondary" style="padding: 4px 14px; font-size: 11px;">Xóa Log</button>
+        </div>
+        <div id="log-box" class="log-box">
+          <div class="log-item">Sẵn sàng kết nối WebSocket với Port 3000...</div>
+        </div>
       </div>
     </div>
   </div>
@@ -400,22 +700,78 @@
         log(`Đã kết nối thành công tới 3D Room (${wsUrl})`, 'sent');
       };
 
+      function updateTikTokStatusUI(status) {
+        if (!status) return;
+        const isConn = Boolean(status.isConnected ?? status.connected);
+        const statusEl = document.getElementById('tiktok-status-text');
+        const dotEl = document.getElementById('tiktok-status-dot');
+        if (isConn) {
+          statusEl.textContent = `TikTok: Connected (@${status.username || ''}${status.viewerCount !== undefined ? ' - ' + status.viewerCount + ' 👁' : ''})`;
+          statusEl.style.color = '#00ff88';
+          if (dotEl) dotEl.style.color = '#00ff88';
+        } else {
+          statusEl.textContent = 'TikTok: Disconnected';
+          statusEl.style.color = '#ff4757';
+          if (dotEl) dotEl.style.color = '#ff4757';
+        }
+      }
+
       ws.onmessage = (event) => {
         try {
           const msg = JSON.parse(event.data);
-          if (msg.type === 'tiktok_status') {
-            const statusEl = document.getElementById('tiktok-status-text');
-            if (msg.data?.connected) {
-              statusEl.textContent = `TikTok: Connected (@${msg.data.username || ''})`;
-              statusEl.style.color = '#00ff88';
-            } else {
-              statusEl.textContent = 'TikTok: Disconnected';
-              statusEl.style.color = '#ff4757';
+          if (msg.type === 'connected' && msg.status) {
+            updateTikTokStatusUI(msg.status);
+          } else if (msg.type === 'initial_session_state') {
+            if (msg.status) updateTikTokStatusUI(msg.status);
+            if (msg.topDonors && msg.topDonors.length > 0) {
+              const top1 = msg.topDonors[0]?.user?.nickname || msg.topDonors[0]?.user?.displayId || 'Top 1';
+              const top1Score = msg.topDonors[0]?.score || 0;
+              log(`VIP TOP 1: ${top1} (${top1Score} coins) tren ngai vang`, 'sent');
             }
+          } else if (msg.type === 'tiktok_status') {
+            updateTikTokStatusUI(msg.data);
+            if (msg.data?.isConnected) {
+              log(`CONNECTED: @${msg.data.username || ''} (Room ID: ${msg.data.roomId || 'N/A'} - ${msg.data.viewerCount || 0} viewers)`, 'sent');
+            } else {
+              log('DISCONNECTED: Da ngat ket noi phien live', 'info');
+            }
+          } else if (msg.type === 'tiktok_error') {
+            log(`ERROR: ${msg.error}`, 'err');
+          } else if (msg.type === 'room_ranks') {
+            const ranks = msg.data?.ranks || [];
+            if (ranks.length > 0) {
+              const top1 = ranks[0]?.user?.nickname || ranks[0]?.user?.displayId || 'Top 1';
+              const top1Score = ranks[0]?.score || 0;
+              const top2 = ranks[1]?.user?.nickname || ranks[1]?.user?.displayId || 'N/A';
+              log(`VIP RANKS: Top 1: ${top1} (${top1Score} coins) | Top 2: ${top2}`, 'sent');
+            }
+          } else if (msg.type === 'session_reset') {
+            log('RESET: Da don dep san va reset dashboard phien live', 'info');
+          } else if (msg.type === 'chat') {
+            const name = msg.user?.nickname || msg.user?.username || 'Viewer';
+            log(`CHAT: ${name}: "${msg.data?.comment || ''}"`, 'recv');
+          } else if (msg.type === 'gift') {
+            const name = msg.user?.nickname || msg.user?.username || 'Viewer';
+            const coins = msg.data?.totalCoins || msg.data?.diamondCount || 1;
+            log(`GIFT: ${name} tang ${msg.data?.giftName || 'Gift'} (${coins} coins) -> Tier ${msg.data?.tier || 1}`, 'recv');
+          } else if (msg.type === 'like' || msg.type === 'like_batch') {
+            const name = msg.user?.nickname || msg.user?.username || 'Viewer';
+            const count = msg.data?.likeCount || msg.data?.count || 1;
+            log(`LIKE: ${name} (+${count} likes)`, 'recv');
+          } else if (msg.type === 'member') {
+            const name = msg.user?.nickname || msg.user?.username || 'Viewer';
+            const lvl = msg.user?.level || 'Lv.1';
+            log(`JOIN: ${name} (${lvl})`, 'recv');
+          } else if (msg.type === 'follow') {
+            const name = msg.user?.nickname || msg.user?.username || 'Viewer';
+            log(`FOLLOW: ${name} da follow kenh`, 'recv');
+          } else if (msg.type === 'superFan' || msg.type === 'superFanJoin') {
+            const name = msg.user?.nickname || msg.user?.username || 'Viewer';
+            log(`SUPER FAN: ${name} (Fan Level: ${msg.user?.fanLevel || 1})`, 'recv');
           } else if (msg.type === 'active_avatars_list') {
             updateActiveAvatarsDropdown(msg.data || []);
           }
-        } catch (e) {}
+        } catch (e) { }
       };
 
       ws.onclose = () => {
@@ -445,20 +801,66 @@
     function updateActiveAvatarsDropdown(list = []) {
       activeAvatars = list;
       const select = document.getElementById('mock-target-avatar');
+      const focusSelect = document.getElementById('camera-focus-avatar-select');
       const prevVal = select.value;
+      const prevFocusVal = focusSelect ? focusSelect.value : '';
+
       select.innerHTML = '<option value="">-- Mục tiêu: Tạo mới / Custom Input --</option>';
+      if (focusSelect) {
+        focusSelect.innerHTML = '<option value="">-- Chọn Slime để Camera Focus --</option>';
+      }
 
       list.forEach((av) => {
+        const rankTag = av.rank ? `[${av.rank}] ` : '';
+        const labelText = `${rankTag}${av.nickname || av.username} (${av.level || 'Lv.1'}, T${av.tier || 1}, ${av.color})`;
+
         const opt = document.createElement('option');
         opt.value = av.userId;
-        const rankTag = av.rank ? `[${av.rank}] ` : '';
-        opt.textContent = `🎯 ${rankTag}${av.nickname || av.username} (${av.level || 'Lv.1'}, T${av.tier || 1}, ${av.color})`;
+        opt.textContent = `🎯 ${labelText}`;
         select.appendChild(opt);
+
+        if (focusSelect) {
+          const focusOpt = document.createElement('option');
+          focusOpt.value = av.userId;
+          focusOpt.textContent = `🎥 ${labelText}`;
+          focusSelect.appendChild(focusOpt);
+        }
       });
 
       if (prevVal && list.some(a => a.userId === prevVal)) {
         select.value = prevVal;
       }
+      if (focusSelect && prevFocusVal && list.some(a => a.userId === prevFocusVal)) {
+        focusSelect.value = prevFocusVal;
+      } else if (focusSelect && prevFocusVal && !list.some(a => a.userId === prevFocusVal)) {
+        updateFocusStatusUI(null);
+      }
+    }
+
+    function updateFocusStatusUI(userId, username) {
+      const statusEl = document.getElementById('camera-focus-status');
+      if (!statusEl) return;
+      if (userId) {
+        statusEl.textContent = `Đang focus: ${username || userId}`;
+        statusEl.style.color = '#00f2fe';
+      } else {
+        statusEl.textContent = 'Chưa focus';
+        statusEl.style.color = '#aaa';
+      }
+    }
+
+    function triggerCameraFocus(userId) {
+      if (!userId) {
+        sendWs({ type: 'admin_command', command: 'clear_avatar_focus' });
+        updateFocusStatusUI(null);
+        log('Hủy focus camera (Về Orbit)', 'sent');
+        return;
+      }
+      const found = activeAvatars.find(a => String(a.userId) === String(userId));
+      const name = found ? (found.nickname || found.username) : userId;
+      sendWs({ type: 'admin_command', command: 'focus_avatar', userId });
+      updateFocusStatusUI(userId, name);
+      log(`Camera focus vào slime: ${name} (${userId})`, 'sent');
     }
 
     function getTargetUser() {
@@ -476,6 +878,7 @@
             level: found.level || 'Lv.1',
             slimeColor: found.color || 'blue',
             tier: found.tier || 1,
+            isPinned: true,
             avatarUrl: found.avatarUrl || ''
           };
         }
@@ -487,7 +890,7 @@
       const levelEl = document.getElementById('mock-custom-level');
       const colorEl = document.getElementById('mock-custom-color');
 
-      const baseName = usernameEl.value.trim() || 'DaiGiaBinhDuong';
+      const baseName = usernameEl.value.trim() || 'Bot';
       const username = spawnIdx > 0 ? `${baseName}_${spawnIdx}` : baseName;
       const tier = Number(tierEl.value || 1);
       const level = levelEl.value || 'Lv.1';
@@ -504,6 +907,7 @@
         level,
         slimeColor,
         tier,
+        isPinned: true,
         avatarUrl: ''
       };
     }
@@ -518,16 +922,41 @@
       log(`Yêu cầu kết nối TikTok: @${username}`, 'sent');
     });
 
+    document.getElementById('tiktok-username-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        document.getElementById('btn-tiktok-connect').click();
+      }
+    });
+
     document.getElementById('btn-tiktok-disconnect').addEventListener('click', () => {
       sendWs({ type: 'tiktok_disconnect' });
       log('Yêu cầu ngắt kết nối TikTok LIVE', 'sent');
     });
+
+    const btnRefreshFloor = document.getElementById('btn-refresh-floor');
+    if (btnRefreshFloor) {
+      btnRefreshFloor.addEventListener('click', () => {
+        sendWs({ type: 'refresh_floor' });
+        log('Yêu cầu làm mới & dọn dẹp sàn', 'sent');
+      });
+    }
+
+    const btnClearLogs = document.getElementById('btn-clear-logs');
+    if (btnClearLogs) {
+      btnClearLogs.addEventListener('click', () => {
+        const box = document.getElementById('log-box');
+        if (box) box.innerHTML = '';
+      });
+    }
 
     // 2. Camera Controls
     document.querySelectorAll('.btn-cam').forEach((btn) => {
       btn.addEventListener('click', () => {
         const preset = btn.getAttribute('data-cam');
         sendWs({ type: 'admin_command', command: 'set_camera', preset });
+        const focusSelect = document.getElementById('camera-focus-avatar-select');
+        if (focusSelect) focusSelect.value = '';
+        updateFocusStatusUI(null);
         log(`Đổi góc camera: ${preset.toUpperCase()}`, 'sent');
       });
     });
@@ -554,6 +983,44 @@
       distSlider.value = 16;
       distVal.textContent = '16.0m';
       sendWs({ type: 'admin_command', command: 'set_distance', value: 16 });
+    });
+
+    // 2b. Camera Focus on Selected Slime Controls
+    document.getElementById('btn-camera-focus-start')?.addEventListener('click', () => {
+      const select = document.getElementById('camera-focus-avatar-select');
+      const uid = select.value;
+      if (!uid) {
+        alert('Vui lòng chọn một slime từ danh sách để camera focus!');
+        return;
+      }
+      triggerCameraFocus(uid);
+    });
+
+    document.getElementById('camera-focus-avatar-select')?.addEventListener('change', (e) => {
+      const uid = e.target.value;
+      if (uid) {
+        triggerCameraFocus(uid);
+      } else {
+        triggerCameraFocus(null);
+      }
+    });
+
+    document.getElementById('btn-camera-focus-clear')?.addEventListener('click', () => {
+      const select = document.getElementById('camera-focus-avatar-select');
+      if (select) select.value = '';
+      triggerCameraFocus(null);
+    });
+
+    document.getElementById('btn-mock-focus-avatar')?.addEventListener('click', () => {
+      const select = document.getElementById('mock-target-avatar');
+      const uid = select.value;
+      if (!uid) {
+        alert('Vui lòng chọn một avatar đang nhảy trên sàn!');
+        return;
+      }
+      const focusSelect = document.getElementById('camera-focus-avatar-select');
+      if (focusSelect) focusSelect.value = uid;
+      triggerCameraFocus(uid);
     });
 
     // 3. OBS Transparency & Background
@@ -585,7 +1052,7 @@
 
     // 5. Slime Spawner
     const RANDOM_NAMES = [
-      'GamerPro99', 'CyberGirl', 'DaiGiaBinhDuong', 'BaoChuaTikTok',
+      'GamerPro99', 'CyberGirl', 'Bot', 'BaoChuaTikTok',
       'MeoConCute', 'PhuongHoangLua', 'SuTuVang', 'GiaCatLuong',
       'ThanhNienChuyenCan', 'DanChoiThoi4.0', 'TrieuPhuCongNghe'
     ];
@@ -615,6 +1082,84 @@
       log('Xóa toàn bộ avatar trên sàn', 'sent');
     });
 
+    // 5b. Billboard Scale Slider & Level/Rank Test Controls
+    const billboardScaleSlider = document.getElementById('billboard-scale-slider');
+    const billboardScaleVal = document.getElementById('billboard-scale-val');
+    if (billboardScaleSlider) {
+      billboardScaleSlider.addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        if (billboardScaleVal) billboardScaleVal.textContent = `${val.toFixed(2)}x`;
+        sendWs({ type: 'admin_command', command: 'set_billboard_scale', value: val });
+        log(`Tỷ lệ Billboard Label: ${val.toFixed(2)}x`, 'sent');
+      });
+    }
+
+    const heroLvlSlider = document.getElementById('hero-lvl-slider');
+    const heroLvlVal = document.getElementById('hero-lvl-val');
+    if (heroLvlSlider) {
+      heroLvlSlider.addEventListener('input', (e) => {
+        const lvl = parseInt(e.target.value, 10);
+        if (heroLvlVal) heroLvlVal.textContent = `Lv.${lvl}`;
+        const user = getTargetUser();
+        sendWs({ type: 'admin_command', command: 'set_avatar_level', userId: user.userId, level: lvl });
+        log(`Set level avatar ${user.username} -> Lv.${lvl}`, 'sent');
+      });
+    }
+
+    document.querySelectorAll('.quick-lvl-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const lvl = parseInt(btn.getAttribute('data-lvl'), 10);
+        if (heroLvlSlider) heroLvlSlider.value = lvl;
+        if (heroLvlVal) heroLvlVal.textContent = `Lv.${lvl}`;
+        const user = getTargetUser();
+        sendWs({ type: 'admin_command', command: 'set_avatar_level', userId: user.userId, level: lvl });
+        log(`Set level avatar ${user.username} -> Lv.${lvl}`, 'sent');
+      });
+    });
+
+    document.querySelectorAll('.rank-test-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.rank-test-btn').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        const rank = btn.getAttribute('data-rank') || null;
+        const user = getTargetUser();
+        sendWs({ type: 'admin_command', command: 'set_avatar_rank', userId: user.userId, rank });
+        log(`Set rank avatar ${user.username} -> ${rank || 'Không rank'}`, 'sent');
+      });
+    });
+
+    let currentTargetFan = false;
+    document.getElementById('btn-toggle-fan')?.addEventListener('click', () => {
+      currentTargetFan = !currentTargetFan;
+      const user = getTargetUser();
+      sendWs({ type: 'admin_command', command: 'set_avatar_fan', userId: user.userId, isFan: currentTargetFan });
+      log(`Set Fan avatar ${user.username} -> ${currentTargetFan ? 'BẬT (💜 Fan)' : 'TẮT'}`, 'sent');
+    });
+
+    let currentTargetFollower = false;
+    document.getElementById('btn-toggle-follow')?.addEventListener('click', () => {
+      currentTargetFollower = !currentTargetFollower;
+      const user = getTargetUser();
+      sendWs({ type: 'admin_command', command: 'set_avatar_follower', userId: user.userId, isFollower: currentTargetFollower });
+      log(`Set Follower avatar ${user.username} -> ${currentTargetFollower ? 'BẬT' : 'TẮT'}`, 'sent');
+    });
+
+    const crowdRankBtn = document.getElementById('btn-crowd-rank-sim');
+    if (crowdRankBtn) {
+      crowdRankBtn.addEventListener('click', () => {
+        sendWs({ type: 'admin_command', command: 'simulate_crowd_ranks' });
+        log('Đã gán ngẫu nhiên Rank Top 1-3 & VIP cho đám đông', 'sent');
+      });
+    }
+
+    const crowdClearRankBtn = document.getElementById('btn-crowd-clear-rank');
+    if (crowdClearRankBtn) {
+      crowdClearRankBtn.addEventListener('click', () => {
+        sendWs({ type: 'admin_command', command: 'clear_crowd_ranks' });
+        log('Đã xóa toàn bộ Rank đám đông', 'sent');
+      });
+    }
+
     // 6. Chat & Likes
     const CHAT_POOL = [
       'Nhạc cháy quá DJ ơi! 🔥', 'Chào cả phòng nhé!', 'Slime nhìn cưng xỉu ❤️',
@@ -630,6 +1175,11 @@
       input.value = '';
     });
 
+    document.getElementById('btn-mock-likes-1')?.addEventListener('click', () => {
+      const user = getTargetUser();
+      sendWs({ type: 'mock_trigger', action: 'likes', count: 1, user });
+      log(`Thả tim: +1 like từ ${user.username}`, 'sent');
+    });
     document.getElementById('btn-mock-likes-10').addEventListener('click', () => {
       const user = getTargetUser();
       sendWs({ type: 'mock_trigger', action: 'likes', count: 10, user });
@@ -642,6 +1192,15 @@
     });
 
     // 7. Gift Category Tabs & Donate Buttons
+    const toggleTierUp = document.getElementById('toggle-tier-up');
+    if (toggleTierUp) {
+      toggleTierUp.addEventListener('change', () => {
+        const val = toggleTierUp.checked;
+        sendWs({ type: 'admin_command', command: 'set_auto_tier_up', value: val });
+        log(`Tự động nâng Tier khi Donate: ${val ? 'BẬT' : 'TẮT'}`, 'sent');
+      });
+    }
+
     document.querySelectorAll('.gift-cat-tab').forEach((tab) => {
       tab.addEventListener('click', () => {
         document.querySelectorAll('.gift-cat-tab').forEach(t => t.classList.remove('active'));
@@ -659,15 +1218,17 @@
         const giftKey = btn.getAttribute('data-gift') || giftName;
         const tier = Number(btn.getAttribute('data-tier') || 1);
         const coins = Number(btn.getAttribute('data-coins') || 1);
+        const forceTierUp = toggleTierUp && toggleTierUp.checked ? true : undefined;
         const user = getTargetUser();
-        sendWs({ type: 'mock_trigger', action: 'gift', giftName, giftKey, tier, coins, user });
-        log(`Tặng quà: ${giftName} (${coins}🪙) cho ${user.username}`, 'sent');
+        sendWs({ type: 'mock_trigger', action: 'gift', giftName, giftKey, tier, coins, user, ...(forceTierUp ? { forceTierUp } : {}) });
+        log(`Tặng quà: ${giftName} (${coins}🪙) cho ${user.username}${forceTierUp ? ' [Tier-Up]' : ''}`, 'sent');
       });
     });
 
     document.getElementById('btn-mock-lion-epic').addEventListener('click', () => {
       const user = getTargetUser();
-      sendWs({ type: 'mock_trigger', action: 'gift', giftName: 'Sư tử', giftKey: 'lion', tier: 5, coins: 29999, user });
+      const forceTierUp = toggleTierUp && toggleTierUp.checked ? true : undefined;
+      sendWs({ type: 'mock_trigger', action: 'gift', giftName: 'Sư tử', giftKey: 'lion', tier: 5, coins: 29999, user, ...(forceTierUp ? { forceTierUp } : {}) });
       log(`👑 ĐẠI TIỆC LION CORONATION (29.999🪙) cho ${user.username}!`, 'sent');
     });
 
@@ -683,7 +1244,7 @@
         donateStormInterval = setInterval(() => {
           const randBtn = buttons[Math.floor(Math.random() * buttons.length)];
           randBtn.click();
-        }, 1200);
+        }, 650);
       } else {
         stormBtn.textContent = '🌧️ Bão Donate Liên Tục: OFF';
         stormBtn.style.color = '';
@@ -691,6 +1252,73 @@
         clearInterval(donateStormInterval);
       }
     });
+
+    // 9. Cấu Hình Ngưỡng Coin Trang Bị & Tiến Hóa
+    import { loadThresholds, saveThresholds, resetThresholds, DEFAULT_THRESHOLDS } from '/src/equipment-config.js';
+
+    function fillThresholdInputs(cfg) {
+      if (!cfg) return;
+      const setVal = (id, v) => {
+        const el = document.getElementById(id);
+        if (el) el.value = v;
+      };
+      setVal('cfg-slime-t2', cfg.slimeTier2);
+      setVal('cfg-slime-t3', cfg.slimeTier3);
+      setVal('cfg-slime-t4', cfg.slimeTier4);
+      setVal('cfg-slime-t5', cfg.slimeTier5);
+
+      setVal('cfg-foot-r1', cfg.footRing1);
+      setVal('cfg-foot-r2', cfg.footRing2);
+      setVal('cfg-foot-r3', cfg.footRing3);
+
+      setVal('cfg-aura-purple', cfg.bodyPurpleAura);
+      setVal('cfg-aura-orange', cfg.bodyOrangeAura);
+      setVal('cfg-aura-gold', cfg.bodyGoldenAura);
+    }
+
+    fillThresholdInputs(loadThresholds());
+
+    document.getElementById('btn-cfg-save')?.addEventListener('click', () => {
+      const getNum = (id, fallback) => {
+        const val = Number(document.getElementById(id)?.value);
+        return (!isNaN(val) && val > 0) ? val : fallback;
+      };
+
+      const newCfg = {
+        slimeTier2: getNum('cfg-slime-t2', DEFAULT_THRESHOLDS.slimeTier2),
+        slimeTier3: getNum('cfg-slime-t3', DEFAULT_THRESHOLDS.slimeTier3),
+        slimeTier4: getNum('cfg-slime-t4', DEFAULT_THRESHOLDS.slimeTier4),
+        slimeTier5: getNum('cfg-slime-t5', DEFAULT_THRESHOLDS.slimeTier5),
+
+        footRing1: getNum('cfg-foot-r1', DEFAULT_THRESHOLDS.footRing1),
+        footRing2: getNum('cfg-foot-r2', DEFAULT_THRESHOLDS.footRing2),
+        footRing3: getNum('cfg-foot-r3', DEFAULT_THRESHOLDS.footRing3),
+
+        bodyPurpleAura: getNum('cfg-aura-purple', DEFAULT_THRESHOLDS.bodyPurpleAura),
+        bodyOrangeAura: getNum('cfg-aura-orange', DEFAULT_THRESHOLDS.bodyOrangeAura),
+        bodyGoldenAura: getNum('cfg-aura-gold', DEFAULT_THRESHOLDS.bodyGoldenAura)
+      };
+
+      saveThresholds(newCfg);
+      sendWs({
+        type: 'admin_command',
+        command: 'update_thresholds',
+        thresholds: newCfg
+      });
+      log('Đã lưu & áp dụng ngưỡng Coin mới cho toàn bộ Slime!', 'sent');
+    });
+
+    document.getElementById('btn-cfg-reset')?.addEventListener('click', () => {
+      const def = resetThresholds();
+      fillThresholdInputs(def);
+      sendWs({
+        type: 'admin_command',
+        command: 'update_thresholds',
+        thresholds: def
+      });
+      log('Đã khôi phục ngưỡng Coin về mặc định!', 'sent');
+    });
   </script>
 </body>
+
 </html>

@@ -36,7 +36,7 @@ export class TikTokService extends EventEmitter {
     try {
       this.connection = new LiveConnectionClass(this.username, {
         processInitialData: false,
-        enableExtendedGiftInfo: true,
+        enableExtendedGiftInfo: false,
         requestPollingIntervalMs: 1000
       });
 
@@ -47,10 +47,12 @@ export class TikTokService extends EventEmitter {
       this.roomId = state?.roomId || '';
       this.reconnectDelay = 2000;
 
+      console.log(`[TikTokService] Connected successfully to @${this.username} (Room ID: ${this.roomId})`);
       this.emit('status', this.getStatus());
       return this.getStatus();
     } catch (err) {
       this.isConnected = false;
+      console.error(`[TikTokService] Connect failed for @${this.username}:`, err.message);
       this.emit('error', err);
       this._scheduleReconnect();
       throw err;
@@ -68,14 +70,28 @@ export class TikTokService extends EventEmitter {
     this.connection.on('like', (data) => this.emit('raw_event', 'like', data));
     this.connection.on('member', (data) => this.emit('raw_event', 'member', data));
     this.connection.on('social', (data) => this.emit('raw_event', 'social', data));
+    this.connection.on('follow', (data) => this.emit('raw_event', 'follow', data));
+    this.connection.on('superFan', (data) => this.emit('raw_event', 'superFan', data));
+    this.connection.on('superFanJoin', (data) => this.emit('raw_event', 'superFanJoin', data));
 
     this.connection.on('roomUser', (data) => {
-      this.viewerCount = Number(data.viewerCount || this.viewerCount);
+      this.viewerCount = Number(data.viewerCount || data.total || this.viewerCount);
+      const rawRanks = Array.isArray(data.ranks) ? data.ranks : [];
+      this.lastRanks = rawRanks.map((r) => ({
+        rank: Number(r.rank || 0),
+        score: Number(r.score || 0),
+        user: r.user || {}
+      }));
+      this.emit('room_ranks', {
+        ranks: this.lastRanks,
+        total: this.viewerCount
+      });
       this.emit('status', this.getStatus());
     });
 
     this.connection.on('streamEnd', () => {
       this.isConnected = false;
+      this.lastRanks = [];
       this.emit('streamEnd');
       this.emit('status', this.getStatus());
     });

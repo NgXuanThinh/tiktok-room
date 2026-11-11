@@ -1,6 +1,7 @@
 // src/club-environment.js - InstancedMesh LED floor (1 draw call), VIP stage, DJ booth, moving heads, lasers, fireworks, hearts
 import * as THREE from 'three';
 import { GiftPropsManager } from './gift-props.js';
+import { CINEMATIC_CONFIG } from './cinematic-config.js';
 import {
   sharedChubbyMochiGeometry,
   sharedHornGeom,
@@ -16,53 +17,98 @@ export const PURPLE_FLOOR_PALETTE = [
   new THREE.Color(0xDDA0DD)  // Plum
 ];
 
-export const NEON_PALETTE = [
-  new THREE.Color(0x00f2fe), // Cyan
-  new THREE.Color(0xff007f), // Hot Pink
-  new THREE.Color(0x7928ca), // Neon Purple
-  new THREE.Color(0xffd700), // Gold
-  new THREE.Color(0x00ff88), // Neon Green
-  new THREE.Color(0xff6b00)  // Neon Orange
-];
+import {
+  CLUB_VENUE_CONFIG,
+  FLOOR_GRID_CONFIG,
+  FLOOR_EMISSIVE_CONFIG,
+  VIP_PODIUM_STAGE_CONFIG,
+  DJ_BOOTH_CONFIG,
+  MOVING_HEADS_CONFIG,
+  NEON_PALETTE,
+  SPOTLIGHT_4_PALETTE,
+  LIGHT_BEAMS_CONFIG,
+  LASER_BEAMS_CONFIG,
+  FIREWORKS_VFX_CONFIG,
+  BACK_WALL_CONFIG,
+  clampSpotlightToFloor
+} from './club-constants.js';
 
-export const FLOOR_EMISSIVE_CONFIG = {
-  baseEmissive: 0x3b0066,
-  emissiveIntensity: 0.65,
-  minPulseBrightness: 0.25
+export {
+  CLUB_VENUE_CONFIG,
+  FLOOR_GRID_CONFIG,
+  FLOOR_EMISSIVE_CONFIG,
+  VIP_PODIUM_STAGE_CONFIG,
+  DJ_BOOTH_CONFIG,
+  MOVING_HEADS_CONFIG,
+  NEON_PALETTE,
+  SPOTLIGHT_4_PALETTE,
+  LIGHT_BEAMS_CONFIG,
+  LASER_BEAMS_CONFIG,
+  FIREWORKS_VFX_CONFIG,
+  BACK_WALL_CONFIG,
+  clampSpotlightToFloor
 };
 
-export const FLOOR_GRID_CONFIG = {
-  rows: 12,
-  cols: 12,
-  tileSize: 1.5,
-  tileSpacing: 1.6,
-  centerZ: 0,
-  get count() { return this.rows * this.cols; }
-};
+/**
+ * Procedurally generates a shiny red heart bubble texture with glossy reflection and neon outer glow.
+ */
+export function createHeartBubbleTexture() {
+  if (typeof document === 'undefined') return new THREE.Texture();
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
 
-export function clampSpotlightToFloor(target = { x: 0, y: 0, z: 0 }) {
-  const minX = -8.8;
-  const maxX = 8.8;
-  const minZ = -10.5;
-  const maxZ = 8.8;
-  return {
-    x: Math.max(minX, Math.min(maxX, Number(target?.x || 0))),
-    y: Math.max(0, Number(target?.y || 0)),
-    z: Math.max(minZ, Math.min(maxZ, Number(target?.z || 0)))
-  };
+  ctx.clearRect(0, 0, 128, 128);
+  ctx.save();
+  ctx.translate(64, 56);
+
+  // Smooth mathematical red heart contour
+  ctx.beginPath();
+  ctx.moveTo(0, 36);
+  ctx.bezierCurveTo(-45, 12, -42, -26, -20, -26);
+  ctx.bezierCurveTo(-8, -26, 0, -14, 0, -8);
+  ctx.bezierCurveTo(0, -14, 8, -26, 20, -26);
+  ctx.bezierCurveTo(42, -26, 45, 12, 0, 36);
+  ctx.closePath();
+
+  // 1. Soft red neon outer glow
+  ctx.shadowColor = 'rgba(255, 20, 60, 0.9)';
+  ctx.shadowBlur = 14;
+
+  // 2. Translucent red bubble body gradient
+  const grad = ctx.createRadialGradient(-10, -5, 4, 0, 4, 42);
+  grad.addColorStop(0, 'rgba(255, 140, 170, 0.95)');
+  grad.addColorStop(0.35, 'rgba(255, 25, 75, 0.88)');
+  grad.addColorStop(0.75, 'rgba(220, 10, 45, 0.75)');
+  grad.addColorStop(1.0, 'rgba(255, 40, 90, 0.95)');
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // 3. Shiny bubble border rim
+  ctx.shadowBlur = 4;
+  ctx.lineWidth = 2.5;
+  ctx.strokeStyle = 'rgba(255, 220, 235, 0.95)';
+  ctx.stroke();
+
+  // 4. Glossy specular reflection highlight on upper left lobe
+  ctx.shadowBlur = 0;
+  ctx.beginPath();
+  ctx.ellipse(-14, -16, 7, 3.5, -Math.PI / 4, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.arc(-6, -21, 2, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+  ctx.fill();
+
+  ctx.restore();
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.generateMipmaps = true;
+  return texture;
 }
-
-export const BACK_WALL_CONFIG = {
-  z: -14.5
-};
-
-// 4 Alternating Spotlight Colors (Yellow, Blue, Green, Red)
-export const SPOTLIGHT_4_PALETTE = [
-  new THREE.Color(0xffe600), // Yellow
-  new THREE.Color(0x0088ff), // Blue
-  new THREE.Color(0x00ff66), // Green
-  new THREE.Color(0xff2244)  // Red
-];
 
 export class ClubEnvironment {
   constructor(scene) {
@@ -82,6 +128,9 @@ export class ClubEnvironment {
     this.fireworksData = [];
     this.heartParticles = null;
     this.heartData = [];
+    this.activeHeartBubbles = [];
+    this.heartBubbleTexture = null;
+    this.slotFloorOverrides = new Map();
     this.starfieldPoints = null;
     this.starData = [];
 
@@ -89,6 +138,7 @@ export class ClubEnvironment {
     this.droppingCoinsMesh = null;
     this.droppingCoinsData = [];
     this.droppingCoinsDummy = null;
+    this.pendingCoinSpawns = [];
     this.activeOrbitRings = [];
     this.activeShockwaves = [];
     this.mythicCrownMesh = null;
@@ -121,6 +171,67 @@ export class ClubEnvironment {
     this.createDroppingCoinsSystem();
     this.createShockwaveSystem();
     this.createMythicCrownSystem();
+  }
+
+  /**
+   * Calculates dynamic bounding dimensions and jump apex for relative scaling and coin drops.
+   * @param {THREE.Object3D|THREE.Vector3|object} target
+   * @returns {{ height: number, radius: number, apexY: number, origin: THREE.Vector3 }}
+   */
+  getSlimeMetrics(target) {
+    const origin = new THREE.Vector3();
+    let height = 0.65;
+    let radius = 0.55;
+    let apexY = 1.8;
+
+    if (target) {
+      const mesh = target.mesh || (target.isObject3D ? target : null);
+      if (mesh) {
+        if (typeof mesh.getWorldPosition === 'function') {
+          mesh.getWorldPosition(origin);
+        } else if (mesh.position) {
+          origin.copy(mesh.position);
+        }
+
+        const currentScale = target.currentScale || mesh.userData?.currentScale || 1.0;
+        const baseScale = mesh.scale?.y || 0.52;
+        const totalScale = currentScale * (baseScale / (mesh.userData?.currentScale || 1.0) || 0.52);
+
+        height = Math.max(0.4, 0.65 * totalScale * 2.0);
+        radius = Math.max(0.35, 0.55 * totalScale * 2.0);
+
+        const donateFx = mesh.userData?.controller?.state?.donateFx;
+        const apexOverride = donateFx?.apexOverride;
+        if (apexOverride) {
+          apexY = origin.y + apexOverride;
+        } else {
+          const jumpBonus = mesh.userData?.isSuperBounce ? 1.8 : 1.0;
+          apexY = origin.y + height + jumpBonus;
+        }
+      } else if (target.x !== undefined && target.y !== undefined && target.z !== undefined) {
+        origin.set(target.x, target.y, target.z);
+        apexY = origin.y + height + 1.2;
+      }
+    }
+    return { height, radius, apexY, origin };
+  }
+
+  /**
+   * Calculates effective bounding radius of Slime avatar to prevent ring intersection clipping.
+   * @param {THREE.Object3D|object} targetAvatarOrOrigin
+   * @returns {number}
+   */
+  getSlimeEffectiveRadius(targetAvatarOrOrigin) {
+    if (targetAvatarOrOrigin && (targetAvatarOrOrigin.mesh || targetAvatarOrOrigin.isObject3D)) {
+      try {
+        const targetObj = targetAvatarOrOrigin.mesh || targetAvatarOrOrigin;
+        const box = new THREE.Box3().setFromObject(targetObj);
+        const size = box.getSize(new THREE.Vector3());
+        const r = Math.max(size.x, size.z) * 0.5;
+        if (r > 0.4 && r < 5.0) return r;
+      } catch (e) {}
+    }
+    return 0.95;
   }
 
   /**
@@ -239,11 +350,9 @@ export class ClubEnvironment {
     // 2. 12x12 LED Dance Floor Matrix (144 tiles) with purple palette & white border frame
     const tileGeom = new THREE.BoxGeometry(FLOOR_GRID_CONFIG.tileSize, 0.2, FLOOR_GRID_CONFIG.tileSize);
     const tileMat = new THREE.MeshStandardMaterial({
-      color: 0x4B0082,
-      emissive: FLOOR_EMISSIVE_CONFIG.baseEmissive,
-      emissiveIntensity: FLOOR_EMISSIVE_CONFIG.emissiveIntensity,
-      metalness: 0.8,
-      roughness: 0.15
+      color: 0xffffff, // Pure white base color so InstancedMesh setColorAt renders accurate RGB hues!
+      roughness: 0.2,
+      metalness: 0.3
     });
 
     const count = FLOOR_GRID_CONFIG.count;
@@ -314,6 +423,38 @@ export class ClubEnvironment {
 
     this.borderMesh.instanceMatrix.needsUpdate = true;
     this.scene.add(this.borderMesh);
+  }
+
+  /**
+   * Resolves the 1D tile index in the 12x12 floor matrix for a given (x, z) coordinate.
+   */
+  getTileIndexAtPosition(pos) {
+    if (!pos) return -1;
+    const spacing = FLOOR_GRID_CONFIG.tileSpacing;
+    const halfCols = (FLOOR_GRID_CONFIG.cols - 1) / 2;
+    const halfRows = (FLOOR_GRID_CONFIG.rows - 1) / 2;
+    const c = Math.round(((pos.x || 0) / spacing) + halfCols);
+    const z = pos.z !== undefined ? pos.z : 0;
+    const r = Math.round((z / spacing) + halfRows);
+    if (r >= 0 && r < FLOOR_GRID_CONFIG.rows && c >= 0 && c < FLOOR_GRID_CONFIG.cols) {
+      return r * FLOOR_GRID_CONFIG.cols + c;
+    }
+    return -1;
+  }
+
+  /**
+   * Sets the standing floor tile color override for a slime at a slot position.
+   * After 5 seconds, the whole tile transitions smoothly to 'white' or 'gold'.
+   * @param {THREE.Vector3|object} slotPos
+  /**
+   * Deprecated stub: Floor tile color change removed per user instruction.
+   */
+  setSlotFloorColor(slotPos, targetColor = 'default') {
+    // No-op (đã bỏ hiệu ứng đổi màu ô sàn)
+  }
+
+  clearSlotFloorColors() {
+    this.slotFloorOverrides.clear();
   }
 
   /**
@@ -388,9 +529,10 @@ export class ClubEnvironment {
       transparent: true,
       opacity: 0.95
     });
-    const leftGlass = new THREE.Mesh(new THREE.BoxGeometry(4.16, 0.03, 2.16), leftGoldGlassMat);
+    const leftGlass = new THREE.Mesh(new THREE.BoxGeometry(4.16, 0.03, 2.16), leftGoldGlassMat.clone());
     leftGlass.position.y = 0.495;
     leftVipGroup.add(leftGlass);
+    this.leftGlass = leftGlass;
 
     // 4 Royal Gold Corner Pillars with glowing crystal caps
     const goldPillarGeom = new THREE.CylinderGeometry(0.08, 0.08, 0.54, 8);
@@ -484,9 +626,10 @@ export class ClubEnvironment {
       transparent: true,
       opacity: 0.92
     });
-    const rightGlass = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.03, 2.2), rightCyanGlassMat);
+    const rightGlass = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.03, 2.2), rightCyanGlassMat.clone());
     rightGlass.position.y = 0.395;
     rightVipGroup.add(rightGlass);
+    this.rightGlass = rightGlass;
 
     // 4 Silver-Cyan Corner Pillars with cyan crystal caps
     const silverPillarGeom = new THREE.CylinderGeometry(0.06, 0.06, 0.42, 8);
@@ -585,7 +728,8 @@ export class ClubEnvironment {
 
     // DJ Mascot: Female Chubby Cyber Slime with Horns & Headphones
     this.djMascot = new THREE.Group();
-    this.djMascot.position.set(0, 1.45, -0.6); // Positioned comfortably behind DJ table and mixer
+    const djBaseY = DJ_BOOTH_CONFIG.mascotBaseY ?? 1.45;
+    this.djMascot.position.set(0, djBaseY, -0.6); // Positioned comfortably behind DJ table and mixer
 
     // DJ Body & Head: Female Chubby Mochi in Cyber Pink jelly
     const djMat = new THREE.MeshStandardMaterial({
@@ -864,7 +1008,7 @@ export class ClubEnvironment {
     this.whiteBeam.position.z = targetZ;
     this.whiteBeam.position.y = 8;
     this.whiteBeam.visible = true;
-    if (this.whiteBeamMat) this.whiteBeamMat.opacity = 0.32; // Dimmer opacity so avatar donate effect is clearly visible
+    if (this.whiteBeamMat) this.whiteBeamMat.opacity = CINEMATIC_CONFIG.lightingHigh.beamOpacity;
     this.whiteBeamTimer = duration;
     this.isWhiteBeamActive = true;
   }
@@ -875,7 +1019,7 @@ export class ClubEnvironment {
     this.goldenBeam.position.z = targetZ;
     this.goldenBeam.position.y = 8;
     this.goldenBeam.visible = true;
-    if (this.goldenBeamMat) this.goldenBeamMat.opacity = 0.14; // Soft sheer holographic glow so lion celebration animations shine through clearly without obscuring avatar
+    if (this.goldenBeamMat) this.goldenBeamMat.opacity = CINEMATIC_CONFIG.lightingUltra.beamOpacity;
     this.goldenBeamTimer = duration;
     this.isGoldenBeamActive = true;
   }
@@ -887,22 +1031,30 @@ export class ClubEnvironment {
    * - 'high' / Tier 3: 6 spotlights focus + White Light Beam (3.5s, White #ffffff)
    * - 'ultra' / Tier 4+: ALL 8 spotlights converge + Golden Beam + Fireworks (7.6s, Gold #ffd700)
    */
-  focusSpotlights(categoryOrTier = 1, targetPosition = null, duration = null) {
+  focusSpotlights(categoryOrTier = 1, targetPosition = null, duration = null, avatarManager = null, userId = null) {
     let numSpots = 1;
     let spotColor = 0x00f2fe;
     let autoDuration = duration;
+
+    // Auto-resolve slime world position from avatarManager when userId is provided
+    if (!targetPosition && avatarManager && userId) {
+      const mesh = avatarManager.getAvatarMesh ? avatarManager.getAvatarMesh(userId) : null;
+      if (mesh) targetPosition = mesh.position;
+    }
 
     const isUltra = categoryOrTier === 'ultra' || (typeof categoryOrTier === 'number' && categoryOrTier >= 4);
     const isHigh = categoryOrTier === 'high' || (typeof categoryOrTier === 'number' && categoryOrTier === 3);
     const isMedium = categoryOrTier === 'medium' || (typeof categoryOrTier === 'number' && categoryOrTier === 2);
 
     if (isUltra) {
-      numSpots = this.movingHeads.length;
-      spotColor = 0xffd700;
+      numSpots = Math.min(CINEMATIC_CONFIG.lightingUltra.spotlightCount, this.movingHeads.length);
+      spotColor = CINEMATIC_CONFIG.lightingUltra.spotColor;
       if (autoDuration === null || autoDuration === undefined) autoDuration = 7.6;
     } else if (isHigh) {
-      numSpots = (typeof categoryOrTier === 'number' && categoryOrTier === 3) ? this.movingHeads.length : Math.min(6, this.movingHeads.length);
-      spotColor = 0xffffff;
+      numSpots = (typeof categoryOrTier === 'number' && categoryOrTier === 3)
+        ? this.movingHeads.length
+        : Math.min(CINEMATIC_CONFIG.lightingHigh.spotlightCount, this.movingHeads.length);
+      spotColor = CINEMATIC_CONFIG.lightingHigh.spotColor;
       if (autoDuration === null || autoDuration === undefined) autoDuration = 3.5;
     } else if (isMedium) {
       numSpots = 2;
@@ -927,10 +1079,14 @@ export class ClubEnvironment {
           mh.spot.color.setHex(spotColor);
         }
         if (mh.cone && mh.cone.material) {
-          mh.cone.material.opacity = isUltra ? 0.08 : 0.16; // Sheer opacity so 8 overlapping cones do not wash out avatar in front of camera
+          mh.cone.material.opacity = isUltra
+            ? CINEMATIC_CONFIG.lightingUltra.coneOpacity
+            : (isHigh ? CINEMATIC_CONFIG.lightingHigh.coneOpacity : 0.16);
         }
         if (mh.spot) {
-          mh.spot.intensity = isUltra ? 3.5 : 8.0; // Moderate intensity to prevent additive white burnout
+          mh.spot.intensity = isUltra
+            ? CINEMATIC_CONFIG.lightingUltra.spotlightIntensity
+            : (isHigh ? CINEMATIC_CONFIG.lightingHigh.spotlightIntensity : 5.0);
         }
       }
     }
@@ -1103,25 +1259,71 @@ export class ClubEnvironment {
   }
 
   /**
+   * Spawns floating red heart bubbles rising from a target position (e.g. slime head).
+   * Bubbles gently sway, expand, fade out and disappear.
+   */
+  spawnHeartBubbles(origin = new THREE.Vector3(0, 0, 0), count = 4) {
+    if (!this.heartBubbleTexture) {
+      this.heartBubbleTexture = createHeartBubbleTexture();
+    }
+    const baseOrigin = origin instanceof THREE.Vector3
+      ? origin
+      : new THREE.Vector3(origin?.x || 0, origin?.y || 0, origin?.z || 0);
+
+    for (let i = 0; i < count; i++) {
+      const mat = new THREE.SpriteMaterial({
+        map: this.heartBubbleTexture,
+        transparent: true,
+        opacity: 0.95,
+        blending: THREE.NormalBlending,
+        depthWrite: false
+      });
+      const sprite = new THREE.Sprite(mat);
+      const scale = 0.35 + Math.random() * 0.25;
+      sprite.scale.set(scale, scale, 1.0);
+
+      const px = baseOrigin.x + (Math.random() - 0.5) * 0.45;
+      const py = (baseOrigin.y || 0) + 0.65 + Math.random() * 0.35;
+      const pz = baseOrigin.z + (Math.random() - 0.5) * 0.45;
+      sprite.position.set(px, py, pz);
+
+      this.scene.add(sprite);
+
+      this.activeHeartBubbles.push({
+        sprite,
+        baseScale: scale,
+        vy: 1.4 + Math.random() * 0.9,
+        wobbleSpeed: 3.2 + Math.random() * 2.8,
+        wobblePhase: Math.random() * Math.PI * 2,
+        wobbleAmp: 0.22 + Math.random() * 0.18,
+        maxLife: 1.8 + Math.random() * 0.8,
+        life: 0
+      });
+    }
+  }
+
+  /**
    * 3D Dropping Coins System with Physics Bouncing & Damping.
    */
   createDroppingCoinsSystem() {
     const coinCount = 200;
-    const coinGeom = new THREE.CylinderGeometry(0.12, 0.12, 0.035, 14);
+    const coinGeom = new THREE.CylinderGeometry(0.23, 0.23, 0.045, 16);
     const coinMat = new THREE.MeshStandardMaterial({
-      color: 0xffd700,
-      metalness: 0.85,
-      roughness: 0.22,
-      emissive: 0xffa500,
-      emissiveIntensity: 0.35
+      color: 0xffea00, // Vibrant lemon gold
+      metalness: 0.20,
+      roughness: 0.15,
+      emissive: 0xffaa00, // Self-illuminating warm gold glow in dark bar
+      emissiveIntensity: 0.90
     });
 
     this.droppingCoinsMesh = new THREE.InstancedMesh(coinGeom, coinMat, coinCount);
     this.droppingCoinsMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    this.droppingCoinsMesh.frustumCulled = false; // Never cull offscreen when dummy rests at y = -100
     this.scene.add(this.droppingCoinsMesh);
 
     this.droppingCoinsDummy = new THREE.Object3D();
     this.droppingCoinsData = [];
+    this.pendingCoinSpawns = [];
 
     for (let i = 0; i < coinCount; i++) {
       this.droppingCoinsData.push({
@@ -1138,9 +1340,10 @@ export class ClubEnvironment {
         vrx: 0,
         vry: 0,
         vrz: 0,
-        scale: 1,
+        scale: 1.0,
+        baseScale: 1.0,
         life: 0,
-        maxLife: 2.2
+        maxLife: 1.2
       });
       this.droppingCoinsDummy.position.set(0, -100, 0);
       this.droppingCoinsDummy.updateMatrix();
@@ -1150,58 +1353,87 @@ export class ClubEnvironment {
   }
 
   /**
-   * Spawns falling coins with realistic physics bouncing:
-   * - 1 coin: Exactly 1 gold coin drops from above avatar head and bounces.
-   * - 5 coins: Exactly 5 gold coins fountain upward and shower down.
-   * - N coins: Money shower.
+   * Spawns a single 3D falling gold coin instance.
    */
-  spawnDroppingCoins(origin = new THREE.Vector3(0, 0, 0), count = 1) {
-    if (!this.droppingCoinsMesh) return;
-    const spawnCount = Math.max(1, Math.min(count, 50));
-    let spawned = 0;
-
-    for (let i = 0; i < this.droppingCoinsData.length && spawned < spawnCount; i++) {
+  spawnSingleCoinInstance(origin, cfg = {}) {
+    if (!this.droppingCoinsData) return;
+    for (let i = 0; i < this.droppingCoinsData.length; i++) {
       const c = this.droppingCoinsData[i];
       if (!c.active) {
         c.active = true;
         c.life = 0;
-        c.scale = 1.0;
-        c.maxLife = count === 1 ? 2.0 : 2.5 + Math.random() * 0.5;
+        c.maxLife = cfg.maxLife || 1.15;
+        const bScale = Math.max(0.3, Number(cfg.coinScale || 1.0));
+        c.baseScale = bScale;
+        c.scale = bScale;
+        c.x = cfg.exactX ? origin.x : origin.x + (Math.random() - 0.5) * 0.18;
+        c.y = cfg.dropY !== undefined ? cfg.dropY : (origin.y + 3.8);
+        c.z = cfg.exactX ? origin.z : origin.z + (Math.random() - 0.5) * 0.18;
+        c.vx = cfg.vx || 0;
+        c.vy = cfg.vy !== undefined ? cfg.vy : CINEMATIC_CONFIG.coinDynamics.initialDropVy;
+        c.vz = cfg.vz || 0;
+        c.rx = Math.random() * Math.PI * 2;
+        c.ry = Math.random() * Math.PI * 2;
+        c.rz = Math.random() * Math.PI * 2;
+        c.vrx = 6 + Math.random() * 10;
+        c.vry = 6 + Math.random() * 10;
+        c.vrz = 6 + Math.random() * 10;
+        break;
+      }
+    }
+  }
 
-        if (count === 1) {
-          c.x = origin.x;
-          c.y = origin.y + 2.3;
-          c.z = origin.z;
-          c.vx = (Math.random() - 0.5) * 0.25;
-          c.vy = 1.4;
-          c.vz = (Math.random() - 0.5) * 0.25;
-        } else if (count === 5) {
-          c.x = origin.x + (Math.random() - 0.5) * 0.35;
-          c.y = origin.y + 2.1 + spawned * 0.12;
-          c.z = origin.z + (Math.random() - 0.5) * 0.35;
-          const angle = (spawned / 5) * Math.PI * 2 + Math.random() * 0.4;
-          const speed = 0.8 + Math.random() * 0.6;
-          c.vx = Math.cos(angle) * speed;
-          c.vy = 2.2 + Math.random() * 1.2;
-          c.vz = Math.sin(angle) * speed;
-        } else {
-          const r = Math.random() * 1.5;
-          const theta = Math.random() * Math.PI * 2;
-          c.x = origin.x + Math.cos(theta) * r;
-          c.y = origin.y + 2.6 + Math.random() * 1.5;
-          c.z = origin.z + Math.sin(theta) * r;
-          c.vx = (Math.random() - 0.5) * 1.2;
-          c.vy = Math.random() * 1.5;
-          c.vz = (Math.random() - 0.5) * 1.2;
-        }
+  /**
+   * Spawns falling coins with realistic physics bouncing and relative dynamic calculations:
+   * - Drop height: Relative to Slime jump apex + clearance ratio.
+   * - Coin size: Relative to Slime horizontal radius.
+   * - drop_single: Exactly 1 gold coin drops from above and bounces.
+   * - drop_cascade: 5 coins with staggered drop heights for waterfall effect.
+   * - drop_burst: 10 coins fanning radially outwards.
+   */
+  spawnDroppingCoins(origin = new THREE.Vector3(0, 0, 0), count = 1, subType = 'drop_single', targetAvatar = null) {
+    if (!this.droppingCoinsMesh) return;
+    const metrics = this.getSlimeMetrics(targetAvatar || origin);
+    const dropOrigin = metrics.origin.clone();
+    const dropY = metrics.apexY + CINEMATIC_CONFIG.coinDynamics.dropClearanceRatio * metrics.height;
+    // Relative coin scale matching slime's radius proportionally
+    const coinScale = (metrics.radius * CINEMATIC_CONFIG.coinDynamics.coinRadiusRatio) / 0.23;
 
-        c.rx = Math.random() * Math.PI;
-        c.ry = Math.random() * Math.PI;
-        c.rz = Math.random() * Math.PI;
-        c.vrx = 4 + Math.random() * 10;
-        c.vry = 4 + Math.random() * 10;
-        c.vrz = 4 + Math.random() * 10;
-        spawned++;
+    if (count === 1) {
+      this.spawnSingleCoinInstance(dropOrigin, {
+        dropY,
+        coinScale,
+        exactX: true,
+        vx: 0,
+        vy: CINEMATIC_CONFIG.coinDynamics.initialDropVy,
+        vz: 0,
+        maxLife: 1.15
+      });
+    } else if (subType === 'drop_cascade' || count <= 5) {
+      const numCoins = Math.min(count, 5);
+      for (let i = 0; i < numCoins; i++) {
+        this.spawnSingleCoinInstance(dropOrigin, {
+          dropY: dropY + i * 0.65,
+          coinScale,
+          vx: (Math.random() - 0.5) * 0.35,
+          vy: CINEMATIC_CONFIG.coinDynamics.initialDropVy - i * 0.12,
+          vz: (Math.random() - 0.5) * 0.35,
+          maxLife: 1.25 + i * 0.15
+        });
+      }
+    } else {
+      const numCoins = Math.min(count, 12);
+      for (let i = 0; i < numCoins; i++) {
+        const angle = (i / numCoins) * Math.PI * 2 + Math.random() * 0.3;
+        const speed = 0.4 + Math.random() * 0.7;
+        this.spawnSingleCoinInstance(dropOrigin, {
+          dropY: dropY + (i % 3) * 0.4,
+          coinScale,
+          vx: Math.cos(angle) * speed,
+          vy: CINEMATIC_CONFIG.coinDynamics.initialDropVy - Math.random() * 0.8,
+          vz: Math.sin(angle) * speed,
+          maxLife: 1.35
+        });
       }
     }
   }
@@ -1211,51 +1443,81 @@ export class ClubEnvironment {
    * 20 coins -> 1 ring; 50 -> 2; 100 -> 3; 200 -> 4; 350+ -> 5 rings.
    * Sheer opacity ~0.52 so avatar inside remains clearly visible!
    */
-  spawnOrbitingCoinRings(origin = new THREE.Vector3(0, 0, 0), coins = 20, duration = 3.6) {
-    let ringCount = 1;
-    if (coins >= 350) ringCount = 5;
-    else if (coins >= 200) ringCount = 4;
-    else if (coins >= 100) ringCount = 3;
-    else if (coins >= 50) ringCount = 2;
-    else ringCount = 1;
+  spawnOrbitingCoinRings(targetAvatarOrOrigin = new THREE.Vector3(0, 0, 0), coins = 20, duration = 2.0) {
+    const isAvatar = Boolean(targetAvatarOrOrigin && (targetAvatarOrOrigin.mesh || targetAvatarOrOrigin.isObject3D));
+    const targetMesh = targetAvatarOrOrigin ? (targetAvatarOrOrigin.mesh || (targetAvatarOrOrigin.isObject3D ? targetAvatarOrOrigin : null)) : null;
+    const origin = targetMesh ? targetMesh.position.clone() : ((targetAvatarOrOrigin instanceof THREE.Vector3) ? targetAvatarOrOrigin.clone() : (targetAvatarOrOrigin?.position ? targetAvatarOrOrigin.position.clone() : new THREE.Vector3()));
+
+    // Dynamic radius algorithm: Never intersect or clip Slime body regardless of Tier or Scale
+    const slimeR = this.getSlimeEffectiveRadius(targetAvatarOrOrigin);
+    const coinR = 0.23;     // Radius of 0.46m golden coin disc
+    const clearance = 0.45; // Safe margin between coin disc inner edge and slime body
+    const baseR = slimeR + coinR + clearance;
+
+    let ringConfigs = [];
+    if (coins >= 350) {
+      ringConfigs = [
+        { radius: baseR + 0.25, tiltX: 0.26, tiltZ: 0.17, speed: 2.2, coins: 8 },
+        { radius: baseR + 0.55, tiltX: -0.42, tiltZ: 0.35, speed: -2.6, coins: 10 },
+        { radius: baseR + 0.85, tiltX: 0.55, tiltZ: -0.38, speed: 3.0, coins: 12 },
+        { radius: baseR + 1.15, tiltX: -0.65, tiltZ: -0.52, speed: -3.4, coins: 12 },
+        { radius: baseR + 1.45, tiltX: 0.35, tiltZ: 0.75, speed: 3.8, coins: 14 }
+      ];
+    } else if (coins >= 200) {
+      ringConfigs = [
+        { radius: baseR + 0.25, tiltX: 0.26, tiltZ: 0.17, speed: 2.2, coins: 8 },
+        { radius: baseR + 0.60, tiltX: -0.42, tiltZ: 0.35, speed: -2.6, coins: 10 },
+        { radius: baseR + 0.95, tiltX: 0.55, tiltZ: -0.38, speed: 3.0, coins: 12 },
+        { radius: baseR + 1.30, tiltX: -0.65, tiltZ: -0.52, speed: -3.4, coins: 14 }
+      ];
+    } else if (coins >= 80) {
+      ringConfigs = [
+        { radius: baseR + 0.45, tiltX: 0.45, tiltZ: -0.30, speed: 2.6, coins: 10 },
+        { radius: baseR + 0.85, tiltX: -0.50, tiltZ: 0.35, speed: -2.9, coins: 12 },
+        { radius: baseR + 1.25, tiltX: 0.35, tiltZ: 0.65, speed: 3.3, coins: 14 }
+      ];
+    } else if (coins >= 50) {
+      ringConfigs = [
+        { radius: baseR + 0.35, tiltX: 0.43, tiltZ: 0.28, speed: 2.5, coins: 10 },
+        { radius: baseR + 0.75, tiltX: -0.55, tiltZ: -0.35, speed: -2.8, coins: 10 }
+      ];
+    } else {
+      ringConfigs = [
+        { radius: baseR + 0.15, tiltX: 0.28, tiltZ: 0.18, speed: 2.4, coins: 8 }
+      ];
+    }
+
+    if (coins >= 80) {
+      this.triggerShockwave(origin, 'medium');
+    }
 
     const parentGroup = new THREE.Group();
     parentGroup.position.set(origin.x, origin.y + 0.45, origin.z);
     parentGroup.scale.set(0.01, 0.01, 0.01);
 
-    const ringTilts = [
-      { tiltX: 0.26, tiltZ: 0.17, radius: 0.85, y: 0.0, speed: 2.2 },
-      { tiltX: -0.42, tiltZ: 0.35, radius: 0.98, y: 0.14, speed: -2.6 },
-      { tiltX: 0.55, tiltZ: -0.38, radius: 1.12, y: -0.12, speed: 3.0 },
-      { tiltX: -0.65, tiltZ: -0.52, radius: 1.25, y: 0.26, speed: -3.4 },
-      { tiltX: 0.35, tiltZ: 0.75, radius: 1.38, y: -0.22, speed: 3.8 }
-    ];
-
     const childRings = [];
-    const coinDiscGeom = new THREE.CylinderGeometry(0.09, 0.09, 0.02, 12);
-    const coinDiscMat = new THREE.MeshStandardMaterial({
-      color: 0xffd700,
-      metalness: 0.9,
-      roughness: 0.2,
-      emissive: 0xff9900,
-      emissiveIntensity: 0.35,
+    const ringDiscMat = new THREE.MeshStandardMaterial({
+      color: 0xffea00,
+      metalness: 0.20,
+      roughness: 0.15,
+      emissive: 0xffaa00,
+      emissiveIntensity: 0.85,
       transparent: true,
-      opacity: 0.52, // Opacity mờ để thấy rõ avatar
+      opacity: 0.60,
       depthWrite: false
     });
+    this.coinDiscGeom = this.coinDiscGeom || new THREE.CylinderGeometry(0.23, 0.23, 0.04, 18);
 
-    for (let k = 0; k < ringCount; k++) {
-      const cfg = ringTilts[k];
+    ringConfigs.forEach(cfg => {
       const ringGroup = new THREE.Group();
-      ringGroup.position.y = cfg.y;
       ringGroup.rotation.x = cfg.tiltX;
       ringGroup.rotation.z = cfg.tiltZ;
 
-      const trackGeom = new THREE.TorusGeometry(cfg.radius, 0.012, 6, 36);
+      const trackGeom = new THREE.TorusGeometry(cfg.radius, 0.015, 6, 36);
       const trackMat = new THREE.MeshBasicMaterial({
-        color: 0xffd700,
+        color: 0xffea00,
         transparent: true,
-        opacity: 0.28,
+        opacity: 0.35,
         blending: THREE.AdditiveBlending,
         depthWrite: false
       });
@@ -1263,10 +1525,9 @@ export class ClubEnvironment {
       track.rotation.x = Math.PI / 2;
       ringGroup.add(track);
 
-      const numCoinsOnRing = 6 + k;
-      for (let i = 0; i < numCoinsOnRing; i++) {
-        const theta = (i / numCoinsOnRing) * Math.PI * 2;
-        const coin = new THREE.Mesh(coinDiscGeom, coinDiscMat);
+      for (let i = 0; i < cfg.coins; i++) {
+        const theta = (i / cfg.coins) * Math.PI * 2;
+        const coin = new THREE.Mesh(this.coinDiscGeom, ringDiscMat);
         coin.position.set(Math.cos(theta) * cfg.radius, 0, Math.sin(theta) * cfg.radius);
         coin.rotation.y = -theta;
         coin.rotation.z = Math.PI / 2;
@@ -1275,14 +1536,17 @@ export class ClubEnvironment {
 
       parentGroup.add(ringGroup);
       childRings.push({ group: ringGroup, speed: cfg.speed });
-    }
+    });
 
     this.scene.add(parentGroup);
 
     this.activeOrbitRings.push({
+      avatar: isAvatar ? targetAvatarOrOrigin : null,
+      mesh: targetMesh,
       group: parentGroup,
       childRings,
-      coinMat: coinDiscMat,
+      coinMat: ringDiscMat,
+      ringDiscMat,
       duration,
       timer: 0
     });
@@ -1450,6 +1714,7 @@ export class ClubEnvironment {
 
         const baseCol = PURPLE_FLOOR_PALETTE[(r + c) % PURPLE_FLOOR_PALETTE.length];
         colorHolder.copy(baseCol).multiplyScalar(intensity);
+
         this.floorMesh.setColorAt(idx, colorHolder);
         idx++;
       }
@@ -1476,9 +1741,15 @@ export class ClubEnvironment {
     if (this.turntableR) this.turntableR.rotation.y += djSpinSpeed;
 
     const bpmSpeed = 2.0 * Math.PI * (128 / 60);
-    const djBounce = Math.abs(Math.sin(this.time * bpmSpeed * 0.5)) * 0.08 + (bands.bassFlux || 0) * 0.04;
+    const djCfg = DJ_BOOTH_CONFIG;
+    const djBaseY = djCfg.mascotBaseY ?? 1.45;
+    const normFlux = Math.min(1.0, Math.max(0, (bands.bassFlux || 0) / 100.0));
+    this.djBassKick = (this.djBassKick || 0) * 0.82 + normFlux * 0.18;
+    const rhythm = Math.abs(Math.sin(this.time * bpmSpeed * 0.5)) * (djCfg.rhythmBounce ?? 0.05);
+    const bassImpact = this.djBassKick * (djCfg.bassFluxScale ?? 0.07);
+    const totalBounce = Math.min(djCfg.maxBounceHeight ?? 0.12, rhythm + bassImpact);
     if (this.djMascot) {
-      this.djMascot.position.y = 1.45 + djBounce;
+      this.djMascot.position.y = djBaseY + totalBounce;
     }
     if (this.djMascotHead) {
       this.djMascotHead.rotation.x = Math.sin(this.time * bpmSpeed) * 0.12;
@@ -1623,6 +1894,33 @@ export class ClubEnvironment {
     }
     hPos.needsUpdate = true;
 
+    // 6b. Update Floating Red Heart Bubbles (Bay lên, lắc lư, mờ dần và biến mất)
+    if (this.activeHeartBubbles && this.activeHeartBubbles.length > 0) {
+      for (let i = this.activeHeartBubbles.length - 1; i >= 0; i--) {
+        const hb = this.activeHeartBubbles[i];
+        hb.life += delta;
+        if (hb.life >= hb.maxLife) {
+          this.scene.remove(hb.sprite);
+          if (hb.sprite.material) hb.sprite.material.dispose();
+          this.activeHeartBubbles.splice(i, 1);
+        } else {
+          const p = hb.life / hb.maxLife;
+          // Bay lên bay lên (float upward)
+          hb.sprite.position.y += hb.vy * delta;
+          // Dao động nhẹ như bong bóng bay trong không trung
+          hb.sprite.position.x += Math.sin(hb.life * hb.wobbleSpeed + hb.wobblePhase) * hb.wobbleAmp * delta;
+          hb.sprite.position.z += Math.cos(hb.life * hb.wobbleSpeed + hb.wobblePhase) * (hb.wobbleAmp * 0.5) * delta;
+
+          // Bong bóng nở nhẹ khi bay lên
+          const currentScale = hb.baseScale * (1.0 + p * 0.22);
+          hb.sprite.scale.set(currentScale, currentScale, 1.0);
+
+          // Mờ dần và biến mất (smooth fade out)
+          hb.sprite.material.opacity = Math.max(0, (1.0 - Math.pow(p, 1.5)) * 0.95);
+        }
+      }
+    }
+
     // 7. Fade and rotate White Light Beam (High tier gifts)
     if (this.isWhiteBeamActive && this.whiteBeam) {
       this.whiteBeamTimer -= delta;
@@ -1649,9 +1947,23 @@ export class ClubEnvironment {
       }
     }
 
-    // 9. Update Dropping 3D Coins (Physics Bouncing & Gravity)
+    // 9. Update Dropping 3D Coins (Pending Spawns, Physics Bouncing & Gravity)
+    if (this.pendingCoinSpawns && this.pendingCoinSpawns.length > 0) {
+      for (let i = this.pendingCoinSpawns.length - 1; i >= 0; i--) {
+        const p = this.pendingCoinSpawns[i];
+        p.delay -= delta;
+        if (p.delay <= 0) {
+          this.spawnSingleCoinInstance(p.origin, p);
+          this.pendingCoinSpawns.splice(i, 1);
+        }
+      }
+    }
+
     if (this.droppingCoinsMesh && this.droppingCoinsData) {
       let anyActive = false;
+      const grav = CINEMATIC_CONFIG.coinDynamics.gravity;
+      const bFactor = CINEMATIC_CONFIG.coinDynamics.floorBounceFactor;
+
       for (let i = 0; i < this.droppingCoinsData.length; i++) {
         const c = this.droppingCoinsData[i];
         if (c.active) {
@@ -1663,7 +1975,7 @@ export class ClubEnvironment {
             this.droppingCoinsDummy.updateMatrix();
             this.droppingCoinsMesh.setMatrixAt(i, this.droppingCoinsDummy.matrix);
           } else {
-            c.vy -= 9.8 * delta; // Gravity
+            c.vy -= grav * delta; // Physics Gravity
             c.x += c.vx * delta;
             c.y += c.vy * delta;
             c.z += c.vz * delta;
@@ -1672,21 +1984,24 @@ export class ClubEnvironment {
             c.ry += c.vry * delta;
             c.rz += c.vrz * delta;
 
-            // Floor collision & bounce
-            if (c.y <= 0.035) {
-              c.y = 0.035;
-              c.vy = -c.vy * 0.42;
-              c.vx *= 0.75;
-              c.vz *= 0.75;
-              c.vrx *= 0.8;
-              c.vrz *= 0.8;
+            // Floor collision & bounce at floor y = 0.045
+            if (c.y <= 0.045) {
+              c.y = 0.045;
+              c.vy = Math.abs(c.vy) * bFactor;
+              c.vx *= 0.72;
+              c.vz *= 0.72;
+              c.vrx *= 0.65;
+              c.vrz *= 0.65;
             }
 
             // Smooth scale fade-out in final 25% of life
             const fadeThreshold = c.maxLife * 0.75;
+            const baseScale = c.baseScale || 1.0;
             if (c.life > fadeThreshold) {
               const p = (c.life - fadeThreshold) / (c.maxLife - fadeThreshold);
-              c.scale = Math.max(0, 1.0 - p);
+              c.scale = baseScale * Math.max(0, 1.0 - p);
+            } else {
+              c.scale = baseScale;
             }
 
             this.droppingCoinsDummy.position.set(c.x, c.y, c.z);
@@ -1713,6 +2028,22 @@ export class ClubEnvironment {
         this.scene.remove(ringObj.group);
         this.activeOrbitRings.splice(idx, 1);
       } else {
+        // Vòng coin di chuyển bám sát theo Slime khi Slime nhảy lên 4.8m và tiếp đất!
+        if (ringObj.avatar) {
+          const av = ringObj.avatar;
+          const targetMesh = ringObj.mesh || av.mesh || (av.isObject3D ? av : null);
+          const basePos = targetMesh ? targetMesh.position : (av.position || { x: 0, y: 0, z: 0 });
+          const rootPos = (targetMesh?.userData?.controller?.rootNode?.position)
+            || (av.rootNode?.position)
+            || (av.userData?.controller?.rootNode?.position)
+            || { x: 0, y: 0, z: 0 };
+          ringObj.group.position.set(
+            basePos.x + rootPos.x,
+            basePos.y + rootPos.y + 0.45,
+            basePos.z + rootPos.z
+          );
+        }
+
         for (const cr of ringObj.childRings) {
           cr.group.rotation.y += cr.speed * delta;
         }
@@ -1723,7 +2054,8 @@ export class ClubEnvironment {
         } else if (t > (dur - 0.5)) {
           const p = (t - (dur - 0.5)) / 0.5;
           scale = Math.cos(p * Math.PI * 0.5);
-          if (ringObj.coinMat) ringObj.coinMat.opacity = Math.max(0, 0.52 * (1.0 - p));
+          if (ringObj.coinMat) ringObj.coinMat.opacity = Math.max(0, 0.60 * (1.0 - p));
+          if (ringObj.ringDiscMat) ringObj.ringDiscMat.opacity = Math.max(0, 0.60 * (1.0 - p));
         }
         ringObj.group.scale.set(scale, scale, scale);
       }
