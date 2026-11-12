@@ -9,6 +9,7 @@ import {
   initCinematicShowcase,
   isCinematicFreezeActive
 } from './cinematic-showcase.js';
+import { DONATION_CAMERA_CONFIG, DONATION_QUEUE_CONFIG } from './donation-constants.js';
 
 // 1. Scene, Camera, Renderer Setup
 const container = document.getElementById('canvas-container');
@@ -954,8 +955,225 @@ initCinematicShowcase({
     activeShockwaves.length = 0;
   }
 });
-// 10. REFACTORED DONATION DISPATCHER (CONCURRENT & SEQUENTIAL)
 // ----------------------------------------------------
+// 10. SEQUENTIAL DONATION QUEUE & CAMERA ZOOM (ALL TIERS)
+// ----------------------------------------------------
+let previewSavedCameraPos = null;
+let previewSavedControlsTarget = null;
+let previewSavedFov = null;
+let isPreviewDonationZoomActive = false;
+let isPreviewRevertingCamera = false;
+const previewTargetCamPos = new THREE.Vector3();
+const previewTargetLookTarget = new THREE.Vector3();
+
+function focusPreviewDonationAvatar(avatar, options = {}, onArrived = null) {
+  if (!isPreviewDonationZoomActive && !isPreviewRevertingCamera) {
+    previewSavedCameraPos = camera.position.clone();
+    previewSavedControlsTarget = controls.target.clone();
+    previewSavedFov = camera.fov;
+  }
+  isPreviewDonationZoomActive = true;
+  isPreviewRevertingCamera = false;
+
+  let sx = options.origin?.x ?? 0;
+  let sy = options.origin?.y ?? 0;
+  let sz = options.origin?.z ?? 0;
+
+  if (!options.origin) {
+    const mesh = avatar?.mesh || (avatar?.isObject3D ? avatar : null);
+    if (mesh?.position && (mesh.position.x !== 0 || mesh.position.z !== 0 || mesh.position.y !== 0)) {
+      sx = mesh.position.x;
+      sy = mesh.position.y;
+      sz = mesh.position.z;
+    } else if (avatar?.position) {
+      sx = avatar.position.x;
+      sy = avatar.position.y;
+      sz = avatar.position.z;
+    }
+  }
+
+  const dist = options.distance || 2.8;
+  const elev = options.elevation || 1.15;
+  const fov = options.fov || 54;
+  const lookY = sy + (options.lookOffsetY !== undefined ? options.lookOffsetY : 0.60);
+
+  const toFrontX = -sx;
+  const toFrontZ = 4.0 - sz;
+  const camAngle = Math.atan2(toFrontX, toFrontZ);
+  previewTargetCamPos.set(
+    sx + Math.sin(camAngle) * dist,
+    Math.max(0.8, sy + elev),
+    sz + Math.cos(camAngle) * dist
+  );
+  previewTargetLookTarget.set(sx, lookY, sz);
+
+  camera.fov = fov;
+  camera.updateProjectionMatrix();
+
+  if (typeof onArrived === 'function') {
+    const travelTimeMs = Math.max(50, (options.zoomInTravelTimeSec !== undefined ? options.zoomInTravelTimeSec : 0.45) * 1000);
+    setTimeout(() => {
+      if (isPreviewDonationZoomActive) {
+        onArrived();
+      }
+    }, travelTimeMs);
+  }
+}
+
+function revertPreviewDonationCamera() {
+  if (isPreviewDonationZoomActive) {
+    isPreviewDonationZoomActive = false;
+    isPreviewRevertingCamera = true;
+    if (previewSavedCameraPos) {
+      previewTargetCamPos.copy(previewSavedCameraPos);
+    }
+    if (previewSavedControlsTarget) {
+      previewTargetLookTarget.copy(previewSavedControlsTarget);
+    }
+    if (previewSavedFov) {
+      camera.fov = previewSavedFov;
+      camera.updateProjectionMatrix();
+    }
+    setTimeout(() => {
+      isPreviewRevertingCamera = false;
+    }, 800);
+  }
+}
+
+const previewDonationQueue = [];
+let isProcessingPreviewDonation = false;
+
+function enqueuePreviewDonation(item) {
+  if (previewDonationQueue.length >= (DONATION_QUEUE_CONFIG.maxQueueSize || 100)) {
+    previewDonationQueue.shift();
+  }
+  previewDonationQueue.push(item);
+  if (!isProcessingPreviewDonation) {
+    processNextPreviewDonation();
+  }
+}
+
+function processNextPreviewDonation() {
+  if (previewDonationQueue.length === 0) {
+    isProcessingPreviewDonation = false;
+    setTimeout(() => {
+      if (!isProcessingPreviewDonation && previewDonationQueue.length === 0) {
+        revertPreviewDonationCamera();
+      }
+    }, DONATION_QUEUE_CONFIG.autoRevertDelayMs || 200);
+    return;
+  }
+
+  isProcessingPreviewDonation = true;
+  const current = previewDonationQueue.shift();
+  const { av, gift, origin, shouldUpgradeTier } = current;
+
+  const onTurnComplete = () => {
+    setTimeout(() => {
+      processNextPreviewDonation();
+    }, DONATION_QUEUE_CONFIG.interItemDelayMs || 150);
+  };
+
+  // 1. Quà nhỏ (1 - 10 coin | Zoom In -> Hiệu ứng -> Zoom Out)
+  if (gift.cat === 'small') {
+    const startEffectsAndHold = () => {
+      // Phase 2: Effects trigger AFTER camera arrives
+      if (gift.coins === 1) {
+        av.triggerDonateAnimation({
+          type: 'small',
+          subType: 'drop_single',
+          coins: 1,
+          duration: 1.0,
+          upgradeTier: shouldUpgradeTier,
+          targetTier: gift.tier
+        });
+        spawnDroppingCoins(origin, 1, 'drop_single');
+        playPreviewSfx('coin');
+      } else if (gift.coins <= 5) {
+        av.triggerDonateAnimation({
+          type: 'small',
+          subType: 'drop_cascade',
+          coins: 5,
+          duration: 2.0,
+          upgradeTier: shouldUpgradeTier,
+          targetTier: gift.tier
+        });
+        spawnDroppingCoins(origin, 5, 'drop_cascade');
+        playPreviewSfx('coin');
+      } else {
+        av.triggerDonateAnimation({
+          type: 'small',
+          subType: 'drop_burst',
+          coins: 10,
+          duration: 2.0,
+          upgradeTier: shouldUpgradeTier,
+          targetTier: gift.tier
+        });
+        spawnDroppingCoins(origin, 10, 'drop_burst');
+        playPreviewSfx('coin');
+      }
+      bassPunch = 0.8;
+      // Hold camera view for exactly small duration (1.0s)
+      setTimeout(onTurnComplete, DONATION_CAMERA_CONFIG.small.duration * 1000);
+    };
+
+    // Phase 1: Zoom In
+    focusPreviewDonationAvatar(av, { ...DONATION_CAMERA_CONFIG.small, origin }, startEffectsAndHold);
+
+  // 2. Quà trung (20 - 100 coin | Zoom In -> Hiệu ứng -> Zoom Out)
+  } else if (gift.cat === 'medium') {
+    const startEffectsAndHold = () => {
+      // Phase 2: Effects trigger AFTER camera arrives
+      let subType = 'orbit_narrow';
+      let duration = 2.0;
+
+      if (gift.coins >= 80) {
+        subType = 'orbit_triple';
+        duration = (gift.coins >= 100) ? 4.0 : 3.5;
+      } else if (gift.coins >= 50) {
+        subType = 'orbit_double';
+        duration = 3.0;
+      } else if (gift.coins >= 30) {
+        subType = 'orbit_trail';
+        duration = 2.5;
+      } else {
+        subType = 'orbit_narrow';
+        duration = 2.0;
+      }
+
+      av.triggerDonateAnimation({
+        type: 'medium',
+        subType,
+        coins: gift.coins,
+        duration,
+        upgradeTier: shouldUpgradeTier,
+        targetTier: gift.tier
+      });
+      spawnOrbitingCoinRings(av, gift.coins, duration);
+      playPreviewSfx('bassBoom');
+      bassPunch = 1.1;
+      triggerFireworks(origin.y + 2.4, origin.x, origin.z, gift.color);
+
+      // Hold camera view for exactly medium duration (2.0s)
+      setTimeout(onTurnComplete, DONATION_CAMERA_CONFIG.medium.duration * 1000);
+    };
+
+    // Phase 1: Zoom In
+    focusPreviewDonationAvatar(av, { ...DONATION_CAMERA_CONFIG.medium, origin }, startEffectsAndHold);
+
+  // 3 & 4. Quà cao cấp & Siêu xa xỉ (Cinematic Showcase toàn màn hình)
+  } else {
+    bassPunch = 0; // Triệt tiêu xung chấn sàn khi donate xa xỉ / cao cấp để không giật slime trên sàn
+    // Bỏ tất cả floor props (giftProps.trigger) và floor camera shake khi donate xa xỉ / cao cấp
+    enqueueHighTierShowcase({
+      avatar: av,
+      gift,
+      shouldUpgradeTier,
+      onFinished: onTurnComplete
+    });
+  }
+}
+
 function triggerDonation(giftKey, targetAvatar = null, forceTierUp = null) {
   const gift = DONATE_GIFTS[giftKey] || DONATE_GIFTS.rose;
   if (activeAvatars.length === 0) return;
@@ -992,85 +1210,16 @@ function triggerDonation(giftKey, targetAvatar = null, forceTierUp = null) {
   const origin = av.mesh.position.clone();
   gift.key = giftKey;
 
-  // 1. Quà nhỏ (1 - 10 coin | Nhảy + Coin rơi 1s/2s — Đồng thời)
-  if (gift.cat === 'small') {
-    if (gift.coins === 1) {
-      av.triggerDonateAnimation({
-        type: 'small',
-        subType: 'drop_single',
-        coins: 1,
-        duration: 1.0,
-        upgradeTier: shouldUpgradeTier,
-        targetTier: gift.tier
-      });
-      spawnDroppingCoins(origin, 1, 'drop_single');
-      playPreviewSfx('coin');
-    } else if (gift.coins <= 5) {
-      av.triggerDonateAnimation({
-        type: 'small',
-        subType: 'drop_cascade',
-        coins: 5,
-        duration: 2.0,
-        upgradeTier: shouldUpgradeTier,
-        targetTier: gift.tier
-      });
-      spawnDroppingCoins(origin, 5, 'drop_cascade');
-      playPreviewSfx('coin');
-    } else {
-      av.triggerDonateAnimation({
-        type: 'small',
-        subType: 'drop_burst',
-        coins: 10,
-        duration: 2.0,
-        upgradeTier: shouldUpgradeTier,
-        targetTier: gift.tier
-      });
-      spawnDroppingCoins(origin, 10, 'drop_burst');
-      playPreviewSfx('coin');
-    }
-    bassPunch = 0.8;
-  }
-  // 2. Quà trung (20 - 100 coin | Nhảy xoay 360 + Vòng coin bay quanh 2-4s — Đồng thời)
-  else if (gift.cat === 'medium') {
-    let subType = 'orbit_narrow';
-    let duration = 2.0;
-
-    if (gift.coins >= 80) {
-      subType = 'orbit_triple';
-      duration = (gift.coins >= 100) ? 4.0 : 3.5;
-    } else if (gift.coins >= 50) {
-      subType = 'orbit_double';
-      duration = 3.0;
-    } else if (gift.coins >= 30) {
-      subType = 'orbit_trail';
-      duration = 2.5;
-    } else {
-      subType = 'orbit_narrow';
-      duration = 2.0;
-    }
-
-    av.triggerDonateAnimation({
-      type: 'medium',
-      subType,
-      coins: gift.coins,
-      duration,
-      upgradeTier: shouldUpgradeTier,
-      targetTier: gift.tier
-    });
-    spawnOrbitingCoinRings(av, gift.coins, duration);
-    playPreviewSfx('bassBoom');
-    bassPunch = 1.1;
-    triggerFireworks(origin.y + 2.4, origin.x, origin.z, gift.color);
-  }
-  // 3. Quà cao cấp (500 - 5.000 coin | 2D Showcase toàn màn hình — Tuần tự FIFO)
-  // 3 & 4. Quà cao cấp & Siêu xa xỉ (500 - 44.999 coin | Cinematic Showcase toàn màn hình)
-  else if (gift.cat === 'high' || gift.cat === 'ultra') {
-    enqueueHighTierShowcase({ avatar: av, gift, shouldUpgradeTier });
-    bassPunch = 0; // Triệt tiêu xung chấn sàn khi donate xa xỉ / cao cấp để không giật slime trên sàn
-    // Bỏ tất cả floor props (giftProps.trigger) và floor camera shake khi donate xa xỉ / cao cấp
-  }
-
+  // Show Toast alert immediately
   showGiftToast(av.userData.username || '@Viewer', gift);
+
+  // Route celebration into Unified Sequential Queue
+  enqueuePreviewDonation({
+    av,
+    gift,
+    origin,
+    shouldUpgradeTier
+  });
 }
 
 // Donate Buttons Listener
@@ -1688,6 +1837,14 @@ function animate() {
 
     giftProps.update(deltaTime);
   }
+
+  // Smooth lerp for sequential donation camera zoom
+  if (isPreviewDonationZoomActive || isPreviewRevertingCamera) {
+    camera.position.lerp(previewTargetCamPos, 0.08);
+    controls.target.lerp(previewTargetLookTarget, 0.08);
+  }
+  controls.update();
+
   renderer.render(scene, camera);
 }
 

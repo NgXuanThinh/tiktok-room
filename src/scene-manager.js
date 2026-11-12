@@ -509,6 +509,84 @@ export class SceneManager {
   }
 
   /**
+   * Focuses camera smoothly onto a donating Slime avatar according to donation tier camera config.
+   * Accurately frames the donating Slime at its 3D world position facing the audience.
+   * Supports an optional onArrived callback triggered after camera completes the Zoom In phase.
+   * @param {THREE.Object3D|object} avatarMesh
+   * @param {object} [options={}]
+   * @param {Function} [onArrived=null]
+   */
+  focusDonationAvatar(avatarMesh, options = {}, onArrived = null) {
+    if (!this._cinematicFocusActive) {
+      this._savedPresetKey = this.currentPresetKey;
+      this._savedOrbitRadius = this.orbitRadius;
+      this._savedFov = this.camera ? this.camera.fov : 68;
+    }
+    this._cinematicFocusActive = true;
+    this._donateShowcaseActive = true;
+
+    // Resolve accurate 3D world position of the donating slime
+    let sx = 0;
+    let sy = 0;
+    let sz = 0;
+
+    if (options.origin) {
+      sx = options.origin.x ?? 0;
+      sy = options.origin.y ?? 0;
+      sz = options.origin.z ?? 0;
+    } else {
+      const mesh = avatarMesh?.mesh || (avatarMesh?.isObject3D ? avatarMesh : null);
+      if (mesh) {
+        if (mesh.position && (mesh.position.x !== 0 || mesh.position.z !== 0 || mesh.position.y !== 0)) {
+          sx = mesh.position.x;
+          sy = mesh.position.y;
+          sz = mesh.position.z;
+        } else if (typeof mesh.getWorldPosition === 'function') {
+          const worldPos = new THREE.Vector3();
+          mesh.getWorldPosition(worldPos);
+          sx = worldPos.x;
+          sy = worldPos.y;
+          sz = worldPos.z;
+        }
+      } else if (avatarMesh?.position) {
+        sx = avatarMesh.position.x ?? 0;
+        sy = avatarMesh.position.y ?? 0;
+        sz = avatarMesh.position.z ?? 0;
+      }
+    }
+
+    const dist = options.distance || 2.8;
+    const elev = options.elevation || 1.15;
+    const fov = options.fov || 54;
+    const lookY = sy + (options.lookOffsetY !== undefined ? options.lookOffsetY : 0.60);
+
+    // Front-facing camera placement: angles camera to face the front of the slime towards the audience
+    const toFrontX = -sx;
+    const toFrontZ = 4.0 - sz;
+    const camAngle = Math.atan2(toFrontX, toFrontZ);
+    const camX = sx + Math.sin(camAngle) * dist;
+    const camY = Math.max(0.8, sy + elev);
+    const camZ = sz + Math.cos(camAngle) * dist;
+
+    this.camTargetPos.set(camX, camY, camZ);
+    this.camLookTarget.set(sx, lookY, sz);
+
+    if (this.camera) {
+      this.camera.fov = fov;
+      this.camera.updateProjectionMatrix();
+    }
+
+    if (typeof onArrived === 'function') {
+      const travelTimeMs = Math.max(50, (options.zoomInTravelTimeSec !== undefined ? options.zoomInTravelTimeSec : 0.45) * 1000);
+      setTimeout(() => {
+        if (this._cinematicFocusActive) {
+          onArrived();
+        }
+      }, travelTimeMs);
+    }
+  }
+
+  /**
    * Focuses the camera directly onto a selected Slime avatar.
    * Tracks the Slime's 3D position in real time with dynamic framing and gentle rotation.
    *

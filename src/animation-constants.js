@@ -22,7 +22,7 @@ export const DONATE_CELEBRATION_CONFIG = {
     jumpCount: 1,           // Nhảy 1 lần duy nhất
     duration: 1.5,          // Thời gian hoàn thành: 1.0s
     apexHeight: 4,        // Chiều cao đỉnh nhảy (mét)
-    coinsDropped: 1         // Số đồng xu 3D rơi xuống sàn: 1 xu
+    coinsDropped: 3         // Số đồng xu 3D rơi xuống sàn: 1 xu
   },
 
   // Tặng 2 đến 9 xu (Ví dụ: 5 xu)
@@ -32,7 +32,7 @@ export const DONATE_CELEBRATION_CONFIG = {
     jumpCount: 3,           // Nhảy liên tiếp 3 lần đàn hồi
     duration: 2.0,          // Thời gian hoàn thành: 2.0s
     apexHeight: 4,        // Chiều cao đỉnh nhảy (mét)
-    coinsDropped: 5         // Số đồng xu 3D rơi xuống sàn: 5 xu
+    coinsDropped: 7         // Số đồng xu 3D rơi xuống sàn: 5 xu
   },
 
   // Tặng 10 đến 19 xu
@@ -42,7 +42,7 @@ export const DONATE_CELEBRATION_CONFIG = {
     jumpCount: 3,           // Nhảy vút 1 lần
     duration: 2.0,          // Thời gian hoàn thành: 2.0s
     apexHeight: 4.2,        // Chiều cao đỉnh nhảy (mét)
-    coinsDropped: 10        // Số đồng xu 3D rơi xuống sàn: 10 xu
+    coinsDropped: 15        // Số đồng xu 3D rơi xuống sàn: 10 xu
   },
 
   // Quà trung bình (20 đến 499 xu)

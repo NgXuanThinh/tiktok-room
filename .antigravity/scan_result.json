@@ -1,5 +1,5 @@
 {
-  "scannedAt": "2026-11-11T05:20:37.285Z",
+  "scannedAt": "2026-11-12T17:43:30.062Z",
   "files": [
     {
       "filePath": "server/avatar-proxy.js",
@@ -55,37 +55,43 @@
           "name": "extractUser",
           "params": "raw",
           "startLine": 99,
-          "endLine": 170
+          "endLine": 193
+        },
+        {
+          "name": "pickValid",
+          "params": "...vals",
+          "startLine": 109,
+          "endLine": 119
         },
         {
           "name": "normalizeChat",
           "params": "raw",
-          "startLine": 175,
-          "endLine": 186
+          "startLine": 198,
+          "endLine": 209
         },
         {
           "name": "normalizeGift",
           "params": "raw",
-          "startLine": 195,
-          "endLine": 224
+          "startLine": 218,
+          "endLine": 247
         },
         {
           "name": "normalizeLike",
           "params": "raw",
-          "startLine": 229,
-          "endLine": 236
+          "startLine": 252,
+          "endLine": 259
         },
         {
           "name": "normalizeSocial",
           "params": "type, raw",
-          "startLine": 241,
-          "endLine": 246
+          "startLine": 264,
+          "endLine": 269
         },
         {
           "name": "normalizeTikTokEvent",
           "params": "type, raw = {}",
-          "startLine": 254,
-          "endLine": 254
+          "startLine": 277,
+          "endLine": 277
         }
       ]
     },
@@ -427,55 +433,55 @@
           "name": "getOrCreateAvatarMesh",
           "params": "userData, coins = 0, context",
           "startLine": 17,
-          "endLine": 94
+          "endLine": 101
         },
         {
           "name": "sinkAndRemoveAvatar",
           "params": "userId, context",
-          "startLine": 99,
-          "endLine": 110
+          "startLine": 106,
+          "endLine": 117
         },
         {
           "name": "deleteAvatar",
           "params": "userId, context",
-          "startLine": 115,
-          "endLine": 156
+          "startLine": 122,
+          "endLine": 163
         },
         {
           "name": "clearAllAvatars",
           "params": "context",
-          "startLine": 161,
-          "endLine": 197
+          "startLine": 168,
+          "endLine": 204
         },
         {
           "name": "syncActiveFloorAvatars",
           "params": "avatarMeshes, uiOverlay, ws",
-          "startLine": 202,
-          "endLine": 221
+          "startLine": 209,
+          "endLine": 228
         },
         {
           "name": "_updateCyberSlime",
           "params": "mesh, data, delta, bands",
-          "startLine": 227,
-          "endLine": 240
+          "startLine": 234,
+          "endLine": 247
         },
         {
           "name": "_updateProceduralSlime",
           "params": "mesh, data, phase, isBouncing, time, delta",
-          "startLine": 245,
-          "endLine": 282
+          "startLine": 252,
+          "endLine": 289
         },
         {
           "name": "_updateHumanoid",
           "params": "data, style, phase",
-          "startLine": 287,
-          "endLine": 306
+          "startLine": 294,
+          "endLine": 313
         },
         {
           "name": "updateAvatarKinematics",
           "params": "mesh, delta, time, bpmSpeed, frenzyMultiplier, bands, camera, isFrenzy = false",
-          "startLine": 311,
-          "endLine": 343
+          "startLine": 318,
+          "endLine": 350
         }
       ]
     },
@@ -738,8 +744,8 @@
         {
           "name": "clampSpotlightToFloor",
           "params": "target = { x: 0, y: 0, z: 0 }",
-          "startLine": 144,
-          "endLine": 144
+          "startLine": 148,
+          "endLine": 148
         }
       ]
     },
@@ -828,139 +834,139 @@
           "name": "createDjBooth",
           "params": "",
           "startLine": 676,
-          "endLine": 871
+          "endLine": 872
         },
         {
           "name": "createWallsAndNeon",
           "params": "",
-          "startLine": 876,
-          "endLine": 900
+          "startLine": 877,
+          "endLine": 901
         },
         {
           "name": "createMovingHeads",
           "params": "",
-          "startLine": 905,
-          "endLine": 960
+          "startLine": 906,
+          "endLine": 961
         },
         {
           "name": "createLightBeams",
           "params": "",
-          "startLine": 967,
-          "endLine": 1002
+          "startLine": 968,
+          "endLine": 1003
         },
         {
           "name": "triggerWhiteLightBeam",
           "params": "targetX = 0, targetZ = 0, duration = 2.5",
-          "startLine": 1004,
-          "endLine": 1013
+          "startLine": 1005,
+          "endLine": 1014
         },
         {
           "name": "triggerGoldenLightBeam",
           "params": "targetX = 0, targetZ = 0, duration = 7.6",
-          "startLine": 1015,
-          "endLine": 1024
+          "startLine": 1016,
+          "endLine": 1025
         },
         {
           "name": "focusSpotlights",
           "params": "categoryOrTier = 1, targetPosition = null, duration = null, avatarManager = null, userId = null",
-          "startLine": 1033,
-          "endLine": 1100
+          "startLine": 1034,
+          "endLine": 1101
         },
         {
           "name": "createLaserBeams",
           "params": "",
-          "startLine": 1105,
-          "endLine": 1123
+          "startLine": 1106,
+          "endLine": 1124
         },
         {
           "name": "createFireworksSystem",
           "params": "",
-          "startLine": 1128,
-          "endLine": 1163
+          "startLine": 1129,
+          "endLine": 1164
         },
         {
           "name": "createFlyingHeartsSystem",
           "params": "",
-          "startLine": 1168,
-          "endLine": 1190
+          "startLine": 1169,
+          "endLine": 1191
         },
         {
           "name": "triggerFireworks",
           "params": "tier = 1, origin = new THREE.Vector3(0, 1.2, 0)",
-          "startLine": 1192,
-          "endLine": 1233
+          "startLine": 1193,
+          "endLine": 1234
         },
         {
           "name": "emitFlyingHearts",
           "params": "count = 10",
-          "startLine": 1235,
-          "endLine": 1258
+          "startLine": 1236,
+          "endLine": 1259
         },
         {
           "name": "spawnHeartBubbles",
           "params": "origin = new THREE.Vector3(0, 0, 0), count = 4",
-          "startLine": 1264,
-          "endLine": 1302
+          "startLine": 1265,
+          "endLine": 1303
         },
         {
           "name": "createDroppingCoinsSystem",
           "params": "",
-          "startLine": 1307,
-          "endLine": 1352
+          "startLine": 1308,
+          "endLine": 1353
         },
         {
           "name": "spawnSingleCoinInstance",
           "params": "origin, cfg = {}",
-          "startLine": 1357,
-          "endLine": 1357
+          "startLine": 1358,
+          "endLine": 1358
         },
         {
           "name": "spawnDroppingCoins",
           "params": "origin = new THREE.Vector3(0, 0, 0), count = 1, subType = 'drop_single', targetAvatar = null",
-          "startLine": 1393,
-          "endLine": 1438
+          "startLine": 1394,
+          "endLine": 1439
         },
         {
           "name": "spawnOrbitingCoinRings",
           "params": "targetAvatarOrOrigin = new THREE.Vector3(0, 0, 0), coins = 20, duration = 2.0",
-          "startLine": 1445,
-          "endLine": 1552
+          "startLine": 1446,
+          "endLine": 1553
         },
         {
           "name": "createShockwaveSystem",
           "params": "",
-          "startLine": 1557,
-          "endLine": 1559
+          "startLine": 1558,
+          "endLine": 1560
         },
         {
           "name": "triggerShockwave",
           "params": "origin = new THREE.Vector3(0, 0, 0), category = 'high'",
-          "startLine": 1561,
-          "endLine": 1603
+          "startLine": 1562,
+          "endLine": 1604
         },
         {
           "name": "createMythicCrownSystem",
           "params": "",
-          "startLine": 1608,
-          "endLine": 1661
+          "startLine": 1609,
+          "endLine": 1662
         },
         {
           "name": "triggerMythicCrown",
           "params": "origin = new THREE.Vector3(0, 0, 0), duration = 7.6",
-          "startLine": 1663,
-          "endLine": 1672
+          "startLine": 1664,
+          "endLine": 1673
         },
         {
           "name": "triggerGiftProp",
           "params": "giftKey, origin = new THREE.Vector3(0, 0, 0), coins = 1",
-          "startLine": 1678,
-          "endLine": 1683
+          "startLine": 1679,
+          "endLine": 1684
         },
         {
           "name": "update",
           "params": "delta, bands = {}, camera = null",
-          "startLine": 1685,
-          "endLine": 1685
+          "startLine": 1686,
+          "endLine": 1686
         }
       ]
     },
@@ -1094,6 +1100,96 @@
           "params": "",
           "startLine": 695,
           "endLine": 699
+        }
+      ]
+    },
+    {
+      "filePath": "src/donation-constants.js",
+      "absolutePath": "/app/src/donation-constants.js",
+      "imports": [],
+      "functions": []
+    },
+    {
+      "filePath": "src/donation-queue.js",
+      "absolutePath": "/app/src/donation-queue.js",
+      "imports": [
+        "./donation-constants.js",
+        "./gift-props.js",
+        "./animation-constants.js",
+        "./cinematic-showcase.js"
+      ],
+      "functions": [
+        {
+          "name": "initDonationQueue",
+          "params": "context = {}",
+          "startLine": 17,
+          "endLine": 17
+        },
+        {
+          "name": "getDonationQueueLength",
+          "params": "",
+          "startLine": 24,
+          "endLine": 26
+        },
+        {
+          "name": "isDonationProcessing",
+          "params": "",
+          "startLine": 31,
+          "endLine": 33
+        },
+        {
+          "name": "clearDonationQueue",
+          "params": "",
+          "startLine": 38,
+          "endLine": 46
+        },
+        {
+          "name": "enqueueDonation",
+          "params": "item",
+          "startLine": 53,
+          "endLine": 61
+        },
+        {
+          "name": "enqueueHighTierShowcase",
+          "params": "item",
+          "startLine": 66,
+          "endLine": 76
+        },
+        {
+          "name": "processNextDonation",
+          "params": "",
+          "startLine": 81,
+          "endLine": 219
+        },
+        {
+          "name": "onTurnComplete",
+          "params": "",
+          "startLine": 116,
+          "endLine": 120
+        },
+        {
+          "name": "startEffectsAndHold",
+          "params": "",
+          "startLine": 128,
+          "endLine": 133
+        },
+        {
+          "name": "startEffectsAndHold",
+          "params": "",
+          "startLine": 150,
+          "endLine": 155
+        },
+        {
+          "name": "_executeSmallEffects",
+          "params": "mesh, origin, coins, shouldUpgradeTier, newTier, context",
+          "startLine": 225,
+          "endLine": 260
+        },
+        {
+          "name": "_executeMediumEffects",
+          "params": "mesh, origin, coins, shouldUpgradeTier, newTier, context",
+          "startLine": 266,
+          "endLine": 301
         }
       ]
     },
@@ -1399,116 +1495,118 @@
         "./gift-props.js",
         "./cinematic-showcase.js",
         "./equipment-config.js",
-        "./animation-constants.js"
+        "./animation-constants.js",
+        "./donation-queue.js",
+        "./donation-constants.js"
       ],
       "functions": [
         {
           "name": "resolveGiftCategory",
           "params": "coins",
-          "startLine": 16,
-          "endLine": 21
+          "startLine": 18,
+          "endLine": 23
         },
         {
           "name": "calculateSlimeTier",
-          "params": "totalCoins",
-          "startLine": 29,
-          "endLine": 31
+          "params": "totalCoins, isTop1 = undefined",
+          "startLine": 31,
+          "endLine": 33
         },
         {
           "name": "_handleChatCommands",
           "params": "comment, mesh, syncActiveFloorAvatars",
-          "startLine": 40,
-          "endLine": 117
+          "startLine": 42,
+          "endLine": 119
         },
         {
           "name": "_triggerUltraCelebration",
           "params": "mesh, origin, giftKey, coins, shouldUpgradeTier, newTier, context, evt = {}",
-          "startLine": 123,
-          "endLine": 123
+          "startLine": 125,
+          "endLine": 125
         },
         {
           "name": "_triggerHighCelebration",
           "params": "mesh, origin, giftKey, coins, shouldUpgradeTier, newTier, context, evt = {}",
-          "startLine": 163,
-          "endLine": 163
+          "startLine": 165,
+          "endLine": 165
         },
         {
           "name": "_triggerMediumCelebration",
           "params": "mesh, origin, giftKey, coins, shouldUpgradeTier, newTier, context",
-          "startLine": 201,
-          "endLine": 233
+          "startLine": 203,
+          "endLine": 235
         },
         {
           "name": "_triggerSmallCelebration",
           "params": "mesh, origin, giftKey, coins, shouldUpgradeTier, newTier, context",
-          "startLine": 238,
-          "endLine": 273
+          "startLine": 240,
+          "endLine": 275
         },
         {
           "name": "_scheduleDeferredVipSwap",
           "params": "mesh, giftCategory, sortedDonors, executeVipPromotionAndSwap",
-          "startLine": 278,
-          "endLine": 289
+          "startLine": 280,
+          "endLine": 291
         },
         {
           "name": "handleLikeEvent",
           "params": "evt, context",
-          "startLine": 294,
-          "endLine": 342
+          "startLine": 296,
+          "endLine": 344
         },
         {
           "name": "handleChatEvent",
           "params": "evt, context",
-          "startLine": 347,
-          "endLine": 354
+          "startLine": 349,
+          "endLine": 356
         },
         {
           "name": "handleGiftEvent",
           "params": "evt, context",
-          "startLine": 359,
-          "endLine": 454
+          "startLine": 361,
+          "endLine": 472
         },
         {
           "name": "handleAdminCommand",
           "params": "evt, context",
-          "startLine": 459,
-          "endLine": 571
+          "startLine": 477,
+          "endLine": 594
         },
         {
           "name": "handleRoomRanksEvent",
           "params": "evt, context",
-          "startLine": 578,
-          "endLine": 618
+          "startLine": 601,
+          "endLine": 671
         },
         {
           "name": "handleSessionResetEvent",
           "params": "evt, context",
-          "startLine": 623,
-          "endLine": 628
+          "startLine": 676,
+          "endLine": 681
         },
         {
           "name": "handleMemberEvent",
           "params": "evt, context",
-          "startLine": 634,
-          "endLine": 650
+          "startLine": 687,
+          "endLine": 703
         },
         {
           "name": "handleFanEvent",
           "params": "evt, context",
-          "startLine": 656,
-          "endLine": 673
+          "startLine": 709,
+          "endLine": 726
         },
         {
           "name": "handleFollowEvent",
           "params": "evt, context",
-          "startLine": 679,
-          "endLine": 699
+          "startLine": 732,
+          "endLine": 752
         },
         {
           "name": "handleLiveEvent",
           "params": "evt, context",
-          "startLine": 707,
-          "endLine": 781
+          "startLine": 760,
+          "endLine": 842
         }
       ]
     },
@@ -1533,26 +1631,27 @@
         "./vip-podium-scheduler.js",
         "./vip-lounge-manager.js",
         "./live-event-handler.js",
-        "./cinematic-showcase.js"
+        "./cinematic-showcase.js",
+        "./donation-queue.js"
       ],
       "functions": [
         {
           "name": "initClientApp",
           "params": "",
-          "startLine": 92,
-          "endLine": 303
+          "startLine": 93,
+          "endLine": 314
         },
         {
           "name": "onThresholdsUpdated",
           "params": "newThresholds",
-          "startLine": 199,
-          "endLine": 220
+          "startLine": 210,
+          "endLine": 231
         },
         {
           "name": "animate",
           "params": "",
-          "startLine": 239,
-          "endLine": 300
+          "startLine": 250,
+          "endLine": 311
         }
       ]
     },
@@ -1692,16 +1791,22 @@
           "endLine": 509
         },
         {
+          "name": "focusDonationAvatar",
+          "params": "avatarMesh, options = {}, onArrived = null",
+          "startLine": 519,
+          "endLine": 519
+        },
+        {
           "name": "focusOnAvatar",
           "params": "avatarMesh, options = {}",
-          "startLine": 518,
-          "endLine": 518
+          "startLine": 596,
+          "endLine": 596
         },
         {
           "name": "clearAvatarFocus",
           "params": "",
-          "startLine": 543,
-          "endLine": 556
+          "startLine": 621,
+          "endLine": 634
         }
       ]
     },
@@ -1768,212 +1873,218 @@
         {
           "name": "createBasicHalfSphereGeometry",
           "params": "",
-          "startLine": 37,
-          "endLine": 48
+          "startLine": 38,
+          "endLine": 49
         },
         {
           "name": "createChubbyMochiSlimeGeometry",
           "params": "",
-          "startLine": 55,
-          "endLine": 89
+          "startLine": 56,
+          "endLine": 90
+        },
+        {
+          "name": "getClonedSlimeMaterial",
+          "params": "paletteKey",
+          "startLine": 111,
+          "endLine": 118
         },
         {
           "name": "sharedMiniSlimeGeom",
           "params": "(",
-          "startLine": 121,
-          "endLine": 130
+          "startLine": 131,
+          "endLine": 140
         },
         {
           "name": "sharedHornGeom",
           "params": "(",
-          "startLine": 145,
-          "endLine": 150
+          "startLine": 155,
+          "endLine": 160
         },
         {
           "name": "sharedTailSegmentGeom",
           "params": "(",
-          "startLine": 152,
-          "endLine": 157
+          "startLine": 162,
+          "endLine": 167
         },
         {
           "name": "sharedTailTipGeom",
           "params": "(",
-          "startLine": 159,
-          "endLine": 165
+          "startLine": 169,
+          "endLine": 175
         },
         {
           "name": "sharedSideMochiGeom",
           "params": "(",
-          "startLine": 168,
-          "endLine": 174
+          "startLine": 178,
+          "endLine": 184
         },
         {
           "name": "createBillboardSprite",
           "params": "userData = {}",
-          "startLine": 197,
-          "endLine": 197
+          "startLine": 207,
+          "endLine": 207
         },
         {
           "name": "redraw",
           "params": "img = null",
-          "startLine": 220,
-          "endLine": 414
+          "startLine": 231,
+          "endLine": 425
         },
         {
           "name": "drawBorderRing",
           "params": "radius, borderCfg",
-          "startLine": 283,
-          "endLine": 293
+          "startLine": 294,
+          "endLine": 304
         },
         {
           "name": "createCyberSlime",
           "params": "paletteKey = 'cyan', rawUserData = {}",
-          "startLine": 459,
-          "endLine": 459
+          "startLine": 470,
+          "endLine": 470
         },
         {
           "name": "create3DEye",
           "params": "isLeft = true",
-          "startLine": 503,
-          "endLine": 529
+          "startLine": 514,
+          "endLine": 540
         },
         {
           "name": "setLabelVisible",
           "params": "visible",
-          "startLine": 944,
-          "endLine": 946
+          "startLine": 955,
+          "endLine": 957
         },
         {
           "name": "setBillboardScale",
           "params": "scale = 1.0",
-          "startLine": 947,
-          "endLine": 953
+          "startLine": 958,
+          "endLine": 964
         },
         {
           "name": "setTikTokLevel",
           "params": "lvl",
-          "startLine": 954,
-          "endLine": 960
+          "startLine": 965,
+          "endLine": 971
         },
         {
           "name": "setDonateRank",
           "params": "rank",
-          "startLine": 961,
-          "endLine": 967
+          "startLine": 972,
+          "endLine": 978
         },
         {
           "name": "setFanStatus",
           "params": "isFan = true",
-          "startLine": 968,
-          "endLine": 974
+          "startLine": 979,
+          "endLine": 985
         },
         {
           "name": "setFollowerStatus",
           "params": "isFollower = true",
-          "startLine": 975,
-          "endLine": 981
+          "startLine": 986,
+          "endLine": 992
         },
         {
           "name": "updateBillboard",
           "params": "coinsToAdd = 0, newLevel = null, newRank = null",
-          "startLine": 982,
-          "endLine": 1008
+          "startLine": 993,
+          "endLine": 1019
         },
         {
           "name": "setFootRings",
           "params": "level = 0",
-          "startLine": 1057,
-          "endLine": 1065
+          "startLine": 1068,
+          "endLine": 1076
         },
         {
           "name": "setBodyAura",
           "params": "typeOrBool = false",
-          "startLine": 1067,
-          "endLine": 1076
+          "startLine": 1078,
+          "endLine": 1087
         },
         {
           "name": "setPalette",
           "params": "newKey",
-          "startLine": 1078,
-          "endLine": 1113
+          "startLine": 1089,
+          "endLine": 1127
         },
         {
           "name": "setGender",
           "params": "gender",
-          "startLine": 1115,
-          "endLine": 1120
+          "startLine": 1129,
+          "endLine": 1134
         },
         {
           "name": "setTier",
           "params": "tierNum",
-          "startLine": 1130,
-          "endLine": 1190
+          "startLine": 1144,
+          "endLine": 1204
         },
         {
           "name": "setExpression",
           "params": "exp",
-          "startLine": 1192,
-          "endLine": 1204
+          "startLine": 1206,
+          "endLine": 1218
         },
         {
           "name": "setDanceMode",
           "params": "mode = null",
-          "startLine": 1206,
-          "endLine": 1221
+          "startLine": 1220,
+          "endLine": 1235
         },
         {
           "name": "setPaused",
           "params": "paused",
-          "startLine": 1223,
-          "endLine": 1237
+          "startLine": 1237,
+          "endLine": 1251
         },
         {
           "name": "triggerDanceMove",
           "params": "moveType",
-          "startLine": 1245,
-          "endLine": 1278
+          "startLine": 1259,
+          "endLine": 1292
         },
         {
           "name": "triggerLikeJump",
           "params": "",
-          "startLine": 1280,
-          "endLine": 1288
+          "startLine": 1294,
+          "endLine": 1302
         },
         {
           "name": "triggerSink",
           "params": "onComplete = null",
-          "startLine": 1290,
-          "endLine": 1299
+          "startLine": 1304,
+          "endLine": 1313
         },
         {
           "name": "shuffleDanceMove",
           "params": "",
-          "startLine": 1301,
-          "endLine": 1319
+          "startLine": 1315,
+          "endLine": 1333
         },
         {
           "name": "setAutoDanceRoutine",
           "params": "enabled",
-          "startLine": 1321,
-          "endLine": 1327
+          "startLine": 1335,
+          "endLine": 1341
         },
         {
           "name": "triggerDonateAnimation",
           "params": "typeOrConfig = 'small', upgradeTier = false, targetTier = 1, coins = 1",
-          "startLine": 1345,
-          "endLine": 1481
+          "startLine": 1359,
+          "endLine": 1495
         },
         {
           "name": "triggerLionCelebration",
           "params": "upgradeTier = false",
-          "startLine": 1483,
-          "endLine": 1492
+          "startLine": 1497,
+          "endLine": 1506
         },
         {
           "name": "update",
           "params": "deltaTime, audioKick = 0",
-          "startLine": 1494,
-          "endLine": 2055
+          "startLine": 1508,
+          "endLine": 2073
         }
       ]
     },
@@ -2061,34 +2172,46 @@
           "endLine": 586
         },
         {
-          "name": "addHype",
-          "params": "points = 1",
+          "name": "loadInitialMaxHype",
+          "params": "",
           "startLine": 588,
           "endLine": 599
         },
         {
+          "name": "setMaxHype",
+          "params": "val",
+          "startLine": 601,
+          "endLine": 618
+        },
+        {
+          "name": "addHype",
+          "params": "points = 1",
+          "startLine": 620,
+          "endLine": 631
+        },
+        {
           "name": "triggerFrenzy",
           "params": "duration = 15",
-          "startLine": 601,
-          "endLine": 603
+          "startLine": 633,
+          "endLine": 635
         },
         {
           "name": "triggerFrenzyMode",
           "params": "",
-          "startLine": 605,
-          "endLine": 625
+          "startLine": 637,
+          "endLine": 657
         },
         {
           "name": "showGiftAlert",
           "params": "giftEvent",
-          "startLine": 627,
-          "endLine": 688
+          "startLine": 659,
+          "endLine": 720
         },
         {
           "name": "updateLeaderboard",
           "params": "donors = []",
-          "startLine": 690,
-          "endLine": 711
+          "startLine": 722,
+          "endLine": 743
         }
       ]
     },
@@ -2097,74 +2220,75 @@
       "absolutePath": "/app/src/vip-lounge-manager.js",
       "imports": [
         "three",
-        "./floor-slots.js"
+        "./floor-slots.js",
+        "./equipment-config.js"
       ],
       "functions": [
         {
           "name": "triggerLeapAnimation",
           "params": "mesh, targetPos, targetRotY, onComplete = null",
-          "startLine": 13,
-          "endLine": 34
+          "startLine": 14,
+          "endLine": 35
         },
         {
           "name": "updateLeapAnimation",
           "params": "mesh, delta",
-          "startLine": 42,
-          "endLine": 71
+          "startLine": 43,
+          "endLine": 72
         },
         {
           "name": "constructor",
           "params": "",
-          "startLine": 79,
-          "endLine": 82
+          "startLine": 80,
+          "endLine": 83
         },
         {
           "name": "getCurrentTop1",
           "params": "",
-          "startLine": 84,
-          "endLine": 86
+          "startLine": 85,
+          "endLine": 87
         },
         {
           "name": "getCurrentTop2",
           "params": "",
-          "startLine": 88,
-          "endLine": 90
+          "startLine": 89,
+          "endLine": 91
         },
         {
           "name": "clear",
           "params": "",
-          "startLine": 92,
-          "endLine": 95
+          "startLine": 93,
+          "endLine": 96
         },
         {
           "name": "removeUser",
           "params": "userId",
-          "startLine": 97,
-          "endLine": 101
+          "startLine": 98,
+          "endLine": 102
         },
         {
           "name": "_promoteToTop1",
-          "params": "mesh, userId",
-          "startLine": 106,
-          "endLine": 115
+          "params": "mesh, userId, userCoinsMap = null",
+          "startLine": 107,
+          "endLine": 125
         },
         {
           "name": "_promoteToTop2",
-          "params": "mesh, userId",
-          "startLine": 120,
-          "endLine": 129
+          "params": "mesh, userId, userCoinsMap = null",
+          "startLine": 130,
+          "endLine": 148
         },
         {
           "name": "_demoteDisplacedAvatar",
           "params": "mesh, prevUserId, returnSlot, userCoinsMap",
-          "startLine": 134,
-          "endLine": 158
+          "startLine": 153,
+          "endLine": 183
         },
         {
           "name": "executeVipPromotionAndSwap",
           "params": "{ sortedDonors, avatarMeshes, userCoinsMap, floorSlots }",
-          "startLine": 169,
-          "endLine": 169
+          "startLine": 194,
+          "endLine": 194
         }
       ]
     },
@@ -2307,21 +2431,27 @@
           "name": "processNextHighTier",
           "params": "",
           "startLine": 67,
-          "endLine": 79
+          "endLine": 82
         },
         {
           "name": "runCinematic2DShowcase",
           "params": "item, onFinished",
-          "startLine": 81,
-          "endLine": 350
+          "startLine": 84,
+          "endLine": 353
         },
         {
           "name": "cleanupShowcase",
           "params": "",
-          "startLine": 279,
-          "endLine": 323
+          "startLine": 282,
+          "endLine": 326
         }
       ]
+    },
+    {
+      "filePath": "preview/donation-constants.js",
+      "absolutePath": "/app/preview/donation-constants.js",
+      "imports": [],
+      "functions": []
     },
     {
       "filePath": "preview/foreground-slime.js",
@@ -2645,200 +2775,206 @@
         {
           "name": "createBasicHalfSphereGeometry",
           "params": "",
-          "startLine": 36,
-          "endLine": 47
+          "startLine": 37,
+          "endLine": 48
         },
         {
           "name": "createChubbyMochiSlimeGeometry",
           "params": "",
-          "startLine": 53,
-          "endLine": 87
+          "startLine": 54,
+          "endLine": 88
+        },
+        {
+          "name": "getClonedSlimeMaterial",
+          "params": "paletteKey",
+          "startLine": 108,
+          "endLine": 115
         },
         {
           "name": "sharedMiniSlimeGeom",
           "params": "(",
-          "startLine": 116,
-          "endLine": 125
+          "startLine": 128,
+          "endLine": 137
         },
         {
           "name": "sharedHornGeom",
           "params": "(",
-          "startLine": 140,
-          "endLine": 144
+          "startLine": 152,
+          "endLine": 156
         },
         {
           "name": "sharedTailSegmentGeom",
           "params": "(",
-          "startLine": 146,
-          "endLine": 150
+          "startLine": 158,
+          "endLine": 162
         },
         {
           "name": "sharedTailTipGeom",
           "params": "(",
-          "startLine": 152,
-          "endLine": 157
+          "startLine": 164,
+          "endLine": 169
         },
         {
           "name": "sharedSideMochiGeom",
           "params": "(",
-          "startLine": 160,
-          "endLine": 165
+          "startLine": 172,
+          "endLine": 177
         },
         {
           "name": "createBillboardSprite",
           "params": "userData = {}",
-          "startLine": 188,
-          "endLine": 188
+          "startLine": 200,
+          "endLine": 200
         },
         {
           "name": "redraw",
           "params": "img = null",
-          "startLine": 211,
-          "endLine": 390
+          "startLine": 224,
+          "endLine": 404
         },
         {
           "name": "drawBorderRing",
           "params": "radius, borderCfg",
-          "startLine": 274,
-          "endLine": 284
+          "startLine": 288,
+          "endLine": 298
         },
         {
           "name": "createCyberSlime",
           "params": "paletteKey = 'cyan', rawUserData = {}",
-          "startLine": 435,
-          "endLine": 435
+          "startLine": 449,
+          "endLine": 449
         },
         {
           "name": "create3DEye",
           "params": "isLeft = true",
-          "startLine": 478,
-          "endLine": 504
+          "startLine": 492,
+          "endLine": 518
         },
         {
           "name": "setLabelVisible",
           "params": "visible",
-          "startLine": 919,
-          "endLine": 921
+          "startLine": 933,
+          "endLine": 935
         },
         {
           "name": "setBillboardScale",
           "params": "scale = 1.0",
-          "startLine": 922,
-          "endLine": 928
-        },
-        {
-          "name": "setTikTokLevel",
-          "params": "lvl",
-          "startLine": 929,
-          "endLine": 935
-        },
-        {
-          "name": "setDonateRank",
-          "params": "rank",
           "startLine": 936,
           "endLine": 942
         },
         {
-          "name": "setFanStatus",
-          "params": "isFan = true",
+          "name": "setTikTokLevel",
+          "params": "lvl",
           "startLine": 943,
           "endLine": 949
         },
         {
-          "name": "setFollowerStatus",
-          "params": "isFollower = true",
+          "name": "setDonateRank",
+          "params": "rank",
           "startLine": 950,
           "endLine": 956
         },
         {
+          "name": "setFanStatus",
+          "params": "isFan = true",
+          "startLine": 957,
+          "endLine": 963
+        },
+        {
+          "name": "setFollowerStatus",
+          "params": "isFollower = true",
+          "startLine": 964,
+          "endLine": 970
+        },
+        {
           "name": "updateBillboard",
           "params": "coinsToAdd = 0, newLevel = null, newRank = null",
-          "startLine": 957,
-          "endLine": 983
+          "startLine": 971,
+          "endLine": 997
         },
         {
           "name": "setFootRings",
           "params": "level = 0",
-          "startLine": 1030,
-          "endLine": 1038
+          "startLine": 1044,
+          "endLine": 1052
         },
         {
           "name": "setBodyAura",
           "params": "typeOrBool = false",
-          "startLine": 1040,
-          "endLine": 1049
+          "startLine": 1054,
+          "endLine": 1063
         },
         {
           "name": "setPalette",
           "params": "newKey",
-          "startLine": 1051,
-          "endLine": 1086
+          "startLine": 1065,
+          "endLine": 1103
         },
         {
           "name": "setGender",
           "params": "gender",
-          "startLine": 1088,
-          "endLine": 1093
+          "startLine": 1105,
+          "endLine": 1110
         },
         {
           "name": "setTier",
           "params": "tierNum",
-          "startLine": 1103,
-          "endLine": 1163
+          "startLine": 1120,
+          "endLine": 1180
         },
         {
           "name": "setExpression",
           "params": "exp",
-          "startLine": 1165,
-          "endLine": 1177
+          "startLine": 1182,
+          "endLine": 1194
         },
         {
           "name": "setPaused",
           "params": "paused",
-          "startLine": 1179,
-          "endLine": 1193
+          "startLine": 1196,
+          "endLine": 1210
         },
         {
           "name": "triggerDanceMove",
           "params": "moveType",
-          "startLine": 1201,
-          "endLine": 1234
+          "startLine": 1218,
+          "endLine": 1251
         },
         {
           "name": "triggerLikeJump",
           "params": "",
-          "startLine": 1236,
-          "endLine": 1244
+          "startLine": 1253,
+          "endLine": 1261
         },
         {
           "name": "shuffleDanceMove",
           "params": "",
-          "startLine": 1246,
-          "endLine": 1264
+          "startLine": 1263,
+          "endLine": 1281
         },
         {
           "name": "setAutoDanceRoutine",
           "params": "enabled",
-          "startLine": 1266,
-          "endLine": 1272
+          "startLine": 1283,
+          "endLine": 1289
         },
         {
           "name": "triggerDonateAnimation",
           "params": "typeOrConfig = 'small', upgradeTier = false, targetTier = 1, coins = 1",
-          "startLine": 1282,
-          "endLine": 1358
+          "startLine": 1299,
+          "endLine": 1375
         },
         {
           "name": "triggerLionCelebration",
           "params": "upgradeTier = false",
-          "startLine": 1360,
-          "endLine": 1369
+          "startLine": 1377,
+          "endLine": 1386
         },
         {
           "name": "update",
           "params": "deltaTime, audioKick = 0",
-          "startLine": 1371,
-          "endLine": 1913
+          "startLine": 1388,
+          "endLine": 1930
         }
       ]
     },
@@ -2850,194 +2986,237 @@
         "three/examples/jsm/controls/OrbitControls.js",
         "./slime-model.js?v=20261106_1645",
         "./gift-props.js",
-        "./preview-audio.js"
+        "./preview-audio.js",
+        "./donation-constants.js"
       ],
       "functions": [
         {
           "name": "triggerWhiteLightBeam",
           "params": "targetX = 0, targetZ = 0, duration = 1.5",
-          "startLine": 116,
-          "endLine": 123
+          "startLine": 117,
+          "endLine": 124
         },
         {
           "name": "triggerFireworks",
           "params": "originY = 4.2, originX = 0, originZ = 0, customColor = 0xffe066",
-          "startLine": 149,
-          "endLine": 166
+          "startLine": 150,
+          "endLine": 167
         },
         {
           "name": "getViewerProfile",
           "params": "idx",
-          "startLine": 197,
-          "endLine": 210
+          "startLine": 198,
+          "endLine": 211
         },
         {
           "name": "createAvatarInstance",
           "params": "paletteKey, index = 0",
-          "startLine": 212,
-          "endLine": 234
+          "startLine": 213,
+          "endLine": 235
         },
         {
           "name": "clearShowcaseLabels",
           "params": "",
-          "startLine": 239,
-          "endLine": 247
+          "startLine": 240,
+          "endLine": 248
         },
         {
           "name": "createTierLabelSprite",
           "params": "title, desc, colorHex",
-          "startLine": 249,
-          "endLine": 282
+          "startLine": 250,
+          "endLine": 283
         },
         {
           "name": "showcaseAllTiers",
           "params": "",
-          "startLine": 284,
-          "endLine": 327
+          "startLine": 285,
+          "endLine": 328
         },
         {
           "name": "repositionGrid",
           "params": "",
-          "startLine": 329,
-          "endLine": 353
+          "startLine": 330,
+          "endLine": 354
         },
         {
           "name": "updateMetricHUD",
           "params": "",
-          "startLine": 355,
-          "endLine": 360
+          "startLine": 356,
+          "endLine": 361
         },
         {
           "name": "addAvatars",
           "params": "countToAdd",
-          "startLine": 362,
-          "endLine": 371
+          "startLine": 363,
+          "endLine": 372
         },
         {
           "name": "removeAvatars",
           "params": "countToRemove",
-          "startLine": 373,
-          "endLine": 381
+          "startLine": 374,
+          "endLine": 382
         },
         {
           "name": "setAvatarCount",
           "params": "targetCount",
-          "startLine": 383,
-          "endLine": 390
+          "startLine": 384,
+          "endLine": 391
         },
         {
           "name": "triggerLionCelebrationEvent",
           "params": "targetAvatar = null, upgradeTier = false",
-          "startLine": 402,
-          "endLine": 408
+          "startLine": 403,
+          "endLine": 409
         },
         {
           "name": "togglePause",
           "params": "",
-          "startLine": 448,
-          "endLine": 463
+          "startLine": 449,
+          "endLine": 464
         },
         {
           "name": "setHeroLevel",
           "params": "levelNum",
-          "startLine": 498,
-          "endLine": 502
+          "startLine": 499,
+          "endLine": 503
         },
         {
           "name": "setHeroRank",
           "params": "rankStr",
-          "startLine": 504,
-          "endLine": 508
+          "startLine": 505,
+          "endLine": 509
         },
         {
           "name": "simulateCrowdRanks",
           "params": "",
-          "startLine": 510,
-          "endLine": 539
+          "startLine": 511,
+          "endLine": 540
         },
         {
           "name": "clearAllCrowdRanks",
           "params": "",
-          "startLine": 541,
-          "endLine": 548
+          "startLine": 542,
+          "endLine": 549
         },
         {
           "name": "triggerCameraShake",
           "params": "intensity = 0.25, duration = 0.7",
-          "startLine": 634,
-          "endLine": 650
+          "startLine": 635,
+          "endLine": 651
         },
         {
           "name": "showGiftToast",
           "params": "username, gift",
-          "startLine": 653,
-          "endLine": 679
+          "startLine": 654,
+          "endLine": 680
         },
         {
           "name": "spawnDroppingCoins",
           "params": "origin, count = 1, subType = 'drop_single'",
-          "startLine": 723,
-          "endLine": 762
+          "startLine": 724,
+          "endLine": 763
         },
         {
           "name": "spawnSingleCoinInstance",
           "params": "origin, cfg",
-          "startLine": 764,
-          "endLine": 787
+          "startLine": 765,
+          "endLine": 788
         },
         {
           "name": "getSlimeEffectiveRadius",
           "params": "targetAvatarOrOrigin",
-          "startLine": 796,
-          "endLine": 806
+          "startLine": 797,
+          "endLine": 807
         },
         {
           "name": "spawnOrbitingCoinRings",
           "params": "targetAvatarOrOrigin, coins = 20, duration = 2.0",
-          "startLine": 808,
-          "endLine": 908
+          "startLine": 809,
+          "endLine": 909
         },
         {
           "name": "triggerFloorShockwave",
           "params": "origin, maxScale = 4.0, duration = 1.2",
-          "startLine": 910,
-          "endLine": 926
+          "startLine": 911,
+          "endLine": 927
+        },
+        {
+          "name": "focusPreviewDonationAvatar",
+          "params": "avatar, options = {}, onArrived = null",
+          "startLine": 969,
+          "endLine": 969
+        },
+        {
+          "name": "revertPreviewDonationCamera",
+          "params": "",
+          "startLine": 1023,
+          "endLine": 1041
+        },
+        {
+          "name": "enqueuePreviewDonation",
+          "params": "item",
+          "startLine": 1046,
+          "endLine": 1054
+        },
+        {
+          "name": "processNextPreviewDonation",
+          "params": "",
+          "startLine": 1056,
+          "endLine": 1175
+        },
+        {
+          "name": "onTurnComplete",
+          "params": "",
+          "startLine": 1071,
+          "endLine": 1075
+        },
+        {
+          "name": "startEffectsAndHold",
+          "params": "",
+          "startLine": 1079,
+          "endLine": 1118
+        },
+        {
+          "name": "startEffectsAndHold",
+          "params": "",
+          "startLine": 1125,
+          "endLine": 1159
         },
         {
           "name": "triggerDonation",
           "params": "giftKey, targetAvatar = null, forceTierUp = null",
-          "startLine": 959,
-          "endLine": 1074
+          "startLine": 1177,
+          "endLine": 1223
         },
         {
           "name": "bindDonateButtons",
           "params": "",
-          "startLine": 1077,
-          "endLine": 1084
+          "startLine": 1226,
+          "endLine": 1233
         },
         {
           "name": "toggleDonateStorm",
           "params": "",
-          "startLine": 1104,
-          "endLine": 1139
+          "startLine": 1253,
+          "endLine": 1288
         },
         {
           "name": "createHeartBubbleTexture",
           "params": "",
-          "startLine": 1226,
-          "endLine": 1265
+          "startLine": 1375,
+          "endLine": 1414
         },
         {
           "name": "triggerHeartBubbles",
           "params": "pos, count = 5",
-          "startLine": 1267,
-          "endLine": 1298
+          "startLine": 1416,
+          "endLine": 1447
         },
         {
           "name": "animate",
           "params": "",
-          "startLine": 1421,
-          "endLine": 1692
+          "startLine": 1570,
+          "endLine": 1849
         }
       ]
     }

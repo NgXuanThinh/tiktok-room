@@ -2,7 +2,7 @@ import assert from 'node:assert';
 import * as THREE from 'three';
 import { createCyberSlime } from '../src/slime-model.js';
 import { ClubEnvironment, createHeartBubbleTexture } from '../src/club-environment.js';
-import { handleLikeEvent } from '../src/live-event-handler.js';
+import { handleLikeEvent, handleAdminCommand } from '../src/live-event-handler.js';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -10,7 +10,7 @@ export async function run() {
   const suite = 'like-slime-jump';
   const results = {
     suite,
-    total: 5,
+    total: 7,
     passed: 0,
     failed: 0,
     cases: []
@@ -111,18 +111,45 @@ export async function run() {
     assert.ok(env.activeHeartBubbles.length >= 3, 'Red heart bubbles must have spawned around avatar position');
   });
 
-  // Test 4: UI index.html contains Like Button with icon and counter
-  test('src/index.html includes Interactive Stream Like Button', () => {
+  // Test 4: UI index.html cleanly omits redundant corner stream like button
+  test('src/index.html omits redundant corner stream like button', () => {
     const html = fs.readFileSync(path.resolve(process.cwd(), 'src/index.html'), 'utf8');
-    assert.ok(html.includes('id="btn-stream-like"'), 'index.html must include #btn-stream-like');
-    assert.ok(html.includes('id="like-btn-counter"'), 'index.html must include #like-btn-counter');
-    assert.ok(html.includes('❤️'), 'index.html must include heart icon');
+    assert.ok(!html.includes('id="btn-stream-like"'), 'index.html must not include redundant #btn-stream-like');
+    assert.ok(!html.includes('id="like-button-container"'), 'index.html must not include #like-button-container');
   });
 
   // Test 5: Admin panel src/admin.html contains Like / Thả 1 Tim button
   test('src/admin.html includes Like (Thả 1 Tim) button', () => {
     const html = fs.readFileSync(path.resolve(process.cwd(), 'src/admin.html'), 'utf8');
     assert.ok(html.includes('id="btn-mock-likes-1"'), 'admin.html must include #btn-mock-likes-1');
+  });
+
+  // Test 6: Admin panel src/admin.html contains Hype Meter Goal setting controls
+  test('src/admin.html includes Hype Meter Target Goal inputs and apply button', () => {
+    const html = fs.readFileSync(path.resolve(process.cwd(), 'src/admin.html'), 'utf8');
+    assert.ok(html.includes('id="input-max-hype"'), 'admin.html must include #input-max-hype');
+    assert.ok(html.includes('id="btn-set-max-hype"'), 'admin.html must include #btn-set-max-hype');
+    assert.ok(html.includes('id="hype-goal-display"'), 'admin.html must include #hype-goal-display');
+  });
+
+  // Test 7: handleAdminCommand sets maxHype on uiOverlay dynamically
+  test('handleAdminCommand dispatches set_max_hype and updates uiOverlay', () => {
+    let updatedMaxHype = null;
+    const fakeUiOverlay = {
+      maxHype: 1000,
+      setMaxHype(val) {
+        this.maxHype = val;
+        updatedMaxHype = val;
+      }
+    };
+    handleAdminCommand({
+      type: 'admin_command',
+      command: 'set_max_hype',
+      value: 500
+    }, { uiOverlay: fakeUiOverlay });
+
+    assert.strictEqual(updatedMaxHype, 500, 'setMaxHype must be called with new goal 500');
+    assert.strictEqual(fakeUiOverlay.maxHype, 500, 'uiOverlay.maxHype must be updated to 500');
   });
 
   return results;

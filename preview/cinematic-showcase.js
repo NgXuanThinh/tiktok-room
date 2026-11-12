@@ -72,6 +72,9 @@ export function processNextHighTier() {
   isShowingHighTier = true;
   const current = highTierQueue.shift();
   runCinematic2DShowcase(current, () => {
+    if (typeof current?.onFinished === 'function') {
+      current.onFinished();
+    }
     setTimeout(() => {
       processNextHighTier();
     }, 200);

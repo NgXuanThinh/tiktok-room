@@ -53,7 +53,9 @@ const suites = [
   // Chat Commands, Animation Constants & Geometry Lifecycle Preservation
   { name: 'chat-commands-and-lifecycle', path: './chat-commands-and-lifecycle.test.js' },
   // Admin Threshold Adherence & Strict Tier 5 Exclusivity
-  { name: 'verify-tier5-and-threshold-adherence', path: './verify-tier5-and-threshold-adherence.test.js' }
+  { name: 'verify-tier5-and-threshold-adherence', path: './verify-tier5-and-threshold-adherence.test.js' },
+  // Unified Sequential Donation Queue & Camera Zoom (Small: 1s, Medium: 2s, High/Ultra: Preserved)
+  { name: 'donation-queue-sequential', path: './donation-queue-sequential.test.js' }
 ];
 
 async function runAll() {

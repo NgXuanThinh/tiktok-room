@@ -72,6 +72,7 @@ import { VipPodiumScheduler } from './vip-podium-scheduler.js';
 import { VipLoungeManager, triggerLeapAnimation } from './vip-lounge-manager.js';
 import { handleLiveEvent } from './live-event-handler.js';
 import { initCinematicShowcase, enqueueHighTierShowcase, isCinematicFreezeActive } from './cinematic-showcase.js';
+import { initDonationQueue, enqueueDonation } from './donation-queue.js';
 import {
   getOrCreateAvatarMesh as createAvatarHelper,
   deleteAvatar as deleteAvatarHelper,
@@ -132,6 +133,15 @@ export function initClientApp() {
     clearFloorEffects: () => {}
   });
 
+  // Initialize Unified Sequential Donation Queue (Small, Medium, High, Ultra)
+  initDonationQueue({
+    sceneManager,
+    clubEnvironment,
+    audioSystem,
+    uiOverlay,
+    avatarMeshes
+  });
+
   // Audio unlock triggers on first user interaction
   window.addEventListener('click', () => unlockAudio(audioSystem), { once: true });
   window.addEventListener('keydown', () => unlockAudio(audioSystem), { once: true });
@@ -149,6 +159,7 @@ export function initClientApp() {
     vipScheduler,
     vipLoungeManager,
     ws,
+    enqueueDonation,
     enqueueHighTierShowcase,
     getOrCreateAvatarMesh: (userData, coins = 0) => createAvatarHelper(userData, coins, appCtx),
     deleteAvatar: (userId) => deleteAvatarHelper(userId, appCtx),

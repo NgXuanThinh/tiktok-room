@@ -135,7 +135,7 @@ export class UiOverlay {
     this.clubEnvironment = options.clubEnvironment || null;
 
     this.hypePoints = 0;
-    this.maxHype = 1000;
+    this.maxHype = this.loadInitialMaxHype();
     this.isFrenzy = false;
     this.frenzyTimer = null;
 
@@ -585,6 +585,38 @@ export class UiOverlay {
     }
   }
 
+  loadInitialMaxHype() {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const saved = window.localStorage.getItem('bar_room_max_hype');
+        if (saved) {
+          const val = Number(saved);
+          if (Number.isFinite(val) && val > 0) return Math.round(val);
+        }
+      }
+    } catch (_) {}
+    return 1000;
+  }
+
+  setMaxHype(val) {
+    const num = Number(val);
+    if (!Number.isFinite(num) || num <= 0) return;
+    this.maxHype = Math.round(num);
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.setItem('bar_room_max_hype', String(this.maxHype));
+      }
+    } catch (_) {}
+    if (!this.isFrenzy) {
+      const pct = Math.min(100, Math.floor((this.hypePoints / this.maxHype) * 100));
+      if (this.hypeFillEl) this.hypeFillEl.style.width = `${pct}%`;
+      if (this.hypeTextEl) this.hypeTextEl.textContent = `${pct}%`;
+      if (this.hypePoints >= this.maxHype) {
+        this.triggerFrenzyMode();
+      }
+    }
+  }
+
   addHype(points = 1) {
     if (this.isFrenzy) return;
     this.hypePoints = Math.min(this.maxHype, this.hypePoints + points);
@@ -646,7 +678,7 @@ export class UiOverlay {
 
     // Coin badge: "[Xu]🪙"
     if (this.bannerSubEl) {
-      this.bannerSubEl.textContent = `${coins}🪙`;
+      this.bannerSubEl.textContent = `${coins} ⭐`;
     }
 
     if (this.bannerAvatarEl) {

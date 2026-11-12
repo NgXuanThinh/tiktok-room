@@ -4,6 +4,8 @@ import { DONATE_GIFTS } from './gift-props.js';
 import { enqueueHighTierShowcase } from './cinematic-showcase.js';
 import { evaluateEquipment } from './equipment-config.js';
 import { LIKE_JUMP_CONFIG, DONATE_CELEBRATION_CONFIG } from './animation-constants.js';
+import { enqueueDonation } from './donation-queue.js';
+import { DONATION_CAMERA_CONFIG } from './donation-constants.js';
 
 export { DONATE_GIFTS, evaluateEquipment };
 
@@ -439,15 +441,31 @@ export function handleGiftEvent(evt, context) {
 
   const giftKey = evt.data?.giftKey || evt.data?.giftName || '';
 
-  // Trigger category-specific celebration
-  if (giftCategory === 'ultra') {
-    _triggerUltraCelebration(mesh, origin, giftKey, coins, shouldUpgradeTier, newTier, context, evt);
-  } else if (giftCategory === 'high') {
-    _triggerHighCelebration(mesh, origin, giftKey, coins, shouldUpgradeTier, newTier, context, evt);
-  } else if (giftCategory === 'medium' || tier === 2) {
-    _triggerMediumCelebration(mesh, origin, giftKey, coins, shouldUpgradeTier, newTier, context);
+  // Unified Sequential FIFO Donation Celebration & Camera Zoom (when enqueueDonation is provided in context)
+  const giftCat = (giftCategory === 'medium' || tier === 2) ? 'medium' : giftCategory;
+  if (typeof context.enqueueDonation === 'function') {
+    context.enqueueDonation({
+      avatar: mesh,
+      origin,
+      category: giftCat,
+      giftKey,
+      coins,
+      shouldUpgradeTier,
+      newTier,
+      evt,
+      context
+    });
   } else {
-    _triggerSmallCelebration(mesh, origin, giftKey, coins, shouldUpgradeTier, newTier, context);
+    // Direct celebration routing (synchronous fallback & unit testing compatibility)
+    if (giftCategory === 'ultra') {
+      _triggerUltraCelebration(mesh, origin, giftKey, coins, shouldUpgradeTier, newTier, context, evt);
+    } else if (giftCategory === 'high') {
+      _triggerHighCelebration(mesh, origin, giftKey, coins, shouldUpgradeTier, newTier, context, evt);
+    } else if (giftCategory === 'medium' || tier === 2) {
+      _triggerMediumCelebration(mesh, origin, giftKey, coins, shouldUpgradeTier, newTier, context);
+    } else {
+      _triggerSmallCelebration(mesh, origin, giftKey, coins, shouldUpgradeTier, newTier, context);
+    }
   }
 
   _scheduleDeferredVipSwap(mesh, giftCategory, sortedDonors, executeVipPromotionAndSwap);
@@ -490,6 +508,11 @@ export function handleAdminCommand(evt, context) {
     audioSystem.toggleMute();
   } else if (command === 'trigger_frenzy') {
     uiOverlay.triggerFrenzyMode();
+  } else if (command === 'set_max_hype') {
+    const val = evt.value !== undefined ? evt.value : evt.maxHype;
+    if (uiOverlay?.setMaxHype) {
+      uiOverlay.setMaxHype(val);
+    }
   } else if (command === 'set_billboard_scale' && typeof value === 'number') {
     context.currentBillboardScale = value;
     if (context.avatarMeshes) {

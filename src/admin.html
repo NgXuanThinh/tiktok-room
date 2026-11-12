@@ -195,7 +195,8 @@
           </div>
           <div style="display: flex; gap: 8px; margin-top: 4px;">
             <button id="btn-tiktok-disconnect" class="btn btn-secondary" style="flex: 1;">Disconnect</button>
-            <button id="btn-refresh-floor" class="btn btn-secondary" style="flex: 1; border-color: #00f2fe; color: #00f2fe;">Refresh Sàn</button>
+            <button id="btn-refresh-floor" class="btn btn-secondary"
+              style="flex: 1; border-color: #00f2fe; color: #00f2fe;">Refresh Sàn</button>
           </div>
         </div>
 
@@ -272,6 +273,24 @@
               style="border-color: rgba(217, 70, 239, 0.6); color: #d946ef;">⚡ Frenzy Party (15s)</button>
           </div>
         </div>
+
+        <!-- Hype Meter Goal -->
+        <div class="form-group"
+          style="background: rgba(217, 70, 239, 0.08); border: 1px solid rgba(217, 70, 239, 0.3); border-radius: 12px; padding: 12px; margin-top: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <label class="form-label" style="color: #d946ef; margin-bottom: 0; font-size: 12px; font-weight: 700;">🎯
+              Mục Tiêu Hype Meter (Frenzy Goal):</label>
+            <span id="hype-goal-display" style="font-size: 11px; color: #ff007f; font-weight: bold;">1000 pts</span>
+          </div>
+          <div class="admin-input-group">
+            <input id="input-max-hype" class="admin-input" type="number" min="50" step="50" value="1000"
+              placeholder="Mục tiêu (ví dụ: 1000)" style="color: #d946ef; font-weight: bold;" />
+            <button id="btn-set-max-hype" class="btn btn-secondary"
+              style="background: linear-gradient(135deg, rgba(217, 70, 239, 0.3), rgba(255, 0, 127, 0.4)); border-color: #d946ef; color: #fff; font-weight: bold; white-space: nowrap;">
+              Áp Dụng
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- COLUMN 2: Avatar & Viewer Management -->
@@ -289,24 +308,24 @@
           <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 6px;">
             <select id="mock-custom-tier" class="admin-input"
               style="color: #00f2fe; font-weight: bold; padding: 6px 4px; font-size: 11px;">
-              <option value="1">Tier 1 (Bán Cầu)</option>
+              <option value="1" selected>Tier 1 (Bán Cầu)</option>
               <option value="2">Tier 2 (Chubby)</option>
               <option value="3">Tier 3 (Mochi 2 bên)</option>
               <option value="4">Tier 4 (Sừng+Đuôi)</option>
-              <option value="5" selected>Tier 5 (VIP Max)</option>
+              <option value="5">Tier 5 (VIP Max)</option>
             </select>
             <select id="mock-custom-level" class="admin-input" style="padding: 6px 4px; font-size: 11px;">
-              <option value="Lv.1">Lv.1</option>
+              <option value="Lv.1" selected>Lv.1</option>
               <option value="Lv.10">Lv.10</option>
               <option value="Lv.25">Lv.25</option>
               <option value="Lv.50">Lv.50</option>
               <option value="VIP">VIP</option>
-              <option value="TOP 1" selected>TOP 1</option>
+              <option value="TOP 1">TOP 1</option>
             </select>
             <select id="mock-custom-color" class="admin-input" style="padding: 6px 4px; font-size: 11px;">
-              <option value="green">Green</option>
+              <option value="green" selected>Green</option>
               <option value="red">Red</option>
-              <option value="blue" selected>Blue</option>
+              <option value="blue">Blue</option>
             </select>
           </div>
           <button id="btn-mock-spawn" class="btn"
@@ -657,7 +676,8 @@
       <div class="card" style="grid-column: 1 / -1; margin-top: 10px;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <h2 class="card-title" style="font-size: 16px;">Live Stream Logs (Console Giám Sát Thời Gian Thực)</h2>
-          <button id="btn-clear-logs" class="btn btn-secondary" style="padding: 4px 14px; font-size: 11px;">Xóa Log</button>
+          <button id="btn-clear-logs" class="btn btn-secondary" style="padding: 4px 14px; font-size: 11px;">Xóa
+            Log</button>
         </div>
         <div id="log-box" class="log-box">
           <div class="log-item">Sẵn sàng kết nối WebSocket với Port 3000...</div>
@@ -698,6 +718,12 @@
         document.getElementById('ws-indicator').classList.add('connected');
         document.getElementById('ws-status-text').textContent = 'WS 3D Room: Connected';
         log(`Đã kết nối thành công tới 3D Room (${wsUrl})`, 'sent');
+
+        // Tự động đồng bộ mục tiêu Hype Meter đã lưu từ trước
+        const savedHype = parseInt(localStorage.getItem('bar_room_max_hype') || '1000', 10);
+        if (Number.isFinite(savedHype) && savedHype > 0) {
+          sendWs({ type: 'admin_command', command: 'set_max_hype', value: savedHype });
+        }
       };
 
       function updateTikTokStatusUI(status) {
@@ -1049,6 +1075,41 @@
       sendWs({ type: 'admin_command', command: 'trigger_frenzy' });
       log('Trigger Frenzy Party Mode (15s)', 'sent');
     });
+
+    // 4b. Hype Meter Target Goal Control
+    const inputMaxHype = document.getElementById('input-max-hype');
+    const hypeGoalDisplay = document.getElementById('hype-goal-display');
+    const btnSetMaxHype = document.getElementById('btn-set-max-hype');
+
+    const savedMaxHype = parseInt(localStorage.getItem('bar_room_max_hype') || '1000', 10);
+    if (inputMaxHype && Number.isFinite(savedMaxHype) && savedMaxHype > 0) {
+      inputMaxHype.value = savedMaxHype;
+      if (hypeGoalDisplay) hypeGoalDisplay.textContent = `${savedMaxHype} pts`;
+    }
+
+    const applyMaxHype = () => {
+      if (!inputMaxHype) return;
+      const val = parseInt(inputMaxHype.value, 10);
+      if (!Number.isFinite(val) || val <= 0) {
+        alert('Vui lòng nhập mục tiêu Hype Meter hợp lệ (> 0)');
+        return;
+      }
+      try {
+        localStorage.setItem('bar_room_max_hype', String(val));
+      } catch (_) {}
+      if (hypeGoalDisplay) hypeGoalDisplay.textContent = `${val} pts`;
+      sendWs({ type: 'admin_command', command: 'set_max_hype', value: val });
+      log(`🎯 Cập nhật mục tiêu Hype Meter: ${val} pts`, 'sent');
+    };
+
+    if (btnSetMaxHype) {
+      btnSetMaxHype.addEventListener('click', applyMaxHype);
+    }
+    if (inputMaxHype) {
+      inputMaxHype.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') applyMaxHype();
+      });
+    }
 
     // 5. Slime Spawner
     const RANDOM_NAMES = [

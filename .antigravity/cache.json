@@ -1,6 +1,6 @@
 {
   "scannerEnv": "docker:tiktok-live-bar",
-  "lastScanned": "2026-11-11T05:20:39.321Z",
+  "lastScanned": "2026-11-12T17:43:34.728Z",
   "functions": [
     {
       "file": "server/avatar-proxy.js",
@@ -55,47 +55,55 @@
       "name": "extractUser",
       "params": "raw",
       "startLine": 99,
-      "endLine": 170,
+      "endLine": 193,
       "duty": "Standardizes raw TikTok user attributes into a normalized identity object containing user ID, username, nickname, and avatar URL."
+    },
+    {
+      "file": "server/event-normalizer.js",
+      "name": "pickValid",
+      "params": "...vals",
+      "startLine": 109,
+      "endLine": 119,
+      "duty": "Executes pickValid operation within event-normalizer.js."
     },
     {
       "file": "server/event-normalizer.js",
       "name": "normalizeChat",
       "params": "raw",
-      "startLine": 175,
-      "endLine": 186,
+      "startLine": 198,
+      "endLine": 209,
       "duty": "Transforms raw chat payloads into normalized comment events, automatically extracting and attaching valid !color commands."
     },
     {
       "file": "server/event-normalizer.js",
       "name": "normalizeGift",
       "params": "raw",
-      "startLine": 195,
-      "endLine": 224,
+      "startLine": 218,
+      "endLine": 247,
       "duty": "Normalizes incoming gift payloads by calculating total coin value and categorizing gifts into one of 4 hierarchical tiers."
     },
     {
       "file": "server/event-normalizer.js",
       "name": "normalizeLike",
       "params": "raw",
-      "startLine": 229,
-      "endLine": 236,
+      "startLine": 252,
+      "endLine": 259,
       "duty": "Sanitizes like event counts and preserves cumulative total likes across the live session."
     },
     {
       "file": "server/event-normalizer.js",
       "name": "normalizeSocial",
       "params": "type, raw",
-      "startLine": 241,
-      "endLine": 246,
+      "startLine": 264,
+      "endLine": 269,
       "duty": "Normalizes social stream interactions such as follows, shares, and member joins."
     },
     {
       "file": "server/event-normalizer.js",
       "name": "normalizeTikTokEvent",
       "params": "type, raw = {}",
-      "startLine": 254,
-      "endLine": 254,
+      "startLine": 277,
+      "endLine": 277,
       "duty": "Central dispatcher that converts any incoming raw TikTok event into a unified, timestamped event schema."
     },
     {
@@ -439,71 +447,71 @@
       "name": "getOrCreateAvatarMesh",
       "params": "userData, coins = 0, context",
       "startLine": 17,
-      "endLine": 94,
+      "endLine": 101,
       "duty": "Instantiates or retrieves a 3D Slime avatar mesh on dance floor or VIP platforms."
     },
     {
       "file": "src/avatar-coordinator.js",
       "name": "sinkAndRemoveAvatar",
       "params": "userId, context",
-      "startLine": 99,
-      "endLine": 110,
+      "startLine": 106,
+      "endLine": 117,
       "duty": "Executes sinkAndRemoveAvatar operation within avatar-coordinator.js."
     },
     {
       "file": "src/avatar-coordinator.js",
       "name": "deleteAvatar",
       "params": "userId, context",
-      "startLine": 115,
-      "endLine": 156,
+      "startLine": 122,
+      "endLine": 163,
       "duty": "Manually removes an avatar from the scene, tracking registry, and leaderboard, re-evaluating VIP assignments."
     },
     {
       "file": "src/avatar-coordinator.js",
       "name": "clearAllAvatars",
       "params": "context",
-      "startLine": 161,
-      "endLine": 197,
+      "startLine": 168,
+      "endLine": 204,
       "duty": "Disposes and removes all avatars from the 3D scene and resets the leaderboard."
     },
     {
       "file": "src/avatar-coordinator.js",
       "name": "syncActiveFloorAvatars",
       "params": "avatarMeshes, uiOverlay, ws",
-      "startLine": 202,
-      "endLine": 221,
+      "startLine": 209,
+      "endLine": 228,
       "duty": "Synchronizes active 3D avatar states with UI Overlay and WebSocket stream panels."
     },
     {
       "file": "src/avatar-coordinator.js",
       "name": "_updateCyberSlime",
       "params": "mesh, data, delta, bands",
-      "startLine": 227,
-      "endLine": 240,
+      "startLine": 234,
+      "endLine": 247,
       "duty": "Updates procedural squash, stretch, and AI dance moves on modern CyberSlime controller."
     },
     {
       "file": "src/avatar-coordinator.js",
       "name": "_updateProceduralSlime",
       "params": "mesh, data, phase, isBouncing, time, delta",
-      "startLine": 245,
-      "endLine": 282,
+      "startLine": 252,
+      "endLine": 289,
       "duty": "Applies volume-preserving squash-stretch kinematics and eye blinks to procedural slime mesh."
     },
     {
       "file": "src/avatar-coordinator.js",
       "name": "_updateHumanoid",
       "params": "data, style, phase",
-      "startLine": 287,
-      "endLine": 306,
+      "startLine": 294,
+      "endLine": 313,
       "duty": "Applies procedural humanoid dance kinematics to limb and torso bones."
     },
     {
       "file": "src/avatar-coordinator.js",
       "name": "updateAvatarKinematics",
       "params": "mesh, delta, time, bpmSpeed, frenzyMultiplier, bands, camera, isFrenzy = false",
-      "startLine": 311,
-      "endLine": 343,
+      "startLine": 318,
+      "endLine": 350,
       "duty": "Coordinates per-frame animation, leap physics, smooth scaling, and camera-facing billboards for an avatar."
     },
     {
@@ -758,8 +766,8 @@
       "file": "src/club-constants.js",
       "name": "clampSpotlightToFloor",
       "params": "target = { x: 0, y: 0, z: 0 }",
-      "startLine": 144,
-      "endLine": 144,
+      "startLine": 148,
+      "endLine": 148,
       "duty": "Clamps moving spotlight target positions strictly within club dance floor boundaries."
     },
     {
@@ -863,183 +871,183 @@
       "name": "createDjBooth",
       "params": "",
       "startLine": 676,
-      "endLine": 871,
+      "endLine": 872,
       "duty": "Assembles the DJ table with spinning vinyl records, Pioneer-style mixer, and animated pink female chubby slime DJ mascot."
     },
     {
       "file": "src/club-environment.js",
       "name": "createWallsAndNeon",
       "params": "",
-      "startLine": 876,
-      "endLine": 900,
+      "startLine": 877,
+      "endLine": 901,
       "duty": "Constructs club boundary walls, bar counters, and emissive neon club signage."
     },
     {
       "file": "src/club-environment.js",
       "name": "createMovingHeads",
       "params": "",
-      "startLine": 905,
-      "endLine": 960,
+      "startLine": 906,
+      "endLine": 961,
       "duty": "Builds 4 dual-axis moving head spotlights that sweep light cones across the venue."
     },
     {
       "file": "src/club-environment.js",
       "name": "createLightBeams",
       "params": "",
-      "startLine": 967,
-      "endLine": 1002,
+      "startLine": 968,
+      "endLine": 1003,
       "duty": "Initializes overhead cylindrical geometry and additive materials for high-tier white and ultra golden light beams."
     },
     {
       "file": "src/club-environment.js",
       "name": "triggerWhiteLightBeam",
       "params": "targetX = 0, targetZ = 0, duration = 2.5",
-      "startLine": 1004,
-      "endLine": 1013,
+      "startLine": 1005,
+      "endLine": 1014,
       "duty": "Activates overhead white spotlight beam effect for high-tier donations (500–5000 coins)."
     },
     {
       "file": "src/club-environment.js",
       "name": "triggerGoldenLightBeam",
       "params": "targetX = 0, targetZ = 0, duration = 7.6",
-      "startLine": 1015,
-      "endLine": 1024,
+      "startLine": 1016,
+      "endLine": 1025,
       "duty": "Activates wide golden pillar of light beam for ultra luxury donations (>= 6000 coins)."
     },
     {
       "file": "src/club-environment.js",
       "name": "focusSpotlights",
       "params": "categoryOrTier = 1, targetPosition = null, duration = null, avatarManager = null, userId = null",
-      "startLine": 1033,
-      "endLine": 1100,
+      "startLine": 1034,
+      "endLine": 1101,
       "duty": "Dynamically focuses venue spotlights onto donating VIP avatars based on donation tier (1, 2, 6, or 8 spotlights)."
     },
     {
       "file": "src/club-environment.js",
       "name": "createLaserBeams",
       "params": "",
-      "startLine": 1105,
-      "endLine": 1123,
+      "startLine": 1106,
+      "endLine": 1124,
       "duty": "Creates 6 additive-blended laser beam geometry cones fanning out from the ceiling rig."
     },
     {
       "file": "src/club-environment.js",
       "name": "createFireworksSystem",
       "params": "",
-      "startLine": 1128,
-      "endLine": 1163,
+      "startLine": 1129,
+      "endLine": 1164,
       "duty": "Initializes a 6,000-particle single-buffer Points system for multi-tier fireworks bursts."
     },
     {
       "file": "src/club-environment.js",
       "name": "createFlyingHeartsSystem",
       "params": "",
-      "startLine": 1168,
-      "endLine": 1190,
+      "startLine": 1169,
+      "endLine": 1191,
       "duty": "Initializes a single-buffer particle system for floating 3D hearts triggered by viewer likes."
     },
     {
       "file": "src/club-environment.js",
       "name": "triggerFireworks",
       "params": "tier = 1, origin = new THREE.Vector3(0, 1.2, 0)",
-      "startLine": 1192,
-      "endLine": 1233,
+      "startLine": 1193,
+      "endLine": 1234,
       "duty": "Executes triggerFireworks operation within club-environment.js."
     },
     {
       "file": "src/club-environment.js",
       "name": "emitFlyingHearts",
       "params": "count = 10",
-      "startLine": 1235,
-      "endLine": 1258,
+      "startLine": 1236,
+      "endLine": 1259,
       "duty": "Spawns floating hearts that rise from the floor and sway upward upon viewer likes."
     },
     {
       "file": "src/club-environment.js",
       "name": "spawnHeartBubbles",
       "params": "origin = new THREE.Vector3(0, 0, 0), count = 4",
-      "startLine": 1264,
-      "endLine": 1302,
+      "startLine": 1265,
+      "endLine": 1303,
       "duty": "Executes spawnHeartBubbles operation within club-environment.js."
     },
     {
       "file": "src/club-environment.js",
       "name": "createDroppingCoinsSystem",
       "params": "",
-      "startLine": 1307,
-      "endLine": 1352,
+      "startLine": 1308,
+      "endLine": 1353,
       "duty": "Executes createDroppingCoinsSystem operation within club-environment.js."
     },
     {
       "file": "src/club-environment.js",
       "name": "spawnSingleCoinInstance",
       "params": "origin, cfg = {}",
-      "startLine": 1357,
-      "endLine": 1357,
+      "startLine": 1358,
+      "endLine": 1358,
       "duty": "Spawns a single 3D falling gold coin with randomized angular velocity and relative drop height."
     },
     {
       "file": "src/club-environment.js",
       "name": "spawnDroppingCoins",
       "params": "origin = new THREE.Vector3(0, 0, 0), count = 1, subType = 'drop_single', targetAvatar = null",
-      "startLine": 1393,
-      "endLine": 1438,
+      "startLine": 1394,
+      "endLine": 1439,
       "duty": "Spawns physics-based instanced 3D coins cascading and bouncing across the dance floor."
     },
     {
       "file": "src/club-environment.js",
       "name": "spawnOrbitingCoinRings",
       "params": "targetAvatarOrOrigin = new THREE.Vector3(0, 0, 0), coins = 20, duration = 2.0",
-      "startLine": 1445,
-      "endLine": 1552,
+      "startLine": 1446,
+      "endLine": 1553,
       "duty": "Spawns multi-level golden coin rings orbiting dynamically around the celebrating slime."
     },
     {
       "file": "src/club-environment.js",
       "name": "createShockwaveSystem",
       "params": "",
-      "startLine": 1557,
-      "endLine": 1559,
+      "startLine": 1558,
+      "endLine": 1560,
       "duty": "Executes createShockwaveSystem operation within club-environment.js."
     },
     {
       "file": "src/club-environment.js",
       "name": "triggerShockwave",
       "params": "origin = new THREE.Vector3(0, 0, 0), category = 'high'",
-      "startLine": 1561,
-      "endLine": 1603,
+      "startLine": 1562,
+      "endLine": 1604,
       "duty": "Spawns expanding circular shockwave ring on the dance floor."
     },
     {
       "file": "src/club-environment.js",
       "name": "createMythicCrownSystem",
       "params": "",
-      "startLine": 1608,
-      "endLine": 1661,
+      "startLine": 1609,
+      "endLine": 1662,
       "duty": "Executes createMythicCrownSystem operation within club-environment.js."
     },
     {
       "file": "src/club-environment.js",
       "name": "triggerMythicCrown",
       "params": "origin = new THREE.Vector3(0, 0, 0), duration = 7.6",
-      "startLine": 1663,
-      "endLine": 1672,
+      "startLine": 1664,
+      "endLine": 1673,
       "duty": "Executes triggerMythicCrown operation within club-environment.js."
     },
     {
       "file": "src/club-environment.js",
       "name": "triggerGiftProp",
       "params": "giftKey, origin = new THREE.Vector3(0, 0, 0), coins = 1",
-      "startLine": 1678,
-      "endLine": 1683,
+      "startLine": 1679,
+      "endLine": 1684,
       "duty": "Executes triggerGiftProp operation within club-environment.js."
     },
     {
       "file": "src/club-environment.js",
       "name": "update",
       "params": "delta, bands = {}, camera = null",
-      "startLine": 1685,
-      "endLine": 1685,
+      "startLine": 1686,
+      "endLine": 1686,
       "duty": "Updates vinyl rotation, DJ mascot bobbing, moving head sweeps, laser strobes, floor tile colors, and particle physics each frame."
     },
     {
@@ -1209,6 +1217,102 @@
       "startLine": 695,
       "endLine": 699,
       "duty": "Executes dispose operation within donate-overlay.js."
+    },
+    {
+      "file": "src/donation-queue.js",
+      "name": "initDonationQueue",
+      "params": "context = {}",
+      "startLine": 17,
+      "endLine": 17,
+      "duty": "Executes initDonationQueue operation within donation-queue.js."
+    },
+    {
+      "file": "src/donation-queue.js",
+      "name": "getDonationQueueLength",
+      "params": "",
+      "startLine": 24,
+      "endLine": 26,
+      "duty": "Executes getDonationQueueLength operation within donation-queue.js."
+    },
+    {
+      "file": "src/donation-queue.js",
+      "name": "isDonationProcessing",
+      "params": "",
+      "startLine": 31,
+      "endLine": 33,
+      "duty": "Executes isDonationProcessing operation within donation-queue.js."
+    },
+    {
+      "file": "src/donation-queue.js",
+      "name": "clearDonationQueue",
+      "params": "",
+      "startLine": 38,
+      "endLine": 46,
+      "duty": "Executes clearDonationQueue operation within donation-queue.js."
+    },
+    {
+      "file": "src/donation-queue.js",
+      "name": "enqueueDonation",
+      "params": "item",
+      "startLine": 53,
+      "endLine": 61,
+      "duty": "Executes enqueueDonation operation within donation-queue.js."
+    },
+    {
+      "file": "src/donation-queue.js",
+      "name": "enqueueHighTierShowcase",
+      "params": "item",
+      "startLine": 66,
+      "endLine": 76,
+      "duty": "Executes enqueueHighTierShowcase operation within donation-queue.js."
+    },
+    {
+      "file": "src/donation-queue.js",
+      "name": "processNextDonation",
+      "params": "",
+      "startLine": 81,
+      "endLine": 219,
+      "duty": "Executes processNextDonation operation within donation-queue.js."
+    },
+    {
+      "file": "src/donation-queue.js",
+      "name": "onTurnComplete",
+      "params": "",
+      "startLine": 116,
+      "endLine": 120,
+      "duty": "Executes onTurnComplete operation within donation-queue.js."
+    },
+    {
+      "file": "src/donation-queue.js",
+      "name": "startEffectsAndHold",
+      "params": "",
+      "startLine": 128,
+      "endLine": 133,
+      "duty": "Executes startEffectsAndHold operation within donation-queue.js."
+    },
+    {
+      "file": "src/donation-queue.js",
+      "name": "startEffectsAndHold",
+      "params": "",
+      "startLine": 150,
+      "endLine": 155,
+      "duty": "Executes startEffectsAndHold operation within donation-queue.js."
+    },
+    {
+      "file": "src/donation-queue.js",
+      "name": "_executeSmallEffects",
+      "params": "mesh, origin, coins, shouldUpgradeTier, newTier, context",
+      "startLine": 225,
+      "endLine": 260,
+      "duty": "Executes _executeSmallEffects operation within donation-queue.js."
+    },
+    {
+      "file": "src/donation-queue.js",
+      "name": "_executeMediumEffects",
+      "params": "mesh, origin, coins, shouldUpgradeTier, newTier, context",
+      "startLine": 266,
+      "endLine": 301,
+      "duty": "Executes _executeMediumEffects operation within donation-queue.js."
     },
     {
       "file": "src/equipment-config.js",
@@ -1558,168 +1662,168 @@
       "file": "src/live-event-handler.js",
       "name": "resolveGiftCategory",
       "params": "coins",
-      "startLine": 16,
-      "endLine": 21,
+      "startLine": 18,
+      "endLine": 23,
       "duty": "Categorizes incoming donation coin values into small, medium, high, or ultra celebration tiers."
     },
     {
       "file": "src/live-event-handler.js",
       "name": "calculateSlimeTier",
-      "params": "totalCoins",
-      "startLine": 29,
-      "endLine": 31,
+      "params": "totalCoins, isTop1 = undefined",
+      "startLine": 31,
+      "endLine": 33,
       "duty": "Calculates Slime visual evolution tier (1 to 5) based on cumulative coin contributions."
     },
     {
       "file": "src/live-event-handler.js",
       "name": "_handleChatCommands",
       "params": "comment, mesh, syncActiveFloorAvatars",
-      "startLine": 40,
-      "endLine": 117,
+      "startLine": 42,
+      "endLine": 119,
       "duty": "Parses and executes first matching chat command for slime color (!color with random fallback), dance mode (!dance 1/2/toggle), or face mode (!face smile/normal/wink with random fallback)."
     },
     {
       "file": "src/live-event-handler.js",
       "name": "_triggerUltraCelebration",
       "params": "mesh, origin, giftKey, coins, shouldUpgradeTier, newTier, context, evt = {}",
-      "startLine": 123,
-      "endLine": 123,
+      "startLine": 125,
+      "endLine": 125,
       "duty": "Triggers ultra luxury coronation celebration (>= 6000 coins) with camera tracking, fanfare, golden beam, and fireworks."
     },
     {
       "file": "src/live-event-handler.js",
       "name": "_triggerHighCelebration",
       "params": "mesh, origin, giftKey, coins, shouldUpgradeTier, newTier, context, evt = {}",
-      "startLine": 163,
-      "endLine": 163,
+      "startLine": 165,
+      "endLine": 165,
       "duty": "Triggers high-tier VIP celebration (500-5000 coins) with VIP camera framing, white beam, and shockwave."
     },
     {
       "file": "src/live-event-handler.js",
       "name": "_triggerMediumCelebration",
       "params": "mesh, origin, giftKey, coins, shouldUpgradeTier, newTier, context",
-      "startLine": 201,
-      "endLine": 233,
+      "startLine": 203,
+      "endLine": 235,
       "duty": "Triggers medium donation celebration (20-499 coins) with bass boom SFX, spotlights, and orbiting coin rings."
     },
     {
       "file": "src/live-event-handler.js",
       "name": "_triggerSmallCelebration",
       "params": "mesh, origin, giftKey, coins, shouldUpgradeTier, newTier, context",
-      "startLine": 238,
-      "endLine": 273,
+      "startLine": 240,
+      "endLine": 275,
       "duty": "Triggers small donation celebration (1-19 coins) with coin clink SFX, bounce jump, and dropping coins."
     },
     {
       "file": "src/live-event-handler.js",
       "name": "_scheduleDeferredVipSwap",
       "params": "mesh, giftCategory, sortedDonors, executeVipPromotionAndSwap",
-      "startLine": 278,
-      "endLine": 289,
+      "startLine": 280,
+      "endLine": 291,
       "duty": "Defers bilateral VIP platform promotion until celebratory visual effects conclude."
     },
     {
       "file": "src/live-event-handler.js",
       "name": "handleLikeEvent",
       "params": "evt, context",
-      "startLine": 294,
-      "endLine": 342,
+      "startLine": 296,
+      "endLine": 344,
       "duty": "Emits flying 3D hearts and charges the stream hype meter upon incoming likes."
     },
     {
       "file": "src/live-event-handler.js",
       "name": "handleChatEvent",
       "params": "evt, context",
-      "startLine": 347,
-      "endLine": 354,
+      "startLine": 349,
+      "endLine": 356,
       "duty": "Processes chat comments, routes avatar commands, and increments stream hype."
     },
     {
       "file": "src/live-event-handler.js",
       "name": "handleGiftEvent",
       "params": "evt, context",
-      "startLine": 359,
-      "endLine": 454,
+      "startLine": 361,
+      "endLine": 472,
       "duty": "Processes gift donations, updates leaderboard, triggers in-place celebrations, and schedules VIP promotion."
     },
     {
       "file": "src/live-event-handler.js",
       "name": "handleAdminCommand",
       "params": "evt, context",
-      "startLine": 459,
-      "endLine": 571,
+      "startLine": 477,
+      "endLine": 594,
       "duty": "Applies administrative controls for camera presets, distance slider, chroma key, volume, and frenzy mode."
     },
     {
       "file": "src/live-event-handler.js",
       "name": "handleRoomRanksEvent",
       "params": "evt, context",
-      "startLine": 578,
-      "endLine": 618,
+      "startLine": 601,
+      "endLine": 671,
       "duty": "Executes handleRoomRanksEvent operation within live-event-handler.js."
     },
     {
       "file": "src/live-event-handler.js",
       "name": "handleSessionResetEvent",
       "params": "evt, context",
-      "startLine": 623,
-      "endLine": 628,
+      "startLine": 676,
+      "endLine": 681,
       "duty": "Executes handleSessionResetEvent operation within live-event-handler.js."
     },
     {
       "file": "src/live-event-handler.js",
       "name": "handleMemberEvent",
       "params": "evt, context",
-      "startLine": 634,
-      "endLine": 650,
+      "startLine": 687,
+      "endLine": 703,
       "duty": "Executes handleMemberEvent operation within live-event-handler.js."
     },
     {
       "file": "src/live-event-handler.js",
       "name": "handleFanEvent",
       "params": "evt, context",
-      "startLine": 656,
-      "endLine": 673,
+      "startLine": 709,
+      "endLine": 726,
       "duty": "Executes handleFanEvent operation within live-event-handler.js."
     },
     {
       "file": "src/live-event-handler.js",
       "name": "handleFollowEvent",
       "params": "evt, context",
-      "startLine": 679,
-      "endLine": 699,
+      "startLine": 732,
+      "endLine": 752,
       "duty": "Executes handleFollowEvent operation within live-event-handler.js."
     },
     {
       "file": "src/live-event-handler.js",
       "name": "handleLiveEvent",
       "params": "evt, context",
-      "startLine": 707,
-      "endLine": 781,
+      "startLine": 760,
+      "endLine": 842,
       "duty": "Central event router delegating normalized TikTok LIVE WebSocket payloads to specific event handlers."
     },
     {
       "file": "src/main.js",
       "name": "initClientApp",
       "params": "",
-      "startLine": 92,
-      "endLine": 303,
+      "startLine": 93,
+      "endLine": 314,
       "duty": "Initializes the 3D client application, network sockets, audio, and UI overlays."
     },
     {
       "file": "src/main.js",
       "name": "onThresholdsUpdated",
       "params": "newThresholds",
-      "startLine": 199,
-      "endLine": 220,
+      "startLine": 210,
+      "endLine": 231,
       "duty": "Executes onThresholdsUpdated operation within main.js."
     },
     {
       "file": "src/main.js",
       "name": "animate",
       "params": "",
-      "startLine": 239,
-      "endLine": 300,
+      "startLine": 250,
+      "endLine": 311,
       "duty": "Main 60 FPS WebGL render loop driving audio analysis, lights, VIP scheduler, avatars, and camera."
     },
     {
@@ -1884,18 +1988,26 @@
     },
     {
       "file": "src/scene-manager.js",
+      "name": "focusDonationAvatar",
+      "params": "avatarMesh, options = {}, onArrived = null",
+      "startLine": 519,
+      "endLine": 519,
+      "duty": "Executes focusDonationAvatar operation within scene-manager.js."
+    },
+    {
+      "file": "src/scene-manager.js",
       "name": "focusOnAvatar",
       "params": "avatarMesh, options = {}",
-      "startLine": 518,
-      "endLine": 518,
+      "startLine": 596,
+      "endLine": 596,
       "duty": "Focuses camera directly onto a selected Slime avatar with dynamic height framing and gentle 360-degree orbit rotation."
     },
     {
       "file": "src/scene-manager.js",
       "name": "clearAvatarFocus",
       "params": "",
-      "startLine": 543,
-      "endLine": 556,
+      "startLine": 621,
+      "endLine": 634,
       "duty": "Clears active avatar focus tracking and smoothly restores previous camera preset."
     },
     {
@@ -1950,280 +2062,288 @@
       "file": "src/slime-model.js",
       "name": "createBasicHalfSphereGeometry",
       "params": "",
-      "startLine": 37,
-      "endLine": 48,
+      "startLine": 38,
+      "endLine": 49,
       "duty": "Generates Tier 1 classic half-sphere geometry with smooth flattened underside."
     },
     {
       "file": "src/slime-model.js",
       "name": "createChubbyMochiSlimeGeometry",
       "params": "",
-      "startLine": 55,
-      "endLine": 89,
+      "startLine": 56,
+      "endLine": 90,
       "duty": "Generates Tier 2 chubby mochi teardrop slime geometry with wider base and organic taper."
+    },
+    {
+      "file": "src/slime-model.js",
+      "name": "getClonedSlimeMaterial",
+      "params": "paletteKey",
+      "startLine": 111,
+      "endLine": 118,
+      "duty": "Executes getClonedSlimeMaterial operation within slime-model.js."
     },
     {
       "file": "src/slime-model.js",
       "name": "sharedMiniSlimeGeom",
       "params": "(",
-      "startLine": 121,
-      "endLine": 130,
+      "startLine": 131,
+      "endLine": 140,
       "duty": "Instantiates shared mini-slime companion pet mesh geometry."
     },
     {
       "file": "src/slime-model.js",
       "name": "sharedHornGeom",
       "params": "(",
-      "startLine": 145,
-      "endLine": 150,
+      "startLine": 155,
+      "endLine": 160,
       "duty": "Instantiates shared evolutionary head horn accessory geometry."
     },
     {
       "file": "src/slime-model.js",
       "name": "sharedTailSegmentGeom",
       "params": "(",
-      "startLine": 152,
-      "endLine": 157,
+      "startLine": 162,
+      "endLine": 167,
       "duty": "Instantiates shared articulated tail segment accessory geometry."
     },
     {
       "file": "src/slime-model.js",
       "name": "sharedTailTipGeom",
       "params": "(",
-      "startLine": 159,
-      "endLine": 165,
+      "startLine": 169,
+      "endLine": 175,
       "duty": "Instantiates shared tapered tail tip mesh geometry."
     },
     {
       "file": "src/slime-model.js",
       "name": "sharedSideMochiGeom",
       "params": "(",
-      "startLine": 168,
-      "endLine": 174,
+      "startLine": 178,
+      "endLine": 184,
       "duty": "Instantiates shared side cheek mochi puff geometry."
     },
     {
       "file": "src/slime-model.js",
       "name": "createBillboardSprite",
       "params": "userData = {}",
-      "startLine": 197,
-      "endLine": 197,
+      "startLine": 207,
+      "endLine": 207,
       "duty": "Builds high-contrast overhead user badge with sharp contrast (#ffffff text), VIP avatar border, level, and rank tags."
     },
     {
       "file": "src/slime-model.js",
       "name": "redraw",
       "params": "img = null",
-      "startLine": 220,
-      "endLine": 414,
+      "startLine": 231,
+      "endLine": 425,
       "duty": "Redraws billboard canvas texture with current viewer level, coins, and ranking tags."
     },
     {
       "file": "src/slime-model.js",
       "name": "drawBorderRing",
       "params": "radius, borderCfg",
-      "startLine": 283,
-      "endLine": 293,
+      "startLine": 294,
+      "endLine": 304,
       "duty": "Executes drawBorderRing operation within slime-model.js."
     },
     {
       "file": "src/slime-model.js",
       "name": "createCyberSlime",
       "params": "paletteKey = 'cyan', rawUserData = {}",
-      "startLine": 459,
-      "endLine": 459,
+      "startLine": 470,
+      "endLine": 470,
       "duty": "Instantiates complete Slime mesh hierarchy with dual-mesh body, blushing cheeks, permanent Gold halo and aura ring, 3D animated eyes, horns, and wings."
     },
     {
       "file": "src/slime-model.js",
       "name": "create3DEye",
       "params": "isLeft = true",
-      "startLine": 503,
-      "endLine": 529,
+      "startLine": 514,
+      "endLine": 540,
       "duty": "Builds 3D chibi eye mesh hierarchy with glossy cornea sphere and specular reflective highlights."
     },
     {
       "file": "src/slime-model.js",
       "name": "setLabelVisible",
       "params": "visible",
-      "startLine": 944,
-      "endLine": 946,
+      "startLine": 955,
+      "endLine": 957,
       "duty": "Toggles visibility of the 3D billboard sprite above the slime."
     },
     {
       "file": "src/slime-model.js",
       "name": "setBillboardScale",
       "params": "scale = 1.0",
-      "startLine": 947,
-      "endLine": 953,
+      "startLine": 958,
+      "endLine": 964,
       "duty": "Scales the 3D overhead billboard sprite proportionally with bottom-anchored expansion."
     },
     {
       "file": "src/slime-model.js",
       "name": "setTikTokLevel",
       "params": "lvl",
-      "startLine": 954,
-      "endLine": 960,
+      "startLine": 965,
+      "endLine": 971,
       "duty": "Sets the TikTok badge level on the billboard."
     },
     {
       "file": "src/slime-model.js",
       "name": "setDonateRank",
       "params": "rank",
-      "startLine": 961,
-      "endLine": 967,
+      "startLine": 972,
+      "endLine": 978,
       "duty": "Sets the donor rank title (e.g., TOP 1) on the billboard."
     },
     {
       "file": "src/slime-model.js",
       "name": "setFanStatus",
       "params": "isFan = true",
-      "startLine": 968,
-      "endLine": 974,
+      "startLine": 979,
+      "endLine": 985,
       "duty": "Executes setFanStatus operation within slime-model.js."
     },
     {
       "file": "src/slime-model.js",
       "name": "setFollowerStatus",
       "params": "isFollower = true",
-      "startLine": 975,
-      "endLine": 981,
+      "startLine": 986,
+      "endLine": 992,
       "duty": "Executes setFollowerStatus operation within slime-model.js."
     },
     {
       "file": "src/slime-model.js",
       "name": "updateBillboard",
       "params": "coinsToAdd = 0, newLevel = null, newRank = null",
-      "startLine": 982,
-      "endLine": 1008,
+      "startLine": 993,
+      "endLine": 1019,
       "duty": "Redraws the 2D canvas texture for the billboard sprite with updated coins, level, and rank."
     },
     {
       "file": "src/slime-model.js",
       "name": "setFootRings",
       "params": "level = 0",
-      "startLine": 1057,
-      "endLine": 1065,
+      "startLine": 1068,
+      "endLine": 1076,
       "duty": "Executes setFootRings operation within slime-model.js."
     },
     {
       "file": "src/slime-model.js",
       "name": "setBodyAura",
       "params": "typeOrBool = false",
-      "startLine": 1067,
-      "endLine": 1076,
+      "startLine": 1078,
+      "endLine": 1087,
       "duty": "Executes setBodyAura operation within slime-model.js."
     },
     {
       "file": "src/slime-model.js",
       "name": "setPalette",
       "params": "newKey",
-      "startLine": 1078,
-      "endLine": 1113,
+      "startLine": 1089,
+      "endLine": 1127,
       "duty": "Switches avatar body palette among cyan, pink, and lime while preserving permanent Gold halo and foot ring."
     },
     {
       "file": "src/slime-model.js",
       "name": "setGender",
       "params": "gender",
-      "startLine": 1115,
-      "endLine": 1120,
+      "startLine": 1129,
+      "endLine": 1134,
       "duty": "Sets slime gender presentation accessories (e.g., cute bow for female slimes)."
     },
     {
       "file": "src/slime-model.js",
       "name": "setTier",
       "params": "tierNum",
-      "startLine": 1130,
-      "endLine": 1190,
+      "startLine": 1144,
+      "endLine": 1204,
       "duty": "Updates slime evolutionary visual tier (1 to 5) with corresponding horns, tail, wings, and mini-slimes."
     },
     {
       "file": "src/slime-model.js",
       "name": "setExpression",
       "params": "exp",
-      "startLine": 1192,
-      "endLine": 1204,
+      "startLine": 1206,
+      "endLine": 1218,
       "duty": "Updates 3D chibi eye scale and mouth expression (smile, normal, wink, happy, squint)."
     },
     {
       "file": "src/slime-model.js",
       "name": "setDanceMode",
       "params": "mode = null",
-      "startLine": 1206,
-      "endLine": 1221,
+      "startLine": 1220,
+      "endLine": 1235,
       "duty": "Sets or toggles CyberSlime dance mode (1: continuous body spin around Z-axis while keeping billboard upright, 2: default rhythmic bounce)."
     },
     {
       "file": "src/slime-model.js",
       "name": "setPaused",
       "params": "paused",
-      "startLine": 1223,
-      "endLine": 1237,
+      "startLine": 1237,
+      "endLine": 1251,
       "duty": "Pauses or resumes slime breathing/dancing animations and resets expression state."
     },
     {
       "file": "src/slime-model.js",
       "name": "triggerDanceMove",
       "params": "moveType",
-      "startLine": 1245,
-      "endLine": 1278,
+      "startLine": 1259,
+      "endLine": 1292,
       "duty": "Dispatches tier-differentiated dance moves (spin for Tier 3+, flip for Tier 4-5)."
     },
     {
       "file": "src/slime-model.js",
       "name": "triggerLikeJump",
       "params": "",
-      "startLine": 1280,
-      "endLine": 1288,
+      "startLine": 1294,
+      "endLine": 1302,
       "duty": "Triggers single celebratory jump and smile expression on like event using central LIKE_JUMP_CONFIG."
     },
     {
       "file": "src/slime-model.js",
       "name": "triggerSink",
       "params": "onComplete = null",
-      "startLine": 1290,
-      "endLine": 1299,
+      "startLine": 1304,
+      "endLine": 1313,
       "duty": "Executes triggerSink operation within slime-model.js."
     },
     {
       "file": "src/slime-model.js",
       "name": "shuffleDanceMove",
       "params": "",
-      "startLine": 1301,
-      "endLine": 1319,
+      "startLine": 1315,
+      "endLine": 1333,
       "duty": "Randomly triggers tier-appropriate flourish actions (spin or flip) with randomized directions and expressions."
     },
     {
       "file": "src/slime-model.js",
       "name": "setAutoDanceRoutine",
       "params": "enabled",
-      "startLine": 1321,
-      "endLine": 1327,
+      "startLine": 1335,
+      "endLine": 1341,
       "duty": "Toggles automated periodic dance routines for autonomous slime behavior."
     },
     {
       "file": "src/slime-model.js",
       "name": "triggerDonateAnimation",
       "params": "typeOrConfig = 'small', upgradeTier = false, targetTier = 1, coins = 1",
-      "startLine": 1345,
-      "endLine": 1481,
+      "startLine": 1359,
+      "endLine": 1495,
       "duty": "Triggers categorized donation celebration animation reading jump counts, durations and apex heights from DONATE_CELEBRATION_CONFIG."
     },
     {
       "file": "src/slime-model.js",
       "name": "triggerLionCelebration",
       "params": "upgradeTier = false",
-      "startLine": 1483,
-      "endLine": 1492,
+      "startLine": 1497,
+      "endLine": 1506,
       "duty": "Initiates ultra luxury celebration coronation sequence with golden beam and restored open eyes upon completion."
     },
     {
       "file": "src/slime-model.js",
       "name": "update",
       "params": "deltaTime, audioKick = 0",
-      "startLine": 1494,
-      "endLine": 2055,
+      "startLine": 1508,
+      "endLine": 2073,
       "duty": "Per-frame animation loop evaluating physics-driven slime dancing, breathing, audio kick bouncing, and eyelids."
     },
     {
@@ -2332,130 +2452,146 @@
     },
     {
       "file": "src/ui-overlay.js",
-      "name": "addHype",
-      "params": "points = 1",
+      "name": "loadInitialMaxHype",
+      "params": "",
       "startLine": 588,
       "endLine": 599,
+      "duty": "Executes loadInitialMaxHype operation within ui-overlay.js."
+    },
+    {
+      "file": "src/ui-overlay.js",
+      "name": "setMaxHype",
+      "params": "val",
+      "startLine": 601,
+      "endLine": 618,
+      "duty": "Executes setMaxHype operation within ui-overlay.js."
+    },
+    {
+      "file": "src/ui-overlay.js",
+      "name": "addHype",
+      "params": "points = 1",
+      "startLine": 620,
+      "endLine": 631,
       "duty": "Increments stream Hype Meter points and triggers 15-second Frenzy Mode when the meter reaches 100%."
     },
     {
       "file": "src/ui-overlay.js",
       "name": "triggerFrenzy",
       "params": "duration = 15",
-      "startLine": 601,
-      "endLine": 603,
+      "startLine": 633,
+      "endLine": 635,
       "duty": "Alias method triggering 15-second Frenzy party mode with air horn SFX and full-room fireworks."
     },
     {
       "file": "src/ui-overlay.js",
       "name": "triggerFrenzyMode",
       "params": "",
-      "startLine": 605,
-      "endLine": 625,
+      "startLine": 637,
+      "endLine": 657,
       "duty": "Activates the 15-second club Frenzy party mode with air horn SFX and full-room fireworks."
     },
     {
       "file": "src/ui-overlay.js",
       "name": "showGiftAlert",
       "params": "giftEvent",
-      "startLine": 627,
-      "endLine": 688,
+      "startLine": 659,
+      "endLine": 720,
       "duty": "Displays an animated glassmorphic gift alert card with donor avatar, name, and gift tier icon."
     },
     {
       "file": "src/ui-overlay.js",
       "name": "updateLeaderboard",
       "params": "donors = []",
-      "startLine": 690,
-      "endLine": 711,
+      "startLine": 722,
+      "endLine": 743,
       "duty": "Updates the Top 3 Donors leaderboard widget with rank badges and accumulated coin totals."
     },
     {
       "file": "src/vip-lounge-manager.js",
       "name": "triggerLeapAnimation",
       "params": "mesh, targetPos, targetRotY, onComplete = null",
-      "startLine": 13,
-      "endLine": 34,
+      "startLine": 14,
+      "endLine": 35,
       "duty": "Animates an avatar along a parabolic leap arc (+2.4m apex) with cubic ease-in-out curve between dance floor and VIP lounge platforms."
     },
     {
       "file": "src/vip-lounge-manager.js",
       "name": "updateLeapAnimation",
       "params": "mesh, delta",
-      "startLine": 42,
-      "endLine": 71,
+      "startLine": 43,
+      "endLine": 72,
       "duty": "Per-frame physics and interpolation driver advancing leap progress and triggering landing callbacks."
     },
     {
       "file": "src/vip-lounge-manager.js",
       "name": "constructor",
       "params": "",
-      "startLine": 79,
-      "endLine": 82,
+      "startLine": 80,
+      "endLine": 83,
       "duty": "Initializes Top 1 and Top 2 VIP lounge occupant state tracking."
     },
     {
       "file": "src/vip-lounge-manager.js",
       "name": "getCurrentTop1",
       "params": "",
-      "startLine": 84,
-      "endLine": 86,
+      "startLine": 85,
+      "endLine": 87,
       "duty": "Returns user ID of the current Top 1 Imperial Throne occupant."
     },
     {
       "file": "src/vip-lounge-manager.js",
       "name": "getCurrentTop2",
       "params": "",
-      "startLine": 88,
-      "endLine": 90,
+      "startLine": 89,
+      "endLine": 91,
       "duty": "Returns user ID of the current Top 2 Platinum Lounge occupant."
     },
     {
       "file": "src/vip-lounge-manager.js",
       "name": "clear",
       "params": "",
-      "startLine": 92,
-      "endLine": 95,
+      "startLine": 93,
+      "endLine": 96,
       "duty": "Resets both Top 1 and Top 2 VIP platform occupant assignments."
     },
     {
       "file": "src/vip-lounge-manager.js",
       "name": "removeUser",
       "params": "userId",
-      "startLine": 97,
-      "endLine": 101,
+      "startLine": 98,
+      "endLine": 102,
       "duty": "Vacates assigned VIP platform dais if occupied by the specified user."
     },
     {
       "file": "src/vip-lounge-manager.js",
       "name": "_promoteToTop1",
-      "params": "mesh, userId",
-      "startLine": 106,
-      "endLine": 115,
+      "params": "mesh, userId, userCoinsMap = null",
+      "startLine": 107,
+      "endLine": 125,
       "duty": "Elevates and leaps new Top 1 donor onto the Left Imperial Dais (y=0.48m) with gold crown and billboard tag."
     },
     {
       "file": "src/vip-lounge-manager.js",
       "name": "_promoteToTop2",
-      "params": "mesh, userId",
-      "startLine": 120,
-      "endLine": 129,
+      "params": "mesh, userId, userCoinsMap = null",
+      "startLine": 130,
+      "endLine": 148,
       "duty": "Elevates and leaps new Top 2 donor onto the Right Platinum Dais (y=0.38m) with silver billboard tag."
     },
     {
       "file": "src/vip-lounge-manager.js",
       "name": "_demoteDisplacedAvatar",
       "params": "mesh, prevUserId, returnSlot, userCoinsMap",
-      "startLine": 134,
-      "endLine": 158,
+      "startLine": 153,
+      "endLine": 183,
       "duty": "Returns displaced VIP occupant back to a vacant dance floor slot, resetting scales and VIP accessories."
     },
     {
       "file": "src/vip-lounge-manager.js",
       "name": "executeVipPromotionAndSwap",
       "params": "{ sortedDonors, avatarMeshes, userCoinsMap, floorSlots }",
-      "startLine": 169,
-      "endLine": 169,
+      "startLine": 194,
+      "endLine": 194,
       "duty": "Coordinates bilateral slot promotion and swapping between top donors and displaced avatars returning to the floor."
     },
     {
@@ -2583,23 +2719,23 @@
       "name": "processNextHighTier",
       "params": "",
       "startLine": 67,
-      "endLine": 79,
+      "endLine": 82,
       "duty": "Dequeues and triggers the next cinematic showcase in sequence, maintaining queue state."
     },
     {
       "file": "preview/cinematic-showcase.js",
       "name": "runCinematic2DShowcase",
       "params": "item, onFinished",
-      "startLine": 81,
-      "endLine": 350,
+      "startLine": 84,
+      "endLine": 353,
       "duty": "Orchestrates the fullscreen cinematic overlay, backdrop blur, SVG ornaments, 2D particles, foreground 3D mascot, chibi badge, and safe termination."
     },
     {
       "file": "preview/cinematic-showcase.js",
       "name": "cleanupShowcase",
       "params": "",
-      "startLine": 279,
-      "endLine": 323,
+      "startLine": 282,
+      "endLine": 326,
       "duty": "Safely closes the cinematic overlay, unpauses background avatars, disposes active foreground props, and invokes completion callbacks."
     },
     {
@@ -2966,512 +3102,576 @@
       "file": "preview/slime-model.js",
       "name": "createBasicHalfSphereGeometry",
       "params": "",
-      "startLine": 36,
-      "endLine": 47,
+      "startLine": 37,
+      "endLine": 48,
       "duty": "Generates Tier 1 classic half-sphere geometry with smooth flattened underside."
     },
     {
       "file": "preview/slime-model.js",
       "name": "createChubbyMochiSlimeGeometry",
       "params": "",
-      "startLine": 53,
-      "endLine": 87,
+      "startLine": 54,
+      "endLine": 88,
       "duty": "Generates Tier 2 chubby mochi teardrop slime geometry with wider base and organic taper."
+    },
+    {
+      "file": "preview/slime-model.js",
+      "name": "getClonedSlimeMaterial",
+      "params": "paletteKey",
+      "startLine": 108,
+      "endLine": 115,
+      "duty": "Executes getClonedSlimeMaterial operation within slime-model.js."
     },
     {
       "file": "preview/slime-model.js",
       "name": "sharedMiniSlimeGeom",
       "params": "(",
-      "startLine": 116,
-      "endLine": 125,
+      "startLine": 128,
+      "endLine": 137,
       "duty": "Instantiates shared mini-slime companion pet mesh geometry."
     },
     {
       "file": "preview/slime-model.js",
       "name": "sharedHornGeom",
       "params": "(",
-      "startLine": 140,
-      "endLine": 144,
+      "startLine": 152,
+      "endLine": 156,
       "duty": "Instantiates shared evolutionary head horn accessory geometry."
     },
     {
       "file": "preview/slime-model.js",
       "name": "sharedTailSegmentGeom",
       "params": "(",
-      "startLine": 146,
-      "endLine": 150,
+      "startLine": 158,
+      "endLine": 162,
       "duty": "Instantiates shared articulated tail segment accessory geometry."
     },
     {
       "file": "preview/slime-model.js",
       "name": "sharedTailTipGeom",
       "params": "(",
-      "startLine": 152,
-      "endLine": 157,
+      "startLine": 164,
+      "endLine": 169,
       "duty": "Instantiates shared tapered tail tip mesh geometry."
     },
     {
       "file": "preview/slime-model.js",
       "name": "sharedSideMochiGeom",
       "params": "(",
-      "startLine": 160,
-      "endLine": 165,
+      "startLine": 172,
+      "endLine": 177,
       "duty": "Instantiates shared side cheek mochi puff geometry."
     },
     {
       "file": "preview/slime-model.js",
       "name": "createBillboardSprite",
       "params": "userData = {}",
-      "startLine": 188,
-      "endLine": 188,
+      "startLine": 200,
+      "endLine": 200,
       "duty": "Builds high-contrast overhead user badge with sharp contrast (#ffffff text), VIP avatar border, level, and rank tags."
     },
     {
       "file": "preview/slime-model.js",
       "name": "redraw",
       "params": "img = null",
-      "startLine": 211,
-      "endLine": 390,
+      "startLine": 224,
+      "endLine": 404,
       "duty": "Redraws billboard canvas texture with current viewer level, coins, and ranking tags."
     },
     {
       "file": "preview/slime-model.js",
       "name": "drawBorderRing",
       "params": "radius, borderCfg",
-      "startLine": 274,
-      "endLine": 284,
+      "startLine": 288,
+      "endLine": 298,
       "duty": "Executes drawBorderRing operation within slime-model.js."
     },
     {
       "file": "preview/slime-model.js",
       "name": "createCyberSlime",
       "params": "paletteKey = 'cyan', rawUserData = {}",
-      "startLine": 435,
-      "endLine": 435,
+      "startLine": 449,
+      "endLine": 449,
       "duty": "Instantiates complete Slime mesh hierarchy with dual-mesh body, blushing cheeks, permanent Gold halo and aura ring, 3D animated eyes, horns, and wings."
     },
     {
       "file": "preview/slime-model.js",
       "name": "create3DEye",
       "params": "isLeft = true",
-      "startLine": 478,
-      "endLine": 504,
+      "startLine": 492,
+      "endLine": 518,
       "duty": "Builds 3D chibi eye mesh hierarchy with glossy cornea sphere and specular reflective highlights."
     },
     {
       "file": "preview/slime-model.js",
       "name": "setLabelVisible",
       "params": "visible",
-      "startLine": 919,
-      "endLine": 921,
+      "startLine": 933,
+      "endLine": 935,
       "duty": "Toggles visibility of the 3D billboard sprite above the slime."
     },
     {
       "file": "preview/slime-model.js",
       "name": "setBillboardScale",
       "params": "scale = 1.0",
-      "startLine": 922,
-      "endLine": 928,
+      "startLine": 936,
+      "endLine": 942,
       "duty": "Scales the 3D overhead billboard sprite proportionally with bottom-anchored expansion."
     },
     {
       "file": "preview/slime-model.js",
       "name": "setTikTokLevel",
       "params": "lvl",
-      "startLine": 929,
-      "endLine": 935,
+      "startLine": 943,
+      "endLine": 949,
       "duty": "Sets the TikTok badge level on the billboard."
     },
     {
       "file": "preview/slime-model.js",
       "name": "setDonateRank",
       "params": "rank",
-      "startLine": 936,
-      "endLine": 942,
+      "startLine": 950,
+      "endLine": 956,
       "duty": "Sets the donor rank title (e.g., TOP 1) on the billboard."
     },
     {
       "file": "preview/slime-model.js",
       "name": "setFanStatus",
       "params": "isFan = true",
-      "startLine": 943,
-      "endLine": 949,
+      "startLine": 957,
+      "endLine": 963,
       "duty": "Executes setFanStatus operation within slime-model.js."
     },
     {
       "file": "preview/slime-model.js",
       "name": "setFollowerStatus",
       "params": "isFollower = true",
-      "startLine": 950,
-      "endLine": 956,
+      "startLine": 964,
+      "endLine": 970,
       "duty": "Executes setFollowerStatus operation within slime-model.js."
     },
     {
       "file": "preview/slime-model.js",
       "name": "updateBillboard",
       "params": "coinsToAdd = 0, newLevel = null, newRank = null",
-      "startLine": 957,
-      "endLine": 983,
+      "startLine": 971,
+      "endLine": 997,
       "duty": "Redraws the 2D canvas texture for the billboard sprite with updated coins, level, and rank."
     },
     {
       "file": "preview/slime-model.js",
       "name": "setFootRings",
       "params": "level = 0",
-      "startLine": 1030,
-      "endLine": 1038,
+      "startLine": 1044,
+      "endLine": 1052,
       "duty": "Executes setFootRings operation within slime-model.js."
     },
     {
       "file": "preview/slime-model.js",
       "name": "setBodyAura",
       "params": "typeOrBool = false",
-      "startLine": 1040,
-      "endLine": 1049,
+      "startLine": 1054,
+      "endLine": 1063,
       "duty": "Executes setBodyAura operation within slime-model.js."
     },
     {
       "file": "preview/slime-model.js",
       "name": "setPalette",
       "params": "newKey",
-      "startLine": 1051,
-      "endLine": 1086,
+      "startLine": 1065,
+      "endLine": 1103,
       "duty": "Switches avatar body palette among cyan, pink, and lime while preserving permanent Gold halo and foot ring."
     },
     {
       "file": "preview/slime-model.js",
       "name": "setGender",
       "params": "gender",
-      "startLine": 1088,
-      "endLine": 1093,
+      "startLine": 1105,
+      "endLine": 1110,
       "duty": "Sets slime gender presentation accessories (e.g., cute bow for female slimes)."
     },
     {
       "file": "preview/slime-model.js",
       "name": "setTier",
       "params": "tierNum",
-      "startLine": 1103,
-      "endLine": 1163,
+      "startLine": 1120,
+      "endLine": 1180,
       "duty": "Updates slime evolutionary visual tier (1 to 5) with corresponding horns, tail, wings, and mini-slimes."
     },
     {
       "file": "preview/slime-model.js",
       "name": "setExpression",
       "params": "exp",
-      "startLine": 1165,
-      "endLine": 1177,
+      "startLine": 1182,
+      "endLine": 1194,
       "duty": "Updates eyelid and facial expressions (normal, happy, angry, proud, squint)."
     },
     {
       "file": "preview/slime-model.js",
       "name": "setPaused",
       "params": "paused",
-      "startLine": 1179,
-      "endLine": 1193,
+      "startLine": 1196,
+      "endLine": 1210,
       "duty": "Pauses or resumes slime breathing/dancing animations and resets expression state."
     },
     {
       "file": "preview/slime-model.js",
       "name": "triggerDanceMove",
       "params": "moveType",
-      "startLine": 1201,
-      "endLine": 1234,
+      "startLine": 1218,
+      "endLine": 1251,
       "duty": "Dispatches tier-differentiated dance moves (spin for Tier 3+, flip for Tier 4-5)."
     },
     {
       "file": "preview/slime-model.js",
       "name": "triggerLikeJump",
       "params": "",
-      "startLine": 1236,
-      "endLine": 1244,
+      "startLine": 1253,
+      "endLine": 1261,
       "duty": "Executes triggerLikeJump operation within slime-model.js."
     },
     {
       "file": "preview/slime-model.js",
       "name": "shuffleDanceMove",
       "params": "",
-      "startLine": 1246,
-      "endLine": 1264,
+      "startLine": 1263,
+      "endLine": 1281,
       "duty": "Randomly triggers tier-appropriate flourish actions (spin or flip) with randomized directions and expressions."
     },
     {
       "file": "preview/slime-model.js",
       "name": "setAutoDanceRoutine",
       "params": "enabled",
-      "startLine": 1266,
-      "endLine": 1272,
+      "startLine": 1283,
+      "endLine": 1289,
       "duty": "Toggles automated periodic dance routines for autonomous slime behavior."
     },
     {
       "file": "preview/slime-model.js",
       "name": "triggerDonateAnimation",
       "params": "typeOrConfig = 'small', upgradeTier = false, targetTier = 1, coins = 1",
-      "startLine": 1282,
-      "endLine": 1358,
+      "startLine": 1299,
+      "endLine": 1375,
       "duty": "Triggers categorized donation animations (small 1s jump; medium/high 1s jump + 0.5s spin), separating tier upgrades from celebration FX."
     },
     {
       "file": "preview/slime-model.js",
       "name": "triggerLionCelebration",
       "params": "upgradeTier = false",
-      "startLine": 1360,
-      "endLine": 1369,
+      "startLine": 1377,
+      "endLine": 1386,
       "duty": "Initiates ultra luxury celebration coronation sequence with golden beam and restored open eyes upon completion."
     },
     {
       "file": "preview/slime-model.js",
       "name": "update",
       "params": "deltaTime, audioKick = 0",
-      "startLine": 1371,
-      "endLine": 1913,
+      "startLine": 1388,
+      "endLine": 1930,
       "duty": "Per-frame animation loop evaluating physics-driven slime dancing, breathing, audio kick bouncing, and eyelids."
     },
     {
       "file": "preview/slime-preview.js",
       "name": "triggerWhiteLightBeam",
       "params": "targetX = 0, targetZ = 0, duration = 1.5",
-      "startLine": 116,
-      "endLine": 123,
+      "startLine": 117,
+      "endLine": 124,
       "duty": "Activates vertical white light spotlight beam at designated ground coordinates."
     },
     {
       "file": "preview/slime-preview.js",
       "name": "triggerFireworks",
       "params": "originY = 4.2, originX = 0, originZ = 0, customColor = 0xffe066",
-      "startLine": 149,
-      "endLine": 166,
+      "startLine": 150,
+      "endLine": 167,
       "duty": "Spawns celebratory particle fireworks burst at designated 3D coordinates."
     },
     {
       "file": "preview/slime-preview.js",
       "name": "getViewerProfile",
       "params": "idx",
-      "startLine": 197,
-      "endLine": 210,
+      "startLine": 198,
+      "endLine": 211,
       "duty": "Generates deterministic test viewer profile data for demo avatars."
     },
     {
       "file": "preview/slime-preview.js",
       "name": "createAvatarInstance",
       "params": "paletteKey, index = 0",
-      "startLine": 212,
-      "endLine": 234,
+      "startLine": 213,
+      "endLine": 235,
       "duty": "Instantiates and positions a new cyber slime avatar in the preview scene."
     },
     {
       "file": "preview/slime-preview.js",
       "name": "clearShowcaseLabels",
       "params": "",
-      "startLine": 239,
-      "endLine": 247,
+      "startLine": 240,
+      "endLine": 248,
       "duty": "Cleans up floating 3D labels generated during the multi-tier showcase."
     },
     {
       "file": "preview/slime-preview.js",
       "name": "createTierLabelSprite",
       "params": "title, desc, colorHex",
-      "startLine": 249,
-      "endLine": 282,
+      "startLine": 250,
+      "endLine": 283,
       "duty": "Builds floating 3D billboard labels with tier descriptions for showcase display."
     },
     {
       "file": "preview/slime-preview.js",
       "name": "showcaseAllTiers",
       "params": "",
-      "startLine": 284,
-      "endLine": 327,
+      "startLine": 285,
+      "endLine": 328,
       "duty": "Displays 5 evolutionary slime tiers in a showcase row with descriptive 3D billboard labels."
     },
     {
       "file": "preview/slime-preview.js",
       "name": "repositionGrid",
       "params": "",
-      "startLine": 329,
-      "endLine": 353,
+      "startLine": 330,
+      "endLine": 354,
       "duty": "Arranges active preview avatars into a balanced circular or grid formation."
     },
     {
       "file": "preview/slime-preview.js",
       "name": "updateMetricHUD",
       "params": "",
-      "startLine": 355,
-      "endLine": 360,
+      "startLine": 356,
+      "endLine": 361,
       "duty": "Updates the HUD FPS, draw calls, and vertex count statistics display."
     },
     {
       "file": "preview/slime-preview.js",
       "name": "addAvatars",
       "params": "countToAdd",
-      "startLine": 362,
-      "endLine": 371,
+      "startLine": 363,
+      "endLine": 372,
       "duty": "Increments avatar count and positions new slimes on stage."
     },
     {
       "file": "preview/slime-preview.js",
       "name": "removeAvatars",
       "params": "countToRemove",
-      "startLine": 373,
-      "endLine": 381,
+      "startLine": 374,
+      "endLine": 382,
       "duty": "Decrements avatar count and safely disposes of removed slime meshes."
     },
     {
       "file": "preview/slime-preview.js",
       "name": "setAvatarCount",
       "params": "targetCount",
-      "startLine": 383,
-      "endLine": 390,
+      "startLine": 384,
+      "endLine": 391,
       "duty": "Dynamically scales the number of preview avatars on stage (1 to 50)."
     },
     {
       "file": "preview/slime-preview.js",
       "name": "triggerLionCelebrationEvent",
       "params": "targetAvatar = null, upgradeTier = false",
-      "startLine": 402,
-      "endLine": 408,
+      "startLine": 403,
+      "endLine": 409,
       "duty": "Coordinates stage-wide ultra donation sequence respecting clean cinematic foreground mascot presentation."
     },
     {
       "file": "preview/slime-preview.js",
       "name": "togglePause",
       "params": "",
-      "startLine": 448,
-      "endLine": 463,
+      "startLine": 449,
+      "endLine": 464,
       "duty": "Toggles global animation pause for inspection and snapshotting."
     },
     {
       "file": "preview/slime-preview.js",
       "name": "setHeroLevel",
       "params": "levelNum",
-      "startLine": 498,
-      "endLine": 502,
+      "startLine": 499,
+      "endLine": 503,
       "duty": "Sets the hero avatar billboard TikTok level in the preview sandbox."
     },
     {
       "file": "preview/slime-preview.js",
       "name": "setHeroRank",
       "params": "rankStr",
-      "startLine": 504,
-      "endLine": 508,
+      "startLine": 505,
+      "endLine": 509,
       "duty": "Sets the hero avatar billboard donor ranking in the preview sandbox."
     },
     {
       "file": "preview/slime-preview.js",
       "name": "simulateCrowdRanks",
       "params": "",
-      "startLine": 510,
-      "endLine": 539,
+      "startLine": 511,
+      "endLine": 540,
       "duty": "Simulates random TikTok levels and donor rankings across the avatar crowd."
     },
     {
       "file": "preview/slime-preview.js",
       "name": "clearAllCrowdRanks",
       "params": "",
-      "startLine": 541,
-      "endLine": 548,
+      "startLine": 542,
+      "endLine": 549,
       "duty": "Resets all crowd avatar billboard levels and rankings."
     },
     {
       "file": "preview/slime-preview.js",
       "name": "triggerCameraShake",
       "params": "intensity = 0.25, duration = 0.7",
-      "startLine": 634,
-      "endLine": 650,
+      "startLine": 635,
+      "endLine": 651,
       "duty": "Adds procedural camera shake impact during high-tier and ultra donations."
     },
     {
       "file": "preview/slime-preview.js",
       "name": "showGiftToast",
       "params": "username, gift",
-      "startLine": 653,
-      "endLine": 679,
+      "startLine": 654,
+      "endLine": 680,
       "duty": "Displays an animated HTML toast notification with gift icon and coin value."
     },
     {
       "file": "preview/slime-preview.js",
       "name": "spawnDroppingCoins",
       "params": "origin, count = 1, subType = 'drop_single'",
-      "startLine": 723,
-      "endLine": 762,
+      "startLine": 724,
+      "endLine": 763,
       "duty": "Spawns physics-based instanced 3D coins cascading and bouncing across the dance floor."
     },
     {
       "file": "preview/slime-preview.js",
       "name": "spawnSingleCoinInstance",
       "params": "origin, cfg",
-      "startLine": 764,
-      "endLine": 787,
+      "startLine": 765,
+      "endLine": 788,
       "duty": "Spawns a single 3D falling gold coin with randomized angular velocity."
     },
     {
       "file": "preview/slime-preview.js",
       "name": "getSlimeEffectiveRadius",
       "params": "targetAvatarOrOrigin",
-      "startLine": 796,
-      "endLine": 806,
+      "startLine": 797,
+      "endLine": 807,
       "duty": "Calculates boundary radius of slime avatar to avoid mesh clipping when spawning coin orbits."
     },
     {
       "file": "preview/slime-preview.js",
       "name": "spawnOrbitingCoinRings",
       "params": "targetAvatarOrOrigin, coins = 20, duration = 2.0",
-      "startLine": 808,
-      "endLine": 908,
+      "startLine": 809,
+      "endLine": 909,
       "duty": "Spawns multi-level golden coin rings orbiting dynamically around the celebrating slime."
     },
     {
       "file": "preview/slime-preview.js",
       "name": "triggerFloorShockwave",
       "params": "origin, maxScale = 4.0, duration = 1.2",
-      "startLine": 910,
-      "endLine": 926,
+      "startLine": 911,
+      "endLine": 927,
       "duty": "Spawns expanding circular shockwave ring on the dance floor."
+    },
+    {
+      "file": "preview/slime-preview.js",
+      "name": "focusPreviewDonationAvatar",
+      "params": "avatar, options = {}, onArrived = null",
+      "startLine": 969,
+      "endLine": 969,
+      "duty": "Executes focusPreviewDonationAvatar operation within slime-preview.js."
+    },
+    {
+      "file": "preview/slime-preview.js",
+      "name": "revertPreviewDonationCamera",
+      "params": "",
+      "startLine": 1023,
+      "endLine": 1041,
+      "duty": "Executes revertPreviewDonationCamera operation within slime-preview.js."
+    },
+    {
+      "file": "preview/slime-preview.js",
+      "name": "enqueuePreviewDonation",
+      "params": "item",
+      "startLine": 1046,
+      "endLine": 1054,
+      "duty": "Executes enqueuePreviewDonation operation within slime-preview.js."
+    },
+    {
+      "file": "preview/slime-preview.js",
+      "name": "processNextPreviewDonation",
+      "params": "",
+      "startLine": 1056,
+      "endLine": 1175,
+      "duty": "Executes processNextPreviewDonation operation within slime-preview.js."
+    },
+    {
+      "file": "preview/slime-preview.js",
+      "name": "onTurnComplete",
+      "params": "",
+      "startLine": 1071,
+      "endLine": 1075,
+      "duty": "Executes onTurnComplete operation within slime-preview.js."
+    },
+    {
+      "file": "preview/slime-preview.js",
+      "name": "startEffectsAndHold",
+      "params": "",
+      "startLine": 1079,
+      "endLine": 1118,
+      "duty": "Executes startEffectsAndHold operation within slime-preview.js."
+    },
+    {
+      "file": "preview/slime-preview.js",
+      "name": "startEffectsAndHold",
+      "params": "",
+      "startLine": 1125,
+      "endLine": 1159,
+      "duty": "Executes startEffectsAndHold operation within slime-preview.js."
     },
     {
       "file": "preview/slime-preview.js",
       "name": "triggerDonation",
       "params": "giftKey, targetAvatar = null, forceTierUp = null",
-      "startLine": 959,
-      "endLine": 1074,
+      "startLine": 1177,
+      "endLine": 1223,
       "duty": "Dispatches categorized donation events (small, medium, high, ultra) routing to cinematic showcase or in-place effects."
     },
     {
       "file": "preview/slime-preview.js",
       "name": "bindDonateButtons",
       "params": "",
-      "startLine": 1077,
-      "endLine": 1084,
+      "startLine": 1226,
+      "endLine": 1233,
       "duty": "Binds DOM click listeners to all donation trigger buttons in the preview HUD."
     },
     {
       "file": "preview/slime-preview.js",
       "name": "toggleDonateStorm",
       "params": "",
-      "startLine": 1104,
-      "endLine": 1139,
+      "startLine": 1253,
+      "endLine": 1288,
       "duty": "Toggles simulated automated donation stream for stress and visual testing."
     },
     {
       "file": "preview/slime-preview.js",
       "name": "createHeartBubbleTexture",
       "params": "",
-      "startLine": 1226,
-      "endLine": 1265,
+      "startLine": 1375,
+      "endLine": 1414,
       "duty": "Executes createHeartBubbleTexture operation within slime-preview.js."
     },
     {
       "file": "preview/slime-preview.js",
       "name": "triggerHeartBubbles",
       "params": "pos, count = 5",
-      "startLine": 1267,
-      "endLine": 1298,
+      "startLine": 1416,
+      "endLine": 1447,
       "duty": "Executes triggerHeartBubbles operation within slime-preview.js."
     },
     {
       "file": "preview/slime-preview.js",
       "name": "animate",
       "params": "",
-      "startLine": 1421,
-      "endLine": 1692,
+      "startLine": 1570,
+      "endLine": 1849,
       "duty": "Main Three.js render loop driving camera transitions, spotlight fades, avatar updates, and particle systems."
     }
   ]
