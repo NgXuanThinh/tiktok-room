@@ -79,7 +79,8 @@ import {
   sinkAndRemoveAvatar as sinkAvatarHelper,
   clearAllAvatars as clearAllAvatarsHelper,
   syncActiveFloorAvatars as syncAvatarsHelper,
-  updateAvatarKinematics
+  updateAvatarKinematics,
+  revealAvatarsForZoomOut
 } from './avatar-coordinator.js';
 
 // Auto-run in browser runtime
@@ -141,6 +142,11 @@ export function initClientApp() {
     uiOverlay,
     avatarMeshes
   });
+
+  // Safety hook: Ensure avatars and billboards are restored if camera reverts from any source
+  sceneManager.onRevertFromCinematic = () => {
+    revealAvatarsForZoomOut(avatarMeshes, { animateBloom: true, billboardDelayMs: 400 });
+  };
 
   // Audio unlock triggers on first user interaction
   window.addEventListener('click', () => unlockAudio(audioSystem), { once: true });

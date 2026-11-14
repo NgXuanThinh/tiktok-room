@@ -6,6 +6,10 @@ import { updateLeapAnimation } from './vip-lounge-manager.js';
 import { CINEMATIC_CONFIG } from './cinematic-config.js';
 import { evaluateEquipment } from './equipment-config.js';
 
+let isDonationIsolationActive = false;
+let currentHeroMesh = null;
+let staggeredRevealTimer = null;
+
 /**
  * Spawns or retrieves an existing 3D Avatar mesh.
  *
@@ -61,6 +65,12 @@ export function getOrCreateAvatarMesh(userData, coins = 0, context) {
     mesh.userData.currentScale = 0.05;
     mesh.userData.targetScale = 1.0;
     mesh.scale.setScalar(0.05 * BASE_AVATAR_SCALE);
+
+    if (isDonationIsolationActive) {
+      mesh.visible = false;
+      const bb = mesh.userData?.billboard || mesh.userData?.controller?.billboard;
+      if (bb) bb.visible = false;
+    }
 
     sceneManager.scene.add(mesh);
     avatarMeshes.set(userId, mesh);
@@ -347,4 +357,125 @@ export function updateAvatarKinematics(mesh, delta, time, bpmSpeed, frenzyMultip
   if (data.billboard && camera) {
     data.billboard.lookAt(camera.position);
   }
+}
+
+/**
+ * Checks if avatar isolation is currently active during a donation.
+ * @returns {boolean}
+ */
+export function isAvatarIsolationActive() {
+  return isDonationIsolationActive;
+}
+
+/**
+ * Returns current isolated hero avatar mesh.
+ * @returns {THREE.Object3D|null}
+ */
+export function getCurrentHeroMesh() {
+  return currentHeroMesh;
+}
+
+/**
+ * Isolates the active donating hero avatar by hiding all other slimes and billboards.
+ * Prioritizes the hero's billboard renderOrder to guarantee no visual occlusion.
+ *
+ * @param {THREE.Object3D|object} heroMesh - The main donating avatar mesh
+ * @param {Map<string, THREE.Group>} avatarMeshes - Active avatar mesh registry
+ */
+export function isolateDonationAvatar(heroMesh, avatarMeshes) {
+  if (!avatarMeshes) return;
+  if (staggeredRevealTimer) {
+    clearTimeout(staggeredRevealTimer);
+    staggeredRevealTimer = null;
+  }
+
+  const targetMesh = heroMesh?.mesh || (heroMesh?.isObject3D ? heroMesh : null) || heroMesh;
+  isDonationIsolationActive = true;
+  currentHeroMesh = targetMesh;
+
+  for (const mesh of avatarMeshes.values()) {
+    const isHero = (mesh === targetMesh);
+    if (isHero) {
+      mesh.visible = true;
+      const billboard = mesh.userData?.billboard || mesh.userData?.controller?.billboard;
+      if (billboard) {
+        billboard.visible = true;
+        billboard.renderOrder = 9999;
+        if (billboard.material) {
+          billboard.material.depthTest = false;
+        }
+      }
+    } else {
+      mesh.visible = false;
+      const billboard = mesh.userData?.billboard || mesh.userData?.controller?.billboard;
+      if (billboard) {
+        billboard.visible = false;
+      }
+    }
+  }
+}
+
+/**
+ * Restores visibility for other avatars during Camera Zoom Out with 2-stage staggered bloom:
+ * - Stage 1 (immediate): Other slime bodies become visible and bloom up from floor (0.05 -> 1.0).
+ *   Other billboards remain hidden to keep the field of view clean and unobstructed for the hero.
+ * - Stage 2 (delayed): Other billboards bloom into view once camera has pulled back into wide angle.
+ *
+ * @param {Map<string, THREE.Group>} avatarMeshes - Active avatar mesh registry
+ * @param {object} [options={}]
+ * @param {boolean} [options.animateBloom=true]
+ * @param {number} [options.billboardDelayMs=400]
+ */
+export function revealAvatarsForZoomOut(avatarMeshes, options = {}) {
+  if (!avatarMeshes) return;
+  if (staggeredRevealTimer) {
+    clearTimeout(staggeredRevealTimer);
+    staggeredRevealTimer = null;
+  }
+
+  const { animateBloom = true, billboardDelayMs = 400 } = options;
+  isDonationIsolationActive = false;
+
+  // Stage 1: Reveal bodies with smooth scale bloom, keeping other billboards hidden
+  for (const mesh of avatarMeshes.values()) {
+    if (!mesh || mesh.userData?.isSinking) continue;
+
+    mesh.visible = true;
+    const isHero = (mesh === currentHeroMesh);
+
+    if (!isHero) {
+      if (animateBloom) {
+        mesh.userData.currentScale = 0.05;
+        mesh.userData.targetScale = mesh.userData.baseScale || 1.0;
+        mesh.scale.setScalar(0.05 * BASE_AVATAR_SCALE);
+      }
+      const billboard = mesh.userData?.billboard || mesh.userData?.controller?.billboard;
+      if (billboard) {
+        billboard.visible = false;
+      }
+    }
+  }
+
+  // Stage 2: Staggered reveal for other billboards once camera has pulled out to wide overview
+  staggeredRevealTimer = setTimeout(() => {
+    staggeredRevealTimer = null;
+    for (const mesh of avatarMeshes.values()) {
+      if (!mesh || mesh.userData?.isSinking || !mesh.visible) continue;
+      const billboard = mesh.userData?.billboard || mesh.userData?.controller?.billboard;
+      if (billboard) {
+        billboard.visible = true;
+      }
+    }
+
+    if (currentHeroMesh) {
+      const heroBillboard = currentHeroMesh.userData?.billboard || currentHeroMesh.userData?.controller?.billboard;
+      if (heroBillboard) {
+        heroBillboard.renderOrder = 0;
+        if (heroBillboard.material) {
+          heroBillboard.material.depthTest = true;
+        }
+      }
+      currentHeroMesh = null;
+    }
+  }, billboardDelayMs);
 }

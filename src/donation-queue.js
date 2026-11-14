@@ -3,6 +3,7 @@ import { DONATION_CAMERA_CONFIG, DONATION_QUEUE_CONFIG } from './donation-consta
 import { DONATE_GIFTS } from './gift-props.js';
 import { DONATE_CELEBRATION_CONFIG } from './animation-constants.js';
 import { runCinematic2DShowcase } from './cinematic-showcase.js';
+import { isolateDonationAvatar, revealAvatarsForZoomOut } from './avatar-coordinator.js';
 
 const donationQueue = [];
 let isProcessingDonation = false;
@@ -85,6 +86,8 @@ export function processNextDonation() {
     const revertDelay = DONATION_QUEUE_CONFIG.autoRevertDelayMs || 200;
     setTimeout(() => {
       if (!isProcessingDonation && donationQueue.length === 0) {
+        const avMeshes = queueContext.avatarMeshes;
+        revealAvatarsForZoomOut(avMeshes, { animateBloom: true, billboardDelayMs: 400 });
         if (queueContext.sceneManager?.revertFromCinematic) {
           queueContext.sceneManager.revertFromCinematic();
         }
@@ -112,6 +115,10 @@ export function processNextDonation() {
   const ctx = itemContext || queueContext;
   const mesh = avatar?.mesh || (avatar?.isObject3D ? avatar : null) || avatar;
   const origin = passedOrigin || (mesh?.position ? mesh.position.clone() : { x: 0, y: 0, z: 0 });
+
+  // Phase 0: Isolate active donating hero avatar (hide other slimes and prioritize billboard)
+  const activeMeshes = ctx.avatarMeshes || queueContext.avatarMeshes;
+  isolateDonationAvatar(mesh, activeMeshes);
 
   const onTurnComplete = () => {
     currentTimer = setTimeout(() => {

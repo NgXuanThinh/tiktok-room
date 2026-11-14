@@ -487,6 +487,13 @@ export class SceneManager {
    * Reverts camera back to original distance, position, and preset before the showcase.
    */
   revertFromCinematic() {
+    if (typeof this.onRevertFromCinematic === 'function') {
+      try {
+        this.onRevertFromCinematic();
+      } catch (err) {
+        console.error('onRevertFromCinematic error:', err);
+      }
+    }
     this._cinematicFocusActive = false;
     this._donateShowcaseActive = false;
     const prevKey = this._savedPresetKey || this.previousPresetKey || 'orbit';

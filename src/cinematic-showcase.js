@@ -3,6 +3,7 @@ import { startForegroundSlime, stopForegroundSlime } from './foreground-slime.js
 import { startChibiSlimeMascot, stopChibiSlimeMascot } from './chibi-mascot.js';
 import { renderAvatarOrnament } from './avatar-ornaments.js';
 import { playPreviewSfx } from './preview-audio.js';
+import { isolateDonationAvatar, revealAvatarsForZoomOut } from './avatar-coordinator.js';
 
 // Sequential FIFO Queue for High-Tier & Ultra Donates
 export const highTierQueue = [];
@@ -101,6 +102,11 @@ export function processNextHighTier() {
 export function runCinematic2DShowcase(item, onFinished) {
   const { avatar, gift, shouldUpgradeTier } = item;
   const coins = gift.coins;
+
+  // Isolate active hero avatar to prevent other slimes from obstructing the showcase
+  if (showcaseContext.activeAvatars) {
+    isolateDonationAvatar(avatar, showcaseContext.activeAvatars);
+  }
 
   let tierClass = 'tier-money';
   let duration = 3.0;
@@ -317,8 +323,13 @@ export function runCinematic2DShowcase(item, onFinished) {
       });
     }
 
-    if (highTierQueue.length === 0 && showcaseContext.sceneManager?.revertFromCinematic) {
-      showcaseContext.sceneManager.revertFromCinematic();
+    if (highTierQueue.length === 0) {
+      if (showcaseContext.activeAvatars) {
+        revealAvatarsForZoomOut(showcaseContext.activeAvatars, { animateBloom: true, billboardDelayMs: 400 });
+      }
+      if (showcaseContext.sceneManager?.revertFromCinematic) {
+        showcaseContext.sceneManager.revertFromCinematic();
+      }
     }
 
     overlay.onclick = null;
