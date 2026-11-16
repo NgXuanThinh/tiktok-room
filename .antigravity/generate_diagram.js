@@ -191,7 +191,87 @@ const duties = {
   "preview/slime-preview.js:triggerDonation": "Dispatches categorized donation events (small, medium, high, ultra) routing to cinematic showcase or in-place effects.",
   "preview/slime-preview.js:bindDonateButtons": "Binds DOM click listeners to all donation trigger buttons in the preview HUD.",
   "preview/slime-preview.js:toggleDonateStorm": "Toggles simulated automated donation stream for stress and visual testing.",
-  "preview/slime-preview.js:animate": "Main Three.js render loop driving camera transitions, spotlight fades, avatar updates, and particle systems."
+  "preview/slime-preview.js:animate": "Main Three.js render loop driving camera transitions, spotlight fades, avatar updates, and particle systems.",
+
+  // minigame-tally.js
+  "src/minigame-tally.js:generateRoundTiebreakWeights": "Generates micro-multiplier weights [1.001, 1.009] for each color to break vote ties.",
+  "src/minigame-tally.js:calculateVoteScores": "Tallies active player color votes and multiplies by round weights to determine majority Death Color.",
+  "src/minigame-tally.js:evaluateRoundOutcome": "Evaluates round results determining survivors, eliminated players, and game progression state (NEXT_ROUND, SOLO_WINNER, CO_CHAMPIONS, NO_WINNER).",
+
+  // minigame-fx.js
+  "src/minigame-fx.js:syncRoomNeonDeathColor": "Synchronizes venue neon signage, lasers, and spotlights to Death Color with continuous floor sweeping.",
+  "src/minigame-fx.js:restoreRoomLighting": "Restores venue neon bar, spotlights, and laser beams back to standard club ambient colors.",
+  "src/minigame-fx.js:triggerLaserStrikes": "Casts vertical neon laser strike pillars from the ceiling onto eliminated slimes.",
+  "src/minigame-fx.js:applyGhostState": "Transforms an eliminated slime mesh into a translucent dancing ghost avatar.",
+  "src/minigame-fx.js:revertGhostState": "Restores a ghost slime mesh back to its live material, opacity, and normal state.",
+
+  // minigame-ui.js
+  "src/minigame-ui.js:showStartCountdownBanner": "Displays countdown HUD banner announcing upcoming minigame start.",
+  "src/minigame-ui.js:showVotingBanner": "Displays round voting countdown and minimal live vote tally HUD banner.",
+  "src/minigame-ui.js:showJudgmentBanner": "Displays Death Color judgment announcement and elimination notice.",
+  "src/minigame-ui.js:showWinnerBanner": "Displays victorious champion celebration HUD banner for solo winner or co-champions.",
+  "src/minigame-ui.js:showNoWinnerBanner": "Displays game over notice when all players are eliminated.",
+  "src/minigame-ui.js:showWarningBanner": "Displays warning toast when room conditions are not met.",
+  "src/minigame-ui.js:hideMinigameBanner": "Clears and hides all active minigame HUD marquee banners.",
+  "src/minigame-ui.js:updateCornerTiebreakBadge": "Updates the small glassmorphic corner badge displaying active round micro-multipliers.",
+
+  // minigame-manager.js
+  "src/minigame-manager.js:constructor": "Initializes MinigameManager state machine, player maps, round timers, and context bindings.",
+  "src/minigame-manager.js:init": "Injects application context (scene, meshes, lighting, environment, socket) into MinigameManager.",
+  "src/minigame-manager.js:startScheduledGame": "Initiates pre-game countdown timer leading into Round 1.",
+  "src/minigame-manager.js:startGameImmediate": "Immediately begins Round 1 if minimum player count is met.",
+  "src/minigame-manager.js:startRound": "Begins a new survival round with fresh tie-break multipliers and voting countdown.",
+  "src/minigame-manager.js:populateActivePlayersFromFloor": "Registers live dance floor slimes into active round participants.",
+  "src/minigame-manager.js:onVotingEnded": "Concludes voting phase, determines Death Color, pauses donations, and triggers laser judgment sequence.",
+  "src/minigame-manager.js:_handleOutcome": "Processes round outcome, advancing to next round or triggering winner celebration and automatic ghost revival.",
+  "src/minigame-manager.js:handleChatCommand": "Processes viewer !color chat commands, rejecting ghost votes and non-voting states.",
+  "src/minigame-manager.js:handleNewAvatarSpawn": "Manages late joiners, auto-converting entrants into ghosts after Round 1 voting.",
+  "src/minigame-manager.js:stopMinigame": "Halts the minigame, restores venue lighting, resumes donation queue, and revives all ghosts.",
+  "src/minigame-manager.js:reviveAllGhosts": "Revives all ghost slimes on the floor back to live dancing avatars.",
+  "src/minigame-manager.js:handleAdminAction": "Handles administrative minigame commands (start, stop, force judgment, revive ghosts, set config) from Port 3001.",
+  "src/minigame-manager.js:_broadcastLiveStats": "Broadcasts live vote distribution to Admin cockpit and clients.",
+  "src/minigame-manager.js:_broadcastState": "Broadcasts synchronized minigame state machine packets over WebSocket.",
+
+  // donation-queue.js
+  "src/donation-queue.js:pauseDonationQueue": "Pauses the donation queue during high-priority minigame judgment sequences.",
+  "src/donation-queue.js:resumeDonationQueue": "Resumes the donation queue after minigame judgment completes.",
+  "src/donation-queue.js:isDonationQueuePaused": "Checks whether the donation celebration queue is currently paused.",
+  "src/donation-queue.js:waitForDonationCompletion": "Returns a promise that resolves when any active donation celebration finishes.",
+
+  // minigame-manager.js freeze/unfreeze
+  "src/minigame-manager.js:freezeCountdown": "Freezes minigame voting countdown during VIP donation showcases preventing timer loss.",
+  "src/minigame-manager.js:unfreezeCountdown": "Unfreezes minigame voting countdown after VIP showcase concludes, resuming timer seamlessly.",
+
+  // gateway/services/command-throttler.js
+  "gateway/services/command-throttler.js:isInteractiveCommand": "Checks if comment text is a targeted 3D interactive command (!color, !face, !dance).",
+  "gateway/services/command-throttler.js:setBaseCooldown": "Sets base cooldown dynamically (1s-120s) and persists it to Redis config:command_cooldown_sec.",
+  "gateway/services/command-throttler.js:getBaseCooldown": "Reads configured base cooldown from Redis or in-memory cache.",
+  "gateway/services/command-throttler.js:getBackendMetrics": "Refreshes backend load metrics and configured cooldown from Redis with a 500ms in-memory cache.",
+  "gateway/services/command-throttler.js:canExecute": "Checks and consumes per-user atomic cooldown in Redis; blocks commands immediately if backend is in Freeze State.",
+  "gateway/services/command-throttler.js:resetUser": "Resets cooldown key for a specific user.",
+
+  // gateway/services/like-aggregator.js
+  "gateway/services/like-aggregator.js:add": "Aggregates tap likes per user within a 500ms sliding window to prevent stream flood.",
+  "gateway/services/like-aggregator.js:_flushUser": "Flushes accumulated likes for a user as a single batched like event.",
+  "gateway/services/like-aggregator.js:flushAll": "Flushes all pending user like batches immediately.",
+
+  // gateway/services/event-classifier.js
+  "gateway/services/event-classifier.js:classifyEvent": "Classifies incoming TikTok events into priority tiers (P0 VIP Gift, P1 Like Combo, P2 Chat Command).",
+  "gateway/services/event-classifier.js:isVipGift": "Determines if a gift meets VIP criteria (>= 100 coins or Tier >= 2) for zero-drop bypass.",
+
+  // gateway/services/event-stream-producer.js
+  "gateway/services/event-stream-producer.js:publish": "Publishes normalized TikTok events to Redis Stream stream:live_events with MAXLEN trimming.",
+
+  // server/services/load-monitor.js
+  "server/services/load-monitor.js:calculateLoadMultiplier": "Calculates dynamic backpressure multiplier (1.0x to 3.0x) based on active avatars and queue depth.",
+  "server/services/load-monitor.js:reportMetrics": "Publishes backend load heartbeat (multiplier, queue depth, freeze state) to Redis.",
+  "server/services/load-monitor.js:start": "Starts periodic 2-second heartbeat publication to Redis.",
+  "server/services/load-monitor.js:stop": "Stops periodic load heartbeat publication.",
+
+  // server/services/redis-stream-consumer.js
+  "server/services/redis-stream-consumer.js:start": "Starts continuous long-polling loop consuming stream:live_events from Redis.",
+  "server/services/redis-stream-consumer.js:stop": "Halts the stream polling loop.",
+  "server/services/redis-stream-consumer.js:_pollLoop": "Executes continuous XREAD BLOCK calls, extracting JSON payloads and invoking event callbacks."
 };
 
 // Automatically map preview duties to src duties for newly ported modules

@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 
 const projectRoot = process.cwd();
-const targetDirs = ['server', 'src', 'preview'];
+const targetDirs = ['server', 'src', 'preview', 'gateway'];
 
 function getJsFiles(dir) {
   const fullPath = path.join(projectRoot, dir);

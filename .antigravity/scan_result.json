@@ -1,5 +1,5 @@
 {
-  "scannedAt": "2026-11-12T17:43:30.062Z",
+  "scannedAt": "2026-11-16T00:35:07.390Z",
   "files": [
     {
       "filePath": "server/avatar-proxy.js",
@@ -33,6 +33,12 @@
           "endLine": 148
         }
       ]
+    },
+    {
+      "filePath": "server/constants/redis-consumer.constants.js",
+      "absolutePath": "/app/server/constants/redis-consumer.constants.js",
+      "imports": [],
+      "functions": []
     },
     {
       "filePath": "server/event-normalizer.js",
@@ -245,14 +251,117 @@
         "./rate-limiter.js",
         "./avatar-proxy.js",
         "./tiktok-service.js",
-        "./mock-simulator.js"
+        "./mock-simulator.js",
+        "ioredis",
+        "./services/redis-stream-consumer.js",
+        "./services/load-monitor.js",
+        "../gateway/services/command-throttler.js",
+        "../gateway/config/redis.config.js",
+        "../gateway/constants/gateway.constants.js"
       ],
       "functions": [
         {
           "name": "broadcast",
           "params": "payload",
-          "startLine": 58,
-          "endLine": 65
+          "startLine": 65,
+          "endLine": 72
+        },
+        {
+          "name": "handleGetCooldown",
+          "params": "req, res",
+          "startLine": 216,
+          "endLine": 227
+        },
+        {
+          "name": "handleSetCooldown",
+          "params": "req, res",
+          "startLine": 229,
+          "endLine": 249
+        },
+        {
+          "name": "handleMockEvent",
+          "params": "body",
+          "startLine": 255,
+          "endLine": 291
+        }
+      ]
+    },
+    {
+      "filePath": "server/services/load-monitor.js",
+      "absolutePath": "/app/server/services/load-monitor.js",
+      "imports": [
+        "../constants/redis-consumer.constants.js",
+        "../../gateway/constants/gateway.constants.js"
+      ],
+      "functions": [
+        {
+          "name": "constructor",
+          "params": "redisClient, options = {}",
+          "startLine": 6,
+          "endLine": 6
+        },
+        {
+          "name": "setCinematicActive",
+          "params": "isActive, durationSec = null",
+          "startLine": 26,
+          "endLine": 45
+        },
+        {
+          "name": "calculateMultiplier",
+          "params": "activeAvatars, queueDepth",
+          "startLine": 50,
+          "endLine": 67
+        },
+        {
+          "name": "reportMetrics",
+          "params": "",
+          "startLine": 72,
+          "endLine": 100
+        },
+        {
+          "name": "start",
+          "params": "",
+          "startLine": 105,
+          "endLine": 112
+        },
+        {
+          "name": "stop",
+          "params": "",
+          "startLine": 117,
+          "endLine": 126
+        }
+      ]
+    },
+    {
+      "filePath": "server/services/redis-stream-consumer.js",
+      "absolutePath": "/app/server/services/redis-stream-consumer.js",
+      "imports": [
+        "../../gateway/constants/gateway.constants.js"
+      ],
+      "functions": [
+        {
+          "name": "constructor",
+          "params": "redisClient, options = {}",
+          "startLine": 5,
+          "endLine": 5
+        },
+        {
+          "name": "start",
+          "params": "",
+          "startLine": 20,
+          "endLine": 24
+        },
+        {
+          "name": "_pollLoop",
+          "params": "",
+          "startLine": 29,
+          "endLine": 74
+        },
+        {
+          "name": "stop",
+          "params": "",
+          "startLine": 79,
+          "endLine": 81
         }
       ]
     },
@@ -432,56 +541,80 @@
         {
           "name": "getOrCreateAvatarMesh",
           "params": "userData, coins = 0, context",
-          "startLine": 17,
-          "endLine": 101
+          "startLine": 21,
+          "endLine": 115
         },
         {
           "name": "sinkAndRemoveAvatar",
           "params": "userId, context",
-          "startLine": 106,
-          "endLine": 117
+          "startLine": 120,
+          "endLine": 131
         },
         {
           "name": "deleteAvatar",
           "params": "userId, context",
-          "startLine": 122,
-          "endLine": 163
+          "startLine": 136,
+          "endLine": 177
         },
         {
           "name": "clearAllAvatars",
           "params": "context",
-          "startLine": 168,
-          "endLine": 204
+          "startLine": 182,
+          "endLine": 218
         },
         {
           "name": "syncActiveFloorAvatars",
           "params": "avatarMeshes, uiOverlay, ws",
-          "startLine": 209,
-          "endLine": 228
+          "startLine": 223,
+          "endLine": 242
         },
         {
           "name": "_updateCyberSlime",
           "params": "mesh, data, delta, bands",
-          "startLine": 234,
-          "endLine": 247
+          "startLine": 248,
+          "endLine": 261
         },
         {
           "name": "_updateProceduralSlime",
           "params": "mesh, data, phase, isBouncing, time, delta",
-          "startLine": 252,
-          "endLine": 289
+          "startLine": 266,
+          "endLine": 303
         },
         {
           "name": "_updateHumanoid",
           "params": "data, style, phase",
-          "startLine": 294,
-          "endLine": 313
+          "startLine": 308,
+          "endLine": 327
         },
         {
           "name": "updateAvatarKinematics",
           "params": "mesh, delta, time, bpmSpeed, frenzyMultiplier, bands, camera, isFrenzy = false",
-          "startLine": 318,
-          "endLine": 350
+          "startLine": 332,
+          "endLine": 364
+        },
+        {
+          "name": "isAvatarIsolationActive",
+          "params": "",
+          "startLine": 370,
+          "endLine": 372
+        },
+        {
+          "name": "getCurrentHeroMesh",
+          "params": "",
+          "startLine": 378,
+          "endLine": 380
+        },
+        {
+          "name": "isolateDonationAvatar",
+          "params": "heroMesh, avatarMeshes",
+          "startLine": 389,
+          "endLine": 420
+        },
+        {
+          "name": "revealAvatarsForZoomOut",
+          "params": "avatarMeshes, options = {}",
+          "startLine": 433,
+          "endLine": 433
         }
       ]
     },
@@ -681,50 +814,51 @@
         "./foreground-slime.js",
         "./chibi-mascot.js",
         "./avatar-ornaments.js",
-        "./preview-audio.js"
+        "./preview-audio.js",
+        "./avatar-coordinator.js"
       ],
       "functions": [
         {
           "name": "initCinematicShowcase",
           "params": "ctx = {}",
-          "startLine": 19,
-          "endLine": 19
+          "startLine": 20,
+          "endLine": 20
         },
         {
           "name": "getScreenCoords",
           "params": "worldPos",
-          "startLine": 23,
-          "endLine": 36
+          "startLine": 24,
+          "endLine": 37
         },
         {
           "name": "generateSvgAvatar",
           "params": "name = 'Viewer'",
-          "startLine": 38,
-          "endLine": 59
+          "startLine": 39,
+          "endLine": 60
         },
         {
           "name": "enqueueHighTierShowcase",
           "params": "item",
-          "startLine": 61,
-          "endLine": 66
+          "startLine": 62,
+          "endLine": 67
         },
         {
           "name": "processNextHighTier",
           "params": "",
-          "startLine": 68,
-          "endLine": 99
+          "startLine": 69,
+          "endLine": 100
         },
         {
           "name": "runCinematic2DShowcase",
           "params": "item, onFinished",
-          "startLine": 101,
-          "endLine": 379
+          "startLine": 102,
+          "endLine": 400
         },
         {
           "name": "cleanupShowcase",
           "params": "",
-          "startLine": 302,
-          "endLine": 351
+          "startLine": 313,
+          "endLine": 372
         }
       ]
     },
@@ -1116,80 +1250,105 @@
         "./donation-constants.js",
         "./gift-props.js",
         "./animation-constants.js",
-        "./cinematic-showcase.js"
+        "./cinematic-showcase.js",
+        "./avatar-coordinator.js"
       ],
       "functions": [
         {
           "name": "initDonationQueue",
           "params": "context = {}",
-          "startLine": 17,
-          "endLine": 17
+          "startLine": 20,
+          "endLine": 20
         },
         {
           "name": "getDonationQueueLength",
           "params": "",
-          "startLine": 24,
-          "endLine": 26
+          "startLine": 27,
+          "endLine": 29
         },
         {
           "name": "isDonationProcessing",
           "params": "",
-          "startLine": 31,
-          "endLine": 33
+          "startLine": 34,
+          "endLine": 36
+        },
+        {
+          "name": "isDonationQueuePaused",
+          "params": "",
+          "startLine": 41,
+          "endLine": 43
+        },
+        {
+          "name": "pauseDonationQueue",
+          "params": "",
+          "startLine": 48,
+          "endLine": 50
+        },
+        {
+          "name": "resumeDonationQueue",
+          "params": "",
+          "startLine": 55,
+          "endLine": 60
+        },
+        {
+          "name": "waitForDonationCompletion",
+          "params": "",
+          "startLine": 67,
+          "endLine": 74
         },
         {
           "name": "clearDonationQueue",
           "params": "",
-          "startLine": 38,
-          "endLine": 46
+          "startLine": 79,
+          "endLine": 87
         },
         {
           "name": "enqueueDonation",
           "params": "item",
-          "startLine": 53,
-          "endLine": 61
+          "startLine": 94,
+          "endLine": 102
         },
         {
           "name": "enqueueHighTierShowcase",
           "params": "item",
-          "startLine": 66,
-          "endLine": 76
+          "startLine": 107,
+          "endLine": 117
         },
         {
           "name": "processNextDonation",
           "params": "",
-          "startLine": 81,
-          "endLine": 219
+          "startLine": 122,
+          "endLine": 280
         },
         {
           "name": "onTurnComplete",
           "params": "",
-          "startLine": 116,
-          "endLine": 120
+          "startLine": 168,
+          "endLine": 181
         },
         {
           "name": "startEffectsAndHold",
           "params": "",
-          "startLine": 128,
-          "endLine": 133
+          "startLine": 189,
+          "endLine": 194
         },
         {
           "name": "startEffectsAndHold",
           "params": "",
-          "startLine": 150,
-          "endLine": 155
+          "startLine": 211,
+          "endLine": 216
         },
         {
           "name": "_executeSmallEffects",
           "params": "mesh, origin, coins, shouldUpgradeTier, newTier, context",
-          "startLine": 225,
-          "endLine": 260
+          "startLine": 286,
+          "endLine": 321
         },
         {
           "name": "_executeMediumEffects",
           "params": "mesh, origin, coins, shouldUpgradeTier, newTier, context",
-          "startLine": 266,
-          "endLine": 301
+          "startLine": 327,
+          "endLine": 362
         }
       ]
     },
@@ -1558,55 +1717,55 @@
           "name": "handleChatEvent",
           "params": "evt, context",
           "startLine": 349,
-          "endLine": 356
+          "endLine": 366
         },
         {
           "name": "handleGiftEvent",
           "params": "evt, context",
-          "startLine": 361,
-          "endLine": 472
+          "startLine": 371,
+          "endLine": 482
         },
         {
           "name": "handleAdminCommand",
           "params": "evt, context",
-          "startLine": 477,
-          "endLine": 594
+          "startLine": 487,
+          "endLine": 604
         },
         {
           "name": "handleRoomRanksEvent",
           "params": "evt, context",
-          "startLine": 601,
-          "endLine": 671
+          "startLine": 611,
+          "endLine": 681
         },
         {
           "name": "handleSessionResetEvent",
           "params": "evt, context",
-          "startLine": 676,
-          "endLine": 681
+          "startLine": 686,
+          "endLine": 691
         },
         {
           "name": "handleMemberEvent",
           "params": "evt, context",
-          "startLine": 687,
-          "endLine": 703
+          "startLine": 697,
+          "endLine": 713
         },
         {
           "name": "handleFanEvent",
           "params": "evt, context",
-          "startLine": 709,
-          "endLine": 726
+          "startLine": 719,
+          "endLine": 736
         },
         {
           "name": "handleFollowEvent",
           "params": "evt, context",
-          "startLine": 732,
-          "endLine": 752
+          "startLine": 742,
+          "endLine": 762
         },
         {
           "name": "handleLiveEvent",
           "params": "evt, context",
-          "startLine": 760,
-          "endLine": 842
+          "startLine": 770,
+          "endLine": 858
         }
       ]
     },
@@ -1632,26 +1791,300 @@
         "./vip-lounge-manager.js",
         "./live-event-handler.js",
         "./cinematic-showcase.js",
-        "./donation-queue.js"
+        "./donation-queue.js",
+        "./minigame-manager.js"
       ],
       "functions": [
         {
           "name": "initClientApp",
           "params": "",
-          "startLine": 93,
-          "endLine": 314
+          "startLine": 95,
+          "endLine": 338
         },
         {
           "name": "onThresholdsUpdated",
           "params": "newThresholds",
-          "startLine": 210,
-          "endLine": 231
+          "startLine": 234,
+          "endLine": 255
         },
         {
           "name": "animate",
           "params": "",
-          "startLine": 250,
-          "endLine": 311
+          "startLine": 274,
+          "endLine": 335
+        }
+      ]
+    },
+    {
+      "filePath": "src/minigame-constants.js",
+      "absolutePath": "/app/src/minigame-constants.js",
+      "imports": [
+        "./avatar-manager.js"
+      ],
+      "functions": []
+    },
+    {
+      "filePath": "src/minigame-fx.js",
+      "absolutePath": "/app/src/minigame-fx.js",
+      "imports": [
+        "three",
+        "./minigame-constants.js"
+      ],
+      "functions": [
+        {
+          "name": "syncRoomNeonDeathColor",
+          "params": "clubEnvironment, colorHex, durationSec = 3.5",
+          "startLine": 12,
+          "endLine": 64
+        },
+        {
+          "name": "restoreRoomLighting",
+          "params": "clubEnvironment",
+          "startLine": 70,
+          "endLine": 119
+        },
+        {
+          "name": "triggerLaserStrikes",
+          "params": "scene, targetMeshes, colorHex, durationMs = 2800, sceneManager = null",
+          "startLine": 130,
+          "endLine": 205
+        },
+        {
+          "name": "anim",
+          "params": "",
+          "startLine": 176,
+          "endLine": 202
+        },
+        {
+          "name": "applyGhostState",
+          "params": "mesh",
+          "startLine": 211,
+          "endLine": 248
+        },
+        {
+          "name": "revertGhostState",
+          "params": "mesh",
+          "startLine": 254,
+          "endLine": 279
+        }
+      ]
+    },
+    {
+      "filePath": "src/minigame-manager.js",
+      "absolutePath": "/app/src/minigame-manager.js",
+      "imports": [
+        "./avatar-manager.js"
+      ],
+      "functions": [
+        {
+          "name": "constructor",
+          "params": "",
+          "startLine": 40,
+          "endLine": 59
+        },
+        {
+          "name": "init",
+          "params": "context = {}",
+          "startLine": 65,
+          "endLine": 65
+        },
+        {
+          "name": "_getFloorMeshes",
+          "params": "",
+          "startLine": 74,
+          "endLine": 83
+        },
+        {
+          "name": "startScheduledGame",
+          "params": "countdownSec = MINIGAME_CONFIG.defaultStartCountdownSec, roundDurationSec = this.roundDurationSec",
+          "startLine": 90,
+          "endLine": 121
+        },
+        {
+          "name": "startGameImmediate",
+          "params": "roundDurationSec = this.roundDurationSec",
+          "startLine": 127,
+          "endLine": 140
+        },
+        {
+          "name": "startRound",
+          "params": "roundNum",
+          "startLine": 146,
+          "endLine": 198
+        },
+        {
+          "name": "freezeCountdown",
+          "params": "",
+          "startLine": 203,
+          "endLine": 206
+        },
+        {
+          "name": "unfreezeCountdown",
+          "params": "",
+          "startLine": 211,
+          "endLine": 215
+        },
+        {
+          "name": "populateActivePlayersFromFloor",
+          "params": "",
+          "startLine": 220,
+          "endLine": 239
+        },
+        {
+          "name": "onVotingEnded",
+          "params": "",
+          "startLine": 244,
+          "endLine": 267
+        },
+        {
+          "name": "executeJudgment",
+          "params": "deathColor",
+          "startLine": 273,
+          "endLine": 332
+        },
+        {
+          "name": "_handleOutcome",
+          "params": "outcome",
+          "startLine": 338,
+          "endLine": 376
+        },
+        {
+          "name": "handleChatCommand",
+          "params": "userId, username, comment",
+          "startLine": 384,
+          "endLine": 432
+        },
+        {
+          "name": "handleNewAvatarSpawn",
+          "params": "userId, username, mesh",
+          "startLine": 441,
+          "endLine": 462
+        },
+        {
+          "name": "stopMinigame",
+          "params": "keepGhostUntilNextGame = false",
+          "startLine": 468,
+          "endLine": 489
+        },
+        {
+          "name": "reviveAllGhosts",
+          "params": "",
+          "startLine": 494,
+          "endLine": 502
+        },
+        {
+          "name": "handleAdminAction",
+          "params": "action, payload = {}",
+          "startLine": 509,
+          "endLine": 509
+        },
+        {
+          "name": "_broadcastLiveStats",
+          "params": "",
+          "startLine": 538,
+          "endLine": 541
+        },
+        {
+          "name": "_broadcastState",
+          "params": "extra = {}",
+          "startLine": 546,
+          "endLine": 546
+        }
+      ]
+    },
+    {
+      "filePath": "src/minigame-tally.js",
+      "absolutePath": "/app/src/minigame-tally.js",
+      "imports": [
+        "./minigame-constants.js"
+      ],
+      "functions": [
+        {
+          "name": "generateRoundTiebreakWeights",
+          "params": "range = MINIGAME_CONFIG.tiebreakWeightRange",
+          "startLine": 10,
+          "endLine": 28
+        },
+        {
+          "name": "calculateVoteScores",
+          "params": "alivePlayers, weights",
+          "startLine": 36,
+          "endLine": 79
+        },
+        {
+          "name": "evaluateRoundOutcome",
+          "params": "alivePlayers, deathColor",
+          "startLine": 87,
+          "endLine": 157
+        }
+      ]
+    },
+    {
+      "filePath": "src/minigame-ui.js",
+      "absolutePath": "/app/src/minigame-ui.js",
+      "imports": [
+        "./minigame-constants.js"
+      ],
+      "functions": [
+        {
+          "name": "initMinigameUI",
+          "params": "",
+          "startLine": 10,
+          "endLine": 30
+        },
+        {
+          "name": "updateCornerTiebreakBadge",
+          "params": "weights, visible = true",
+          "startLine": 38,
+          "endLine": 61
+        },
+        {
+          "name": "showStartCountdownBanner",
+          "params": "remainingSec",
+          "startLine": 67,
+          "endLine": 85
+        },
+        {
+          "name": "showVotingBanner",
+          "params": "roundNumber, remainingSec, totalSec",
+          "startLine": 93,
+          "endLine": 112
+        },
+        {
+          "name": "showMinimalTallyBanner",
+          "params": "roundNumber, counts, deathColor",
+          "startLine": 121,
+          "endLine": 144
+        },
+        {
+          "name": "showJudgmentBanner",
+          "params": "deathColor",
+          "startLine": 150,
+          "endLine": 167
+        },
+        {
+          "name": "showWinnerBanner",
+          "params": "winners, isCoChampions = false",
+          "startLine": 174,
+          "endLine": 190
+        },
+        {
+          "name": "showNoWinnerBanner",
+          "params": "",
+          "startLine": 195,
+          "endLine": 208
+        },
+        {
+          "name": "showWarningBanner",
+          "params": "msg, autoHideMs = 3500",
+          "startLine": 215,
+          "endLine": 235
+        },
+        {
+          "name": "hideMinigameBanner",
+          "params": "",
+          "startLine": 240,
+          "endLine": 243
         }
       ]
     },
@@ -1776,37 +2209,37 @@
           "name": "revertFromCinematic",
           "params": "",
           "startLine": 489,
-          "endLine": 501
+          "endLine": 508
         },
         {
           "name": "startDonateShowcase",
           "params": "slimePos, onArrived = null, duration = 1.0",
-          "startLine": 503,
-          "endLine": 505
+          "startLine": 510,
+          "endLine": 512
         },
         {
           "name": "endDonateShowcase",
           "params": "",
-          "startLine": 507,
-          "endLine": 509
+          "startLine": 514,
+          "endLine": 516
         },
         {
           "name": "focusDonationAvatar",
           "params": "avatarMesh, options = {}, onArrived = null",
-          "startLine": 519,
-          "endLine": 519
+          "startLine": 526,
+          "endLine": 526
         },
         {
           "name": "focusOnAvatar",
           "params": "avatarMesh, options = {}",
-          "startLine": 596,
-          "endLine": 596
+          "startLine": 603,
+          "endLine": 603
         },
         {
           "name": "clearAvatarFocus",
           "params": "",
-          "startLine": 621,
-          "endLine": 634
+          "startLine": 628,
+          "endLine": 641
         }
       ]
     },
@@ -3217,6 +3650,201 @@
           "params": "",
           "startLine": 1570,
           "endLine": 1849
+        }
+      ]
+    },
+    {
+      "filePath": "gateway/config/redis.config.js",
+      "absolutePath": "/app/gateway/config/redis.config.js",
+      "imports": [],
+      "functions": [
+        {
+          "name": "getRedisConfig",
+          "params": "customUrl = null",
+          "startLine": 3,
+          "endLine": 15
+        },
+        {
+          "name": "retryStrategy",
+          "params": "times",
+          "startLine": 7,
+          "endLine": 10
+        }
+      ]
+    },
+    {
+      "filePath": "gateway/constants/gateway.constants.js",
+      "absolutePath": "/app/gateway/constants/gateway.constants.js",
+      "imports": [],
+      "functions": []
+    },
+    {
+      "filePath": "gateway/index.js",
+      "absolutePath": "/app/gateway/index.js",
+      "imports": [
+        "./services/redis-client.js",
+        "./services/command-throttler.js",
+        "./services/like-aggregator.js",
+        "./services/event-classifier.js",
+        "./services/event-stream-producer.js",
+        "./constants/gateway.constants.js",
+        "../server/event-normalizer.js",
+        "../server/tiktok-service.js"
+      ],
+      "functions": [
+        {
+          "name": "processRawEvent",
+          "params": "type, rawData",
+          "startLine": 36,
+          "endLine": 71
+        },
+        {
+          "name": "shutdown",
+          "params": "signal",
+          "startLine": 120,
+          "endLine": 127
+        }
+      ]
+    },
+    {
+      "filePath": "gateway/services/command-throttler.js",
+      "absolutePath": "/app/gateway/services/command-throttler.js",
+      "imports": [
+        "../constants/gateway.constants.js"
+      ],
+      "functions": [
+        {
+          "name": "constructor",
+          "params": "redisClient, options = {}",
+          "startLine": 5,
+          "endLine": 5
+        },
+        {
+          "name": "isInteractiveCommand",
+          "params": "comment",
+          "startLine": 26,
+          "endLine": 32
+        },
+        {
+          "name": "setBaseCooldown",
+          "params": "sec",
+          "startLine": 37,
+          "endLine": 50
+        },
+        {
+          "name": "getBaseCooldown",
+          "params": "",
+          "startLine": 55,
+          "endLine": 66
+        },
+        {
+          "name": "getBackendMetrics",
+          "params": "",
+          "startLine": 71,
+          "endLine": 116
+        },
+        {
+          "name": "canExecute",
+          "params": "userId, comment",
+          "startLine": 122,
+          "endLine": 169
+        },
+        {
+          "name": "resetUser",
+          "params": "userId",
+          "startLine": 174,
+          "endLine": 177
+        }
+      ]
+    },
+    {
+      "filePath": "gateway/services/event-classifier.js",
+      "absolutePath": "/app/gateway/services/event-classifier.js",
+      "imports": [
+        "../constants/gateway.constants.js"
+      ],
+      "functions": [
+        {
+          "name": "classify",
+          "params": "event",
+          "startLine": 10,
+          "endLine": 42
+        }
+      ]
+    },
+    {
+      "filePath": "gateway/services/event-stream-producer.js",
+      "absolutePath": "/app/gateway/services/event-stream-producer.js",
+      "imports": [
+        "../constants/gateway.constants.js"
+      ],
+      "functions": [
+        {
+          "name": "constructor",
+          "params": "redisClient, options = {}",
+          "startLine": 5,
+          "endLine": 5
+        },
+        {
+          "name": "publish",
+          "params": "event",
+          "startLine": 17,
+          "endLine": 38
+        }
+      ]
+    },
+    {
+      "filePath": "gateway/services/like-aggregator.js",
+      "absolutePath": "/app/gateway/services/like-aggregator.js",
+      "imports": [
+        "../constants/gateway.constants.js"
+      ],
+      "functions": [
+        {
+          "name": "constructor",
+          "params": "options = {}",
+          "startLine": 5,
+          "endLine": 5
+        },
+        {
+          "name": "addLike",
+          "params": "event",
+          "startLine": 17,
+          "endLine": 29
+        },
+        {
+          "name": "flush",
+          "params": "",
+          "startLine": 34,
+          "endLine": 61
+        },
+        {
+          "name": "reset",
+          "params": "",
+          "startLine": 66,
+          "endLine": 73
+        }
+      ]
+    },
+    {
+      "filePath": "gateway/services/redis-client.js",
+      "absolutePath": "/app/gateway/services/redis-client.js",
+      "imports": [
+        "ioredis",
+        "../config/redis.config.js"
+      ],
+      "functions": [
+        {
+          "name": "getRedisClient",
+          "params": "customUrl = null",
+          "startLine": 7,
+          "endLine": 25
+        },
+        {
+          "name": "closeRedisClient",
+          "params": "",
+          "startLine": 27,
+          "endLine": 36
         }
       ]
     }

@@ -159,6 +159,13 @@
     .log-item.err {
       color: #ff6b81;
     }
+
+    .quick-cooldown-btn.active {
+      background: rgba(255, 215, 0, 0.25) !important;
+      border-color: #ffd700 !important;
+      color: #ffd700 !important;
+      font-weight: bold;
+    }
   </style>
 </head>
 
@@ -460,6 +467,29 @@
             </div>
           </div>
         </div>
+
+        <!-- Anti-Spam Command Cooldown Control -->
+        <div class="form-group" style="background: rgba(16, 18, 35, 0.7); border: 1px solid rgba(0, 242, 254, 0.25); border-radius: 8px; padding: 10px; margin-top: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <label style="color: #00f2fe; font-weight: 700; font-size: 11px; margin-bottom: 0;">⏱️ Thời Gian Cấm Chat / Cooldown Lệnh (!color, !dance, !face):</label>
+            <span id="cooldown-val-display" style="color: #ffd700; font-weight: 800; font-size: 13px;">10s</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+            <input type="range" id="cooldown-slider" min="1" max="60" step="1" value="10" style="flex: 1; accent-color: #ffd700; cursor: pointer;" />
+            <input type="number" id="cooldown-number-input" min="1" max="120" value="10" class="admin-input" style="width: 58px; text-align: center; padding: 4px; font-weight: bold; color: #ffd700;" />
+            <span style="font-size: 11px; color: #8c90b0;">giây</span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr) 1.2fr; gap: 4px;">
+            <button type="button" class="btn btn-secondary quick-cooldown-btn" data-sec="3" style="font-size: 10px; padding: 4px; justify-content: center;">3s</button>
+            <button type="button" class="btn btn-secondary quick-cooldown-btn" data-sec="5" style="font-size: 10px; padding: 4px; justify-content: center;">5s</button>
+            <button type="button" class="btn btn-secondary quick-cooldown-btn active" data-sec="10" style="font-size: 10px; padding: 4px; justify-content: center;">10s</button>
+            <button type="button" class="btn btn-secondary quick-cooldown-btn" data-sec="20" style="font-size: 10px; padding: 4px; justify-content: center;">20s</button>
+            <button type="button" id="btn-save-cooldown" class="btn" style="background: linear-gradient(135deg, #00f2fe, #4facfe); color: #000; font-weight: bold; font-size: 10px; padding: 4px; justify-content: center;">💾 Cập Nhật</button>
+          </div>
+          <div id="cooldown-hint" style="font-size: 10px; color: #8c90b0; margin-top: 6px;">
+            💡 Áp dụng ngay cho TikTok LIVE & Mock Chat. Lệnh spam trong thời gian này sẽ tự động bị chặn.
+          </div>
+        </div>
       </div>
 
       <!-- COLUMN 3: Gift & Donation Triggers -->
@@ -749,6 +779,7 @@
             updateTikTokStatusUI(msg.status);
           } else if (msg.type === 'initial_session_state') {
             if (msg.status) updateTikTokStatusUI(msg.status);
+            if (msg.commandCooldownSec) updateCooldownUI(msg.commandCooldownSec);
             if (msg.topDonors && msg.topDonors.length > 0) {
               const top1 = msg.topDonors[0]?.user?.nickname || msg.topDonors[0]?.user?.displayId || 'Top 1';
               const top1Score = msg.topDonors[0]?.score || 0;
@@ -776,6 +807,11 @@
           } else if (msg.type === 'chat') {
             const name = msg.user?.nickname || msg.user?.username || 'Viewer';
             log(`CHAT: ${name}: "${msg.data?.comment || ''}"`, 'recv');
+          } else if (msg.type === 'mock_rejected') {
+            log(`🚫 [BỊ CHẶN SPAM]: ${msg.message || msg.reason}`, 'err');
+          } else if (msg.type === 'config_updated' && msg.key === 'cooldown') {
+            updateCooldownUI(msg.cooldownSec);
+            log(`⚙️ [HỆ THỐNG]: Thời gian cấm chat đã được cập nhật thành ${msg.cooldownSec}s`, 'sent');
           } else if (msg.type === 'gift') {
             const name = msg.user?.nickname || msg.user?.username || 'Viewer';
             const coins = msg.data?.totalCoins || msg.data?.diamondCount || 1;
@@ -1250,6 +1286,84 @@
       const user = getTargetUser();
       sendWs({ type: 'mock_trigger', action: 'likes', count: 50, user });
       log(`Thả tim: +50 likes từ ${user.username}`, 'sent');
+    });
+
+    // 6.1 Command Cooldown Anti-Spam Control
+    const cooldownSlider = document.getElementById('cooldown-slider');
+    const cooldownNumberInput = document.getElementById('cooldown-number-input');
+    const cooldownValDisplay = document.getElementById('cooldown-val-display');
+    const btnSaveCooldown = document.getElementById('btn-save-cooldown');
+    const quickCooldownBtns = document.querySelectorAll('.quick-cooldown-btn');
+
+    function updateCooldownUI(sec) {
+      const val = parseInt(sec, 10);
+      if (isNaN(val) || val <= 0) return;
+      if (cooldownSlider) cooldownSlider.value = Math.min(val, 60);
+      if (cooldownNumberInput) cooldownNumberInput.value = val;
+      if (cooldownValDisplay) cooldownValDisplay.textContent = `${val}s`;
+      quickCooldownBtns.forEach((btn) => {
+        btn.classList.toggle('active', parseInt(btn.getAttribute('data-sec'), 10) === val);
+      });
+    }
+
+    async function saveCooldown(sec) {
+      const val = parseInt(sec, 10);
+      if (isNaN(val) || val < 1 || val > 120) {
+        log('⚠️ Thời gian cấm chat không hợp lệ (phải từ 1 đến 120s)', 'err');
+        return;
+      }
+      updateCooldownUI(val);
+      const sentViaWs = sendWs({ type: 'set_cooldown', cooldownSec: val });
+      try {
+        await fetch('/api/config/cooldown', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cooldownSec: val })
+        });
+        log(`⏱️ Đã đặt thời gian cấm chat / cooldown lệnh thành ${val}s`, 'sent');
+      } catch (err) {
+        if (!sentViaWs) log(`❌ Lỗi cập nhật cooldown: ${err.message}`, 'err');
+      }
+    }
+
+    // Load initial cooldown from API on start
+    fetch('/api/config/cooldown')
+      .then(r => r.json())
+      .then(data => {
+        if (data && data.cooldownSec) updateCooldownUI(data.cooldownSec);
+      })
+      .catch(() => {});
+
+    cooldownSlider?.addEventListener('input', (e) => {
+      const val = parseInt(e.target.value, 10);
+      if (cooldownNumberInput) cooldownNumberInput.value = val;
+      if (cooldownValDisplay) cooldownValDisplay.textContent = `${val}s`;
+      quickCooldownBtns.forEach((btn) => {
+        btn.classList.toggle('active', parseInt(btn.getAttribute('data-sec'), 10) === val);
+      });
+    });
+
+    cooldownNumberInput?.addEventListener('input', (e) => {
+      const val = parseInt(e.target.value, 10);
+      if (!isNaN(val)) {
+        if (cooldownSlider) cooldownSlider.value = Math.min(val, 60);
+        if (cooldownValDisplay) cooldownValDisplay.textContent = `${val}s`;
+        quickCooldownBtns.forEach((btn) => {
+          btn.classList.toggle('active', parseInt(btn.getAttribute('data-sec'), 10) === val);
+        });
+      }
+    });
+
+    quickCooldownBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const sec = parseInt(btn.getAttribute('data-sec'), 10);
+        saveCooldown(sec);
+      });
+    });
+
+    btnSaveCooldown?.addEventListener('click', () => {
+      const val = parseInt(cooldownNumberInput ? cooldownNumberInput.value : cooldownSlider?.value, 10);
+      saveCooldown(val);
     });
 
     // 7. Gift Category Tabs & Donate Buttons

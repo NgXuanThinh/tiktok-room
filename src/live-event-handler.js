@@ -347,11 +347,21 @@ export function handleLikeEvent(evt, context) {
  * Handles incoming Chat comment events.
  */
 export function handleChatEvent(evt, context) {
-  const { uiOverlay, getOrCreateAvatarMesh, syncActiveFloorAvatars } = context;
+  const { uiOverlay, getOrCreateAvatarMesh, syncActiveFloorAvatars, minigameManager } = context;
   uiOverlay.addHype(2);
   const user = evt.user || { id: 'anon', username: 'Viewer' };
   const comment = evt.data?.comment || '';
   const mesh = getOrCreateAvatarMesh(user, 0);
+
+  // If Minigame Survival is active, let MinigameManager process color votes
+  if (minigameManager && minigameManager.isGameActive) {
+    const handled = minigameManager.handleChatCommand(user.id, user.nickname || user.username, comment);
+    if (handled) {
+      if (syncActiveFloorAvatars) syncActiveFloorAvatars();
+      return;
+    }
+  }
+
   _handleChatCommands(comment, mesh, syncActiveFloorAvatars);
 }
 
@@ -834,6 +844,12 @@ export function handleLiveEvent(evt, context) {
 
     case 'admin_command':
       handleAdminCommand(evt, context);
+      break;
+
+    case 'minigame_action':
+      if (context.minigameManager) {
+        context.minigameManager.handleAdminAction(evt.action, evt.payload);
+      }
       break;
 
     default:

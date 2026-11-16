@@ -1,6 +1,6 @@
 {
   "scannerEnv": "docker:tiktok-live-bar",
-  "lastScanned": "2026-11-12T17:43:34.728Z",
+  "lastScanned": "2026-11-16T00:35:41.479Z",
   "functions": [
     {
       "file": "server/avatar-proxy.js",
@@ -254,9 +254,113 @@
       "file": "server/server.js",
       "name": "broadcast",
       "params": "payload",
-      "startLine": 58,
-      "endLine": 65,
+      "startLine": 65,
+      "endLine": 72,
       "duty": "Serializes and broadcasts JSON message payloads to all currently connected WebSocket clients."
+    },
+    {
+      "file": "server/server.js",
+      "name": "handleGetCooldown",
+      "params": "req, res",
+      "startLine": 216,
+      "endLine": 227,
+      "duty": "Executes handleGetCooldown operation within server.js."
+    },
+    {
+      "file": "server/server.js",
+      "name": "handleSetCooldown",
+      "params": "req, res",
+      "startLine": 229,
+      "endLine": 249,
+      "duty": "Executes handleSetCooldown operation within server.js."
+    },
+    {
+      "file": "server/server.js",
+      "name": "handleMockEvent",
+      "params": "body",
+      "startLine": 255,
+      "endLine": 291,
+      "duty": "Executes handleMockEvent operation within server.js."
+    },
+    {
+      "file": "server/services/load-monitor.js",
+      "name": "constructor",
+      "params": "redisClient, options = {}",
+      "startLine": 6,
+      "endLine": 6,
+      "duty": "Executes constructor operation within load-monitor.js."
+    },
+    {
+      "file": "server/services/load-monitor.js",
+      "name": "setCinematicActive",
+      "params": "isActive, durationSec = null",
+      "startLine": 26,
+      "endLine": 45,
+      "duty": "Executes setCinematicActive operation within load-monitor.js."
+    },
+    {
+      "file": "server/services/load-monitor.js",
+      "name": "calculateMultiplier",
+      "params": "activeAvatars, queueDepth",
+      "startLine": 50,
+      "endLine": 67,
+      "duty": "Executes calculateMultiplier operation within load-monitor.js."
+    },
+    {
+      "file": "server/services/load-monitor.js",
+      "name": "reportMetrics",
+      "params": "",
+      "startLine": 72,
+      "endLine": 100,
+      "duty": "Publishes backend load heartbeat (multiplier, queue depth, freeze state) to Redis."
+    },
+    {
+      "file": "server/services/load-monitor.js",
+      "name": "start",
+      "params": "",
+      "startLine": 105,
+      "endLine": 112,
+      "duty": "Starts periodic 2-second heartbeat publication to Redis."
+    },
+    {
+      "file": "server/services/load-monitor.js",
+      "name": "stop",
+      "params": "",
+      "startLine": 117,
+      "endLine": 126,
+      "duty": "Stops periodic load heartbeat publication."
+    },
+    {
+      "file": "server/services/redis-stream-consumer.js",
+      "name": "constructor",
+      "params": "redisClient, options = {}",
+      "startLine": 5,
+      "endLine": 5,
+      "duty": "Executes constructor operation within redis-stream-consumer.js."
+    },
+    {
+      "file": "server/services/redis-stream-consumer.js",
+      "name": "start",
+      "params": "",
+      "startLine": 20,
+      "endLine": 24,
+      "duty": "Starts continuous long-polling loop consuming stream:live_events from Redis."
+    },
+    {
+      "file": "server/services/redis-stream-consumer.js",
+      "name": "_pollLoop",
+      "params": "",
+      "startLine": 29,
+      "endLine": 74,
+      "duty": "Executes continuous XREAD BLOCK calls, extracting JSON payloads and invoking event callbacks."
+    },
+    {
+      "file": "server/services/redis-stream-consumer.js",
+      "name": "stop",
+      "params": "",
+      "startLine": 79,
+      "endLine": 81,
+      "duty": "Halts the stream polling loop."
     },
     {
       "file": "server/tiktok-service.js",
@@ -446,73 +550,105 @@
       "file": "src/avatar-coordinator.js",
       "name": "getOrCreateAvatarMesh",
       "params": "userData, coins = 0, context",
-      "startLine": 17,
-      "endLine": 101,
+      "startLine": 21,
+      "endLine": 115,
       "duty": "Instantiates or retrieves a 3D Slime avatar mesh on dance floor or VIP platforms."
     },
     {
       "file": "src/avatar-coordinator.js",
       "name": "sinkAndRemoveAvatar",
       "params": "userId, context",
-      "startLine": 106,
-      "endLine": 117,
+      "startLine": 120,
+      "endLine": 131,
       "duty": "Executes sinkAndRemoveAvatar operation within avatar-coordinator.js."
     },
     {
       "file": "src/avatar-coordinator.js",
       "name": "deleteAvatar",
       "params": "userId, context",
-      "startLine": 122,
-      "endLine": 163,
+      "startLine": 136,
+      "endLine": 177,
       "duty": "Manually removes an avatar from the scene, tracking registry, and leaderboard, re-evaluating VIP assignments."
     },
     {
       "file": "src/avatar-coordinator.js",
       "name": "clearAllAvatars",
       "params": "context",
-      "startLine": 168,
-      "endLine": 204,
+      "startLine": 182,
+      "endLine": 218,
       "duty": "Disposes and removes all avatars from the 3D scene and resets the leaderboard."
     },
     {
       "file": "src/avatar-coordinator.js",
       "name": "syncActiveFloorAvatars",
       "params": "avatarMeshes, uiOverlay, ws",
-      "startLine": 209,
-      "endLine": 228,
+      "startLine": 223,
+      "endLine": 242,
       "duty": "Synchronizes active 3D avatar states with UI Overlay and WebSocket stream panels."
     },
     {
       "file": "src/avatar-coordinator.js",
       "name": "_updateCyberSlime",
       "params": "mesh, data, delta, bands",
-      "startLine": 234,
-      "endLine": 247,
+      "startLine": 248,
+      "endLine": 261,
       "duty": "Updates procedural squash, stretch, and AI dance moves on modern CyberSlime controller."
     },
     {
       "file": "src/avatar-coordinator.js",
       "name": "_updateProceduralSlime",
       "params": "mesh, data, phase, isBouncing, time, delta",
-      "startLine": 252,
-      "endLine": 289,
+      "startLine": 266,
+      "endLine": 303,
       "duty": "Applies volume-preserving squash-stretch kinematics and eye blinks to procedural slime mesh."
     },
     {
       "file": "src/avatar-coordinator.js",
       "name": "_updateHumanoid",
       "params": "data, style, phase",
-      "startLine": 294,
-      "endLine": 313,
+      "startLine": 308,
+      "endLine": 327,
       "duty": "Applies procedural humanoid dance kinematics to limb and torso bones."
     },
     {
       "file": "src/avatar-coordinator.js",
       "name": "updateAvatarKinematics",
       "params": "mesh, delta, time, bpmSpeed, frenzyMultiplier, bands, camera, isFrenzy = false",
-      "startLine": 318,
-      "endLine": 350,
+      "startLine": 332,
+      "endLine": 364,
       "duty": "Coordinates per-frame animation, leap physics, smooth scaling, and camera-facing billboards for an avatar."
+    },
+    {
+      "file": "src/avatar-coordinator.js",
+      "name": "isAvatarIsolationActive",
+      "params": "",
+      "startLine": 370,
+      "endLine": 372,
+      "duty": "Executes isAvatarIsolationActive operation within avatar-coordinator.js."
+    },
+    {
+      "file": "src/avatar-coordinator.js",
+      "name": "getCurrentHeroMesh",
+      "params": "",
+      "startLine": 378,
+      "endLine": 380,
+      "duty": "Executes getCurrentHeroMesh operation within avatar-coordinator.js."
+    },
+    {
+      "file": "src/avatar-coordinator.js",
+      "name": "isolateDonationAvatar",
+      "params": "heroMesh, avatarMeshes",
+      "startLine": 389,
+      "endLine": 420,
+      "duty": "Executes isolateDonationAvatar operation within avatar-coordinator.js."
+    },
+    {
+      "file": "src/avatar-coordinator.js",
+      "name": "revealAvatarsForZoomOut",
+      "params": "avatarMeshes, options = {}",
+      "startLine": 433,
+      "endLine": 433,
+      "duty": "Executes revealAvatarsForZoomOut operation within avatar-coordinator.js."
     },
     {
       "file": "src/avatar-manager.js",
@@ -702,56 +838,56 @@
       "file": "src/cinematic-showcase.js",
       "name": "initCinematicShowcase",
       "params": "ctx = {}",
-      "startLine": 19,
-      "endLine": 19,
+      "startLine": 20,
+      "endLine": 20,
       "duty": "Injects preview studio context (camera, activeAvatars, clearFloorEffects callback) into the showcase controller."
     },
     {
       "file": "src/cinematic-showcase.js",
       "name": "getScreenCoords",
       "params": "worldPos",
-      "startLine": 23,
-      "endLine": 36,
+      "startLine": 24,
+      "endLine": 37,
       "duty": "Projects 3D world coordinates onto 2D screen pixel coordinates for target-guided stage shrink animations."
     },
     {
       "file": "src/cinematic-showcase.js",
       "name": "generateSvgAvatar",
       "params": "name = 'Viewer'",
-      "startLine": 38,
-      "endLine": 59,
+      "startLine": 39,
+      "endLine": 60,
       "duty": "Generates a fallback data-URI SVG circular monogram avatar with user initials."
     },
     {
       "file": "src/cinematic-showcase.js",
       "name": "enqueueHighTierShowcase",
       "params": "item",
-      "startLine": 61,
-      "endLine": 66,
+      "startLine": 62,
+      "endLine": 67,
       "duty": "Appends high-tier and ultra donations to the sequential FIFO showcase queue, starting playback if idle."
     },
     {
       "file": "src/cinematic-showcase.js",
       "name": "processNextHighTier",
       "params": "",
-      "startLine": 68,
-      "endLine": 99,
+      "startLine": 69,
+      "endLine": 100,
       "duty": "Dequeues and triggers the next cinematic showcase in sequence, maintaining queue state."
     },
     {
       "file": "src/cinematic-showcase.js",
       "name": "runCinematic2DShowcase",
       "params": "item, onFinished",
-      "startLine": 101,
-      "endLine": 379,
+      "startLine": 102,
+      "endLine": 400,
       "duty": "Orchestrates the fullscreen cinematic overlay, backdrop blur, SVG ornaments, 2D particles, foreground 3D mascot, chibi badge, and safe termination."
     },
     {
       "file": "src/cinematic-showcase.js",
       "name": "cleanupShowcase",
       "params": "",
-      "startLine": 302,
-      "endLine": 351,
+      "startLine": 313,
+      "endLine": 372,
       "duty": "Safely closes the cinematic overlay, unpauses background avatars, disposes active foreground props, and invokes completion callbacks."
     },
     {
@@ -1222,96 +1358,128 @@
       "file": "src/donation-queue.js",
       "name": "initDonationQueue",
       "params": "context = {}",
-      "startLine": 17,
-      "endLine": 17,
+      "startLine": 20,
+      "endLine": 20,
       "duty": "Executes initDonationQueue operation within donation-queue.js."
     },
     {
       "file": "src/donation-queue.js",
       "name": "getDonationQueueLength",
       "params": "",
-      "startLine": 24,
-      "endLine": 26,
+      "startLine": 27,
+      "endLine": 29,
       "duty": "Executes getDonationQueueLength operation within donation-queue.js."
     },
     {
       "file": "src/donation-queue.js",
       "name": "isDonationProcessing",
       "params": "",
-      "startLine": 31,
-      "endLine": 33,
+      "startLine": 34,
+      "endLine": 36,
       "duty": "Executes isDonationProcessing operation within donation-queue.js."
+    },
+    {
+      "file": "src/donation-queue.js",
+      "name": "isDonationQueuePaused",
+      "params": "",
+      "startLine": 41,
+      "endLine": 43,
+      "duty": "Checks whether the donation celebration queue is currently paused."
+    },
+    {
+      "file": "src/donation-queue.js",
+      "name": "pauseDonationQueue",
+      "params": "",
+      "startLine": 48,
+      "endLine": 50,
+      "duty": "Pauses the donation queue during high-priority minigame judgment sequences."
+    },
+    {
+      "file": "src/donation-queue.js",
+      "name": "resumeDonationQueue",
+      "params": "",
+      "startLine": 55,
+      "endLine": 60,
+      "duty": "Resumes the donation queue after minigame judgment completes."
+    },
+    {
+      "file": "src/donation-queue.js",
+      "name": "waitForDonationCompletion",
+      "params": "",
+      "startLine": 67,
+      "endLine": 74,
+      "duty": "Returns a promise that resolves when any active donation celebration finishes."
     },
     {
       "file": "src/donation-queue.js",
       "name": "clearDonationQueue",
       "params": "",
-      "startLine": 38,
-      "endLine": 46,
+      "startLine": 79,
+      "endLine": 87,
       "duty": "Executes clearDonationQueue operation within donation-queue.js."
     },
     {
       "file": "src/donation-queue.js",
       "name": "enqueueDonation",
       "params": "item",
-      "startLine": 53,
-      "endLine": 61,
+      "startLine": 94,
+      "endLine": 102,
       "duty": "Executes enqueueDonation operation within donation-queue.js."
     },
     {
       "file": "src/donation-queue.js",
       "name": "enqueueHighTierShowcase",
       "params": "item",
-      "startLine": 66,
-      "endLine": 76,
+      "startLine": 107,
+      "endLine": 117,
       "duty": "Executes enqueueHighTierShowcase operation within donation-queue.js."
     },
     {
       "file": "src/donation-queue.js",
       "name": "processNextDonation",
       "params": "",
-      "startLine": 81,
-      "endLine": 219,
+      "startLine": 122,
+      "endLine": 280,
       "duty": "Executes processNextDonation operation within donation-queue.js."
     },
     {
       "file": "src/donation-queue.js",
       "name": "onTurnComplete",
       "params": "",
-      "startLine": 116,
-      "endLine": 120,
+      "startLine": 168,
+      "endLine": 181,
       "duty": "Executes onTurnComplete operation within donation-queue.js."
     },
     {
       "file": "src/donation-queue.js",
       "name": "startEffectsAndHold",
       "params": "",
-      "startLine": 128,
-      "endLine": 133,
+      "startLine": 189,
+      "endLine": 194,
       "duty": "Executes startEffectsAndHold operation within donation-queue.js."
     },
     {
       "file": "src/donation-queue.js",
       "name": "startEffectsAndHold",
       "params": "",
-      "startLine": 150,
-      "endLine": 155,
+      "startLine": 211,
+      "endLine": 216,
       "duty": "Executes startEffectsAndHold operation within donation-queue.js."
     },
     {
       "file": "src/donation-queue.js",
       "name": "_executeSmallEffects",
       "params": "mesh, origin, coins, shouldUpgradeTier, newTier, context",
-      "startLine": 225,
-      "endLine": 260,
+      "startLine": 286,
+      "endLine": 321,
       "duty": "Executes _executeSmallEffects operation within donation-queue.js."
     },
     {
       "file": "src/donation-queue.js",
       "name": "_executeMediumEffects",
       "params": "mesh, origin, coins, shouldUpgradeTier, newTier, context",
-      "startLine": 266,
-      "endLine": 301,
+      "startLine": 327,
+      "endLine": 362,
       "duty": "Executes _executeMediumEffects operation within donation-queue.js."
     },
     {
@@ -1735,96 +1903,400 @@
       "name": "handleChatEvent",
       "params": "evt, context",
       "startLine": 349,
-      "endLine": 356,
+      "endLine": 366,
       "duty": "Processes chat comments, routes avatar commands, and increments stream hype."
     },
     {
       "file": "src/live-event-handler.js",
       "name": "handleGiftEvent",
       "params": "evt, context",
-      "startLine": 361,
-      "endLine": 472,
+      "startLine": 371,
+      "endLine": 482,
       "duty": "Processes gift donations, updates leaderboard, triggers in-place celebrations, and schedules VIP promotion."
     },
     {
       "file": "src/live-event-handler.js",
       "name": "handleAdminCommand",
       "params": "evt, context",
-      "startLine": 477,
-      "endLine": 594,
+      "startLine": 487,
+      "endLine": 604,
       "duty": "Applies administrative controls for camera presets, distance slider, chroma key, volume, and frenzy mode."
     },
     {
       "file": "src/live-event-handler.js",
       "name": "handleRoomRanksEvent",
       "params": "evt, context",
-      "startLine": 601,
-      "endLine": 671,
+      "startLine": 611,
+      "endLine": 681,
       "duty": "Executes handleRoomRanksEvent operation within live-event-handler.js."
     },
     {
       "file": "src/live-event-handler.js",
       "name": "handleSessionResetEvent",
       "params": "evt, context",
-      "startLine": 676,
-      "endLine": 681,
+      "startLine": 686,
+      "endLine": 691,
       "duty": "Executes handleSessionResetEvent operation within live-event-handler.js."
     },
     {
       "file": "src/live-event-handler.js",
       "name": "handleMemberEvent",
       "params": "evt, context",
-      "startLine": 687,
-      "endLine": 703,
+      "startLine": 697,
+      "endLine": 713,
       "duty": "Executes handleMemberEvent operation within live-event-handler.js."
     },
     {
       "file": "src/live-event-handler.js",
       "name": "handleFanEvent",
       "params": "evt, context",
-      "startLine": 709,
-      "endLine": 726,
+      "startLine": 719,
+      "endLine": 736,
       "duty": "Executes handleFanEvent operation within live-event-handler.js."
     },
     {
       "file": "src/live-event-handler.js",
       "name": "handleFollowEvent",
       "params": "evt, context",
-      "startLine": 732,
-      "endLine": 752,
+      "startLine": 742,
+      "endLine": 762,
       "duty": "Executes handleFollowEvent operation within live-event-handler.js."
     },
     {
       "file": "src/live-event-handler.js",
       "name": "handleLiveEvent",
       "params": "evt, context",
-      "startLine": 760,
-      "endLine": 842,
+      "startLine": 770,
+      "endLine": 858,
       "duty": "Central event router delegating normalized TikTok LIVE WebSocket payloads to specific event handlers."
     },
     {
       "file": "src/main.js",
       "name": "initClientApp",
       "params": "",
-      "startLine": 93,
-      "endLine": 314,
+      "startLine": 95,
+      "endLine": 338,
       "duty": "Initializes the 3D client application, network sockets, audio, and UI overlays."
     },
     {
       "file": "src/main.js",
       "name": "onThresholdsUpdated",
       "params": "newThresholds",
-      "startLine": 210,
-      "endLine": 231,
+      "startLine": 234,
+      "endLine": 255,
       "duty": "Executes onThresholdsUpdated operation within main.js."
     },
     {
       "file": "src/main.js",
       "name": "animate",
       "params": "",
-      "startLine": 250,
-      "endLine": 311,
+      "startLine": 274,
+      "endLine": 335,
       "duty": "Main 60 FPS WebGL render loop driving audio analysis, lights, VIP scheduler, avatars, and camera."
+    },
+    {
+      "file": "src/minigame-fx.js",
+      "name": "syncRoomNeonDeathColor",
+      "params": "clubEnvironment, colorHex, durationSec = 3.5",
+      "startLine": 12,
+      "endLine": 64,
+      "duty": "Synchronizes venue neon signage, lasers, and spotlights to Death Color with continuous floor sweeping."
+    },
+    {
+      "file": "src/minigame-fx.js",
+      "name": "restoreRoomLighting",
+      "params": "clubEnvironment",
+      "startLine": 70,
+      "endLine": 119,
+      "duty": "Restores venue neon bar, spotlights, and laser beams back to standard club ambient colors."
+    },
+    {
+      "file": "src/minigame-fx.js",
+      "name": "triggerLaserStrikes",
+      "params": "scene, targetMeshes, colorHex, durationMs = 2800, sceneManager = null",
+      "startLine": 130,
+      "endLine": 205,
+      "duty": "Casts vertical neon laser strike pillars from the ceiling onto eliminated slimes."
+    },
+    {
+      "file": "src/minigame-fx.js",
+      "name": "anim",
+      "params": "",
+      "startLine": 176,
+      "endLine": 202,
+      "duty": "Executes anim operation within minigame-fx.js."
+    },
+    {
+      "file": "src/minigame-fx.js",
+      "name": "applyGhostState",
+      "params": "mesh",
+      "startLine": 211,
+      "endLine": 248,
+      "duty": "Transforms an eliminated slime mesh into a translucent dancing ghost avatar."
+    },
+    {
+      "file": "src/minigame-fx.js",
+      "name": "revertGhostState",
+      "params": "mesh",
+      "startLine": 254,
+      "endLine": 279,
+      "duty": "Restores a ghost slime mesh back to its live material, opacity, and normal state."
+    },
+    {
+      "file": "src/minigame-manager.js",
+      "name": "constructor",
+      "params": "",
+      "startLine": 40,
+      "endLine": 59,
+      "duty": "Initializes MinigameManager state machine, player maps, round timers, and context bindings."
+    },
+    {
+      "file": "src/minigame-manager.js",
+      "name": "init",
+      "params": "context = {}",
+      "startLine": 65,
+      "endLine": 65,
+      "duty": "Injects application context (scene, meshes, lighting, environment, socket) into MinigameManager."
+    },
+    {
+      "file": "src/minigame-manager.js",
+      "name": "_getFloorMeshes",
+      "params": "",
+      "startLine": 74,
+      "endLine": 83,
+      "duty": "Executes _getFloorMeshes operation within minigame-manager.js."
+    },
+    {
+      "file": "src/minigame-manager.js",
+      "name": "startScheduledGame",
+      "params": "countdownSec = MINIGAME_CONFIG.defaultStartCountdownSec, roundDurationSec = this.roundDurationSec",
+      "startLine": 90,
+      "endLine": 121,
+      "duty": "Initiates pre-game countdown timer leading into Round 1."
+    },
+    {
+      "file": "src/minigame-manager.js",
+      "name": "startGameImmediate",
+      "params": "roundDurationSec = this.roundDurationSec",
+      "startLine": 127,
+      "endLine": 140,
+      "duty": "Immediately begins Round 1 if minimum player count is met."
+    },
+    {
+      "file": "src/minigame-manager.js",
+      "name": "startRound",
+      "params": "roundNum",
+      "startLine": 146,
+      "endLine": 198,
+      "duty": "Begins a new survival round with fresh tie-break multipliers and voting countdown."
+    },
+    {
+      "file": "src/minigame-manager.js",
+      "name": "freezeCountdown",
+      "params": "",
+      "startLine": 203,
+      "endLine": 206,
+      "duty": "Freezes minigame voting countdown during VIP donation showcases preventing timer loss."
+    },
+    {
+      "file": "src/minigame-manager.js",
+      "name": "unfreezeCountdown",
+      "params": "",
+      "startLine": 211,
+      "endLine": 215,
+      "duty": "Unfreezes minigame voting countdown after VIP showcase concludes, resuming timer seamlessly."
+    },
+    {
+      "file": "src/minigame-manager.js",
+      "name": "populateActivePlayersFromFloor",
+      "params": "",
+      "startLine": 220,
+      "endLine": 239,
+      "duty": "Registers live dance floor slimes into active round participants."
+    },
+    {
+      "file": "src/minigame-manager.js",
+      "name": "onVotingEnded",
+      "params": "",
+      "startLine": 244,
+      "endLine": 267,
+      "duty": "Concludes voting phase, determines Death Color, pauses donations, and triggers laser judgment sequence."
+    },
+    {
+      "file": "src/minigame-manager.js",
+      "name": "executeJudgment",
+      "params": "deathColor",
+      "startLine": 273,
+      "endLine": 332,
+      "duty": "Executes executeJudgment operation within minigame-manager.js."
+    },
+    {
+      "file": "src/minigame-manager.js",
+      "name": "_handleOutcome",
+      "params": "outcome",
+      "startLine": 338,
+      "endLine": 376,
+      "duty": "Processes round outcome, advancing to next round or triggering winner celebration and automatic ghost revival."
+    },
+    {
+      "file": "src/minigame-manager.js",
+      "name": "handleChatCommand",
+      "params": "userId, username, comment",
+      "startLine": 384,
+      "endLine": 432,
+      "duty": "Processes viewer !color chat commands, rejecting ghost votes and non-voting states."
+    },
+    {
+      "file": "src/minigame-manager.js",
+      "name": "handleNewAvatarSpawn",
+      "params": "userId, username, mesh",
+      "startLine": 441,
+      "endLine": 462,
+      "duty": "Manages late joiners, auto-converting entrants into ghosts after Round 1 voting."
+    },
+    {
+      "file": "src/minigame-manager.js",
+      "name": "stopMinigame",
+      "params": "keepGhostUntilNextGame = false",
+      "startLine": 468,
+      "endLine": 489,
+      "duty": "Halts the minigame, restores venue lighting, resumes donation queue, and revives all ghosts."
+    },
+    {
+      "file": "src/minigame-manager.js",
+      "name": "reviveAllGhosts",
+      "params": "",
+      "startLine": 494,
+      "endLine": 502,
+      "duty": "Revives all ghost slimes on the floor back to live dancing avatars."
+    },
+    {
+      "file": "src/minigame-manager.js",
+      "name": "handleAdminAction",
+      "params": "action, payload = {}",
+      "startLine": 509,
+      "endLine": 509,
+      "duty": "Handles administrative minigame commands (start, stop, force judgment, revive ghosts, set config) from Port 3001."
+    },
+    {
+      "file": "src/minigame-manager.js",
+      "name": "_broadcastLiveStats",
+      "params": "",
+      "startLine": 538,
+      "endLine": 541,
+      "duty": "Broadcasts live vote distribution to Admin cockpit and clients."
+    },
+    {
+      "file": "src/minigame-manager.js",
+      "name": "_broadcastState",
+      "params": "extra = {}",
+      "startLine": 546,
+      "endLine": 546,
+      "duty": "Broadcasts synchronized minigame state machine packets over WebSocket."
+    },
+    {
+      "file": "src/minigame-tally.js",
+      "name": "generateRoundTiebreakWeights",
+      "params": "range = MINIGAME_CONFIG.tiebreakWeightRange",
+      "startLine": 10,
+      "endLine": 28,
+      "duty": "Generates micro-multiplier weights [1.001, 1.009] for each color to break vote ties."
+    },
+    {
+      "file": "src/minigame-tally.js",
+      "name": "calculateVoteScores",
+      "params": "alivePlayers, weights",
+      "startLine": 36,
+      "endLine": 79,
+      "duty": "Tallies active player color votes and multiplies by round weights to determine majority Death Color."
+    },
+    {
+      "file": "src/minigame-tally.js",
+      "name": "evaluateRoundOutcome",
+      "params": "alivePlayers, deathColor",
+      "startLine": 87,
+      "endLine": 157,
+      "duty": "Evaluates round results determining survivors, eliminated players, and game progression state (NEXT_ROUND, SOLO_WINNER, CO_CHAMPIONS, NO_WINNER)."
+    },
+    {
+      "file": "src/minigame-ui.js",
+      "name": "initMinigameUI",
+      "params": "",
+      "startLine": 10,
+      "endLine": 30,
+      "duty": "Executes initMinigameUI operation within minigame-ui.js."
+    },
+    {
+      "file": "src/minigame-ui.js",
+      "name": "updateCornerTiebreakBadge",
+      "params": "weights, visible = true",
+      "startLine": 38,
+      "endLine": 61,
+      "duty": "Updates the small glassmorphic corner badge displaying active round micro-multipliers."
+    },
+    {
+      "file": "src/minigame-ui.js",
+      "name": "showStartCountdownBanner",
+      "params": "remainingSec",
+      "startLine": 67,
+      "endLine": 85,
+      "duty": "Displays countdown HUD banner announcing upcoming minigame start."
+    },
+    {
+      "file": "src/minigame-ui.js",
+      "name": "showVotingBanner",
+      "params": "roundNumber, remainingSec, totalSec",
+      "startLine": 93,
+      "endLine": 112,
+      "duty": "Displays round voting countdown and minimal live vote tally HUD banner."
+    },
+    {
+      "file": "src/minigame-ui.js",
+      "name": "showMinimalTallyBanner",
+      "params": "roundNumber, counts, deathColor",
+      "startLine": 121,
+      "endLine": 144,
+      "duty": "Executes showMinimalTallyBanner operation within minigame-ui.js."
+    },
+    {
+      "file": "src/minigame-ui.js",
+      "name": "showJudgmentBanner",
+      "params": "deathColor",
+      "startLine": 150,
+      "endLine": 167,
+      "duty": "Displays Death Color judgment announcement and elimination notice."
+    },
+    {
+      "file": "src/minigame-ui.js",
+      "name": "showWinnerBanner",
+      "params": "winners, isCoChampions = false",
+      "startLine": 174,
+      "endLine": 190,
+      "duty": "Displays victorious champion celebration HUD banner for solo winner or co-champions."
+    },
+    {
+      "file": "src/minigame-ui.js",
+      "name": "showNoWinnerBanner",
+      "params": "",
+      "startLine": 195,
+      "endLine": 208,
+      "duty": "Displays game over notice when all players are eliminated."
+    },
+    {
+      "file": "src/minigame-ui.js",
+      "name": "showWarningBanner",
+      "params": "msg, autoHideMs = 3500",
+      "startLine": 215,
+      "endLine": 235,
+      "duty": "Displays warning toast when room conditions are not met."
+    },
+    {
+      "file": "src/minigame-ui.js",
+      "name": "hideMinigameBanner",
+      "params": "",
+      "startLine": 240,
+      "endLine": 243,
+      "duty": "Clears and hides all active minigame HUD marquee banners."
     },
     {
       "file": "src/preview-audio.js",
@@ -1967,47 +2439,47 @@
       "name": "revertFromCinematic",
       "params": "",
       "startLine": 489,
-      "endLine": 501,
+      "endLine": 508,
       "duty": "Executes revertFromCinematic operation within scene-manager.js."
     },
     {
       "file": "src/scene-manager.js",
       "name": "startDonateShowcase",
       "params": "slimePos, onArrived = null, duration = 1.0",
-      "startLine": 503,
-      "endLine": 505,
+      "startLine": 510,
+      "endLine": 512,
       "duty": "Executes startDonateShowcase operation within scene-manager.js."
     },
     {
       "file": "src/scene-manager.js",
       "name": "endDonateShowcase",
       "params": "",
-      "startLine": 507,
-      "endLine": 509,
+      "startLine": 514,
+      "endLine": 516,
       "duty": "Executes endDonateShowcase operation within scene-manager.js."
     },
     {
       "file": "src/scene-manager.js",
       "name": "focusDonationAvatar",
       "params": "avatarMesh, options = {}, onArrived = null",
-      "startLine": 519,
-      "endLine": 519,
+      "startLine": 526,
+      "endLine": 526,
       "duty": "Executes focusDonationAvatar operation within scene-manager.js."
     },
     {
       "file": "src/scene-manager.js",
       "name": "focusOnAvatar",
       "params": "avatarMesh, options = {}",
-      "startLine": 596,
-      "endLine": 596,
+      "startLine": 603,
+      "endLine": 603,
       "duty": "Focuses camera directly onto a selected Slime avatar with dynamic height framing and gentle 360-degree orbit rotation."
     },
     {
       "file": "src/scene-manager.js",
       "name": "clearAvatarFocus",
       "params": "",
-      "startLine": 621,
-      "endLine": 634,
+      "startLine": 628,
+      "endLine": 641,
       "duty": "Clears active avatar focus tracking and smoothly restores previous camera preset."
     },
     {
@@ -3673,6 +4145,166 @@
       "startLine": 1570,
       "endLine": 1849,
       "duty": "Main Three.js render loop driving camera transitions, spotlight fades, avatar updates, and particle systems."
+    },
+    {
+      "file": "gateway/config/redis.config.js",
+      "name": "getRedisConfig",
+      "params": "customUrl = null",
+      "startLine": 3,
+      "endLine": 15,
+      "duty": "Executes getRedisConfig operation within redis.config.js."
+    },
+    {
+      "file": "gateway/config/redis.config.js",
+      "name": "retryStrategy",
+      "params": "times",
+      "startLine": 7,
+      "endLine": 10,
+      "duty": "Executes retryStrategy operation within redis.config.js."
+    },
+    {
+      "file": "gateway/index.js",
+      "name": "processRawEvent",
+      "params": "type, rawData",
+      "startLine": 36,
+      "endLine": 71,
+      "duty": "Executes processRawEvent operation within index.js."
+    },
+    {
+      "file": "gateway/index.js",
+      "name": "shutdown",
+      "params": "signal",
+      "startLine": 120,
+      "endLine": 127,
+      "duty": "Executes shutdown operation within index.js."
+    },
+    {
+      "file": "gateway/services/command-throttler.js",
+      "name": "constructor",
+      "params": "redisClient, options = {}",
+      "startLine": 5,
+      "endLine": 5,
+      "duty": "Executes constructor operation within command-throttler.js."
+    },
+    {
+      "file": "gateway/services/command-throttler.js",
+      "name": "isInteractiveCommand",
+      "params": "comment",
+      "startLine": 26,
+      "endLine": 32,
+      "duty": "Checks if comment text is a targeted 3D interactive command (!color, !face, !dance)."
+    },
+    {
+      "file": "gateway/services/command-throttler.js",
+      "name": "setBaseCooldown",
+      "params": "sec",
+      "startLine": 37,
+      "endLine": 50,
+      "duty": "Sets base cooldown dynamically (1s-120s) and persists it to Redis config:command_cooldown_sec."
+    },
+    {
+      "file": "gateway/services/command-throttler.js",
+      "name": "getBaseCooldown",
+      "params": "",
+      "startLine": 55,
+      "endLine": 66,
+      "duty": "Reads configured base cooldown from Redis or in-memory cache."
+    },
+    {
+      "file": "gateway/services/command-throttler.js",
+      "name": "getBackendMetrics",
+      "params": "",
+      "startLine": 71,
+      "endLine": 116,
+      "duty": "Refreshes backend load metrics and configured cooldown from Redis with a 500ms in-memory cache."
+    },
+    {
+      "file": "gateway/services/command-throttler.js",
+      "name": "canExecute",
+      "params": "userId, comment",
+      "startLine": 122,
+      "endLine": 169,
+      "duty": "Checks and consumes per-user atomic cooldown in Redis; blocks commands immediately if backend is in Freeze State."
+    },
+    {
+      "file": "gateway/services/command-throttler.js",
+      "name": "resetUser",
+      "params": "userId",
+      "startLine": 174,
+      "endLine": 177,
+      "duty": "Resets cooldown key for a specific user."
+    },
+    {
+      "file": "gateway/services/event-classifier.js",
+      "name": "classify",
+      "params": "event",
+      "startLine": 10,
+      "endLine": 42,
+      "duty": "Executes classify operation within event-classifier.js."
+    },
+    {
+      "file": "gateway/services/event-stream-producer.js",
+      "name": "constructor",
+      "params": "redisClient, options = {}",
+      "startLine": 5,
+      "endLine": 5,
+      "duty": "Executes constructor operation within event-stream-producer.js."
+    },
+    {
+      "file": "gateway/services/event-stream-producer.js",
+      "name": "publish",
+      "params": "event",
+      "startLine": 17,
+      "endLine": 38,
+      "duty": "Publishes normalized TikTok events to Redis Stream stream:live_events with MAXLEN trimming."
+    },
+    {
+      "file": "gateway/services/like-aggregator.js",
+      "name": "constructor",
+      "params": "options = {}",
+      "startLine": 5,
+      "endLine": 5,
+      "duty": "Executes constructor operation within like-aggregator.js."
+    },
+    {
+      "file": "gateway/services/like-aggregator.js",
+      "name": "addLike",
+      "params": "event",
+      "startLine": 17,
+      "endLine": 29,
+      "duty": "Executes addLike operation within like-aggregator.js."
+    },
+    {
+      "file": "gateway/services/like-aggregator.js",
+      "name": "flush",
+      "params": "",
+      "startLine": 34,
+      "endLine": 61,
+      "duty": "Executes flush operation within like-aggregator.js."
+    },
+    {
+      "file": "gateway/services/like-aggregator.js",
+      "name": "reset",
+      "params": "",
+      "startLine": 66,
+      "endLine": 73,
+      "duty": "Executes reset operation within like-aggregator.js."
+    },
+    {
+      "file": "gateway/services/redis-client.js",
+      "name": "getRedisClient",
+      "params": "customUrl = null",
+      "startLine": 7,
+      "endLine": 25,
+      "duty": "Executes getRedisClient operation within redis-client.js."
+    },
+    {
+      "file": "gateway/services/redis-client.js",
+      "name": "closeRedisClient",
+      "params": "",
+      "startLine": 27,
+      "endLine": 36,
+      "duty": "Executes closeRedisClient operation within redis-client.js."
     }
   ]
 }

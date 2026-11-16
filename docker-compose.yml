@@ -1,24 +1,52 @@
 services:
+  redis:
+    image: redis:7-alpine
+    container_name: tiktok-redis
+    restart: unless-stopped
+    command: ["redis-server", "--maxmemory", "64mb", "--maxmemory-policy", "allkeys-lru", "--save", ""]
+    ports:
+      - "6379:6379"
+
+  tiktok-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile.gateway
+    container_name: tiktok-gateway
+    restart: unless-stopped
+    depends_on:
+      - redis
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - TIKTOK_USERNAME=${TIKTOK_USERNAME:-}
+      - BASE_COOLDOWN_SEC=10
+    volumes:
+      - ./gateway:/app/gateway
+
   tiktok-live-bar:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: tiktok-live-bar
     restart: unless-stopped
+    depends_on:
+      - redis
     ports:
       - "3000:3000"
       - "3001:3001"
     environment:
       - PORT=3000
       - ADMIN_PORT=3001
+      - REDIS_URL=redis://redis:6379
       - NODE_ENV=development
       - TIKTOK_USERNAME=${TIKTOK_USERNAME:-}
     volumes:
       - ./src:/app/src
       - ./server:/app/server
+      - ./gateway:/app/gateway
       - ./public:/app/public
       - ./preview:/app/preview
       - ./tests:/app/tests
+      - ./.antigravity:/app/.antigravity
 
   tiktok-preview:
     build:

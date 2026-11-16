@@ -7,6 +7,8 @@ import { isolateDonationAvatar, revealAvatarsForZoomOut } from './avatar-coordin
 
 const donationQueue = [];
 let isProcessingDonation = false;
+let isQueuePaused = false;
+let onQueueIdleCallback = null;
 let queueContext = {};
 let currentTimer = null;
 let currentItem = null;
@@ -34,6 +36,44 @@ export function isDonationProcessing() {
 }
 
 /**
+ * Returns whether the donation queue is temporarily paused for high-priority events (e.g. Minigame Judgment).
+ */
+export function isDonationQueuePaused() {
+  return isQueuePaused;
+}
+
+/**
+ * Pauses queue processing. Ongoing donation will complete, but subsequent items will wait.
+ */
+export function pauseDonationQueue() {
+  isQueuePaused = true;
+}
+
+/**
+ * Resumes queue processing and drains pending donations.
+ */
+export function resumeDonationQueue() {
+  isQueuePaused = false;
+  if (!isProcessingDonation && donationQueue.length > 0) {
+    processNextDonation();
+  }
+}
+
+/**
+ * Waits for active donation celebration to completely finish.
+ * Returns immediately if no donation is currently running.
+ * @returns {Promise<void>}
+ */
+export function waitForDonationCompletion() {
+  if (!isProcessingDonation) {
+    return Promise.resolve();
+  }
+  return new Promise((resolve) => {
+    onQueueIdleCallback = resolve;
+  });
+}
+
+/**
  * Clears the queue and resets state (e.g. on session reset).
  */
 export function clearDonationQueue() {
@@ -56,7 +96,7 @@ export function enqueueDonation(item) {
     donationQueue.shift();
   }
   donationQueue.push(item);
-  if (!isProcessingDonation) {
+  if (!isProcessingDonation && !isQueuePaused) {
     processNextDonation();
   }
 }
@@ -80,6 +120,11 @@ export function enqueueHighTierShowcase(item) {
  * Dequeues and processes the next donation item in sequence.
  */
 export function processNextDonation() {
+  if (isQueuePaused) {
+    isProcessingDonation = false;
+    return;
+  }
+
   if (donationQueue.length === 0) {
     isProcessingDonation = false;
     currentItem = null;
@@ -121,6 +166,15 @@ export function processNextDonation() {
   isolateDonationAvatar(mesh, activeMeshes);
 
   const onTurnComplete = () => {
+    isProcessingDonation = false;
+    if (onQueueIdleCallback) {
+      const cb = onQueueIdleCallback;
+      onQueueIdleCallback = null;
+      cb();
+    }
+    if (isQueuePaused) {
+      return;
+    }
     currentTimer = setTimeout(() => {
       processNextDonation();
     }, DONATION_QUEUE_CONFIG.interItemDelayMs || 150);

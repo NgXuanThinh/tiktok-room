@@ -73,6 +73,7 @@ import { VipLoungeManager, triggerLeapAnimation } from './vip-lounge-manager.js'
 import { handleLiveEvent } from './live-event-handler.js';
 import { initCinematicShowcase, enqueueHighTierShowcase, isCinematicFreezeActive } from './cinematic-showcase.js';
 import { initDonationQueue, enqueueDonation } from './donation-queue.js';
+import { minigameManager } from './minigame-manager.js';
 import {
   getOrCreateAvatarMesh as createAvatarHelper,
   deleteAvatar as deleteAvatarHelper,
@@ -131,6 +132,7 @@ export function initClientApp() {
     camera: sceneManager.camera,
     sceneManager,
     activeAvatars: avatarMeshes,
+    minigameManager,
     clearFloorEffects: () => {}
   });
 
@@ -141,6 +143,17 @@ export function initClientApp() {
     audioSystem,
     uiOverlay,
     avatarMeshes
+  });
+
+  // Initialize Minigame Slime Survival Manager
+  minigameManager.init({
+    scene: sceneManager.scene,
+    sceneManager,
+    clubEnvironment,
+    avatarMeshes,
+    ws,
+    audioSystem,
+    uiOverlay
   });
 
   // Safety hook: Ensure avatars and billboards are restored if camera reverts from any source
@@ -165,6 +178,7 @@ export function initClientApp() {
     vipScheduler,
     vipLoungeManager,
     ws,
+    minigameManager,
     enqueueDonation,
     enqueueHighTierShowcase,
     getOrCreateAvatarMesh: (userData, coins = 0) => createAvatarHelper(userData, coins, appCtx),
@@ -189,6 +203,10 @@ export function initClientApp() {
   ws.onmessage = (msg) => {
     try {
       const event = JSON.parse(msg.data);
+      if (event.type === 'mock_rejected') {
+        console.warn('[Mock] Command rejected by throttler:', event.message);
+        return;
+      }
       handleLiveEvent(event, appCtx);
     } catch (err) {
       console.error('[WS] Error parsing message:', err);

@@ -101,6 +101,10 @@ classDiagram
         +_updateProceduralSlime(mesh, data, phase, isBouncing,...)
         +_updateHumanoid(data, style, phase)
         +updateAvatarKinematics(mesh, delta, time, bpmSpeed, f...)
+        +isAvatarIsolationActive()
+        +getCurrentHeroMesh()
+        +isolateDonationAvatar(heroMesh, avatarMeshes)
+        +revealAvatarsForZoomOut(avatarMeshes, options = {})
     }
 
     class src_avatar_manager_js {
@@ -208,6 +212,10 @@ classDiagram
         +initDonationQueue(context = {})
         +getDonationQueueLength()
         +isDonationProcessing()
+        +isDonationQueuePaused()
+        +pauseDonationQueue()
+        +resumeDonationQueue()
+        +waitForDonationCompletion()
         +clearDonationQueue()
         +enqueueDonation(item)
         +enqueueHighTierShowcase(item)
@@ -216,7 +224,6 @@ classDiagram
         +startEffectsAndHold()
         +startEffectsAndHold()
         +_executeSmallEffects(mesh, origin, coins, shouldUpg...)
-        +_executeMediumEffects(mesh, origin, coins, shouldUpg...)
     }
 
     class src_equipment_config_js {
@@ -292,6 +299,56 @@ classDiagram
         +initClientApp()
         +onThresholdsUpdated(newThresholds)
         +animate()
+    }
+
+    class src_minigame_constants_js {
+
+    }
+
+    class src_minigame_fx_js {
+        +syncRoomNeonDeathColor(clubEnvironment, colorHex, dur...)
+        +restoreRoomLighting(clubEnvironment)
+        +triggerLaserStrikes(scene, targetMeshes, colorHex,...)
+        +anim()
+        +applyGhostState(mesh)
+        +revertGhostState(mesh)
+    }
+
+    class src_minigame_manager_js {
+        +constructor()
+        +init(context = {})
+        +_getFloorMeshes()
+        +startScheduledGame(countdownSec = MINIGAME_CONFIG...)
+        +startGameImmediate(roundDurationSec = this.roundD...)
+        +startRound(roundNum)
+        +populateActivePlayersFromFloor()
+        +onVotingEnded()
+        +executeJudgment(deathColor)
+        +_handleOutcome(outcome)
+        +handleChatCommand(userId, username, comment)
+        +handleNewAvatarSpawn(userId, username, mesh)
+        +stopMinigame(keepGhostUntilNextGame = false...)
+        +reviveAllGhosts()
+        +handleAdminAction(action, payload = {})
+    }
+
+    class src_minigame_tally_js {
+        +generateRoundTiebreakWeights(range = MINIGAME_CONFIG.tiebre...)
+        +calculateVoteScores(alivePlayers, weights)
+        +evaluateRoundOutcome(alivePlayers, deathColor)
+    }
+
+    class src_minigame_ui_js {
+        +initMinigameUI()
+        +updateCornerTiebreakBadge(weights, visible = true)
+        +showStartCountdownBanner(remainingSec)
+        +showVotingBanner(roundNumber, remainingSec, tot...)
+        +showMinimalTallyBanner(roundNumber, counts, deathColo...)
+        +showJudgmentBanner(deathColor)
+        +showWinnerBanner(winners, isCoChampions = false...)
+        +showNoWinnerBanner()
+        +showWarningBanner(msg, autoHideMs = 3500)
+        +hideMinigameBanner()
     }
 
     class src_preview_audio_js {
@@ -527,12 +584,14 @@ src_cinematic_showcase_js --> src_foreground_slime_js : imports
 src_cinematic_showcase_js --> src_chibi_mascot_js : imports
 src_cinematic_showcase_js --> src_avatar_ornaments_js : imports
 src_cinematic_showcase_js --> src_preview_audio_js : imports
+src_cinematic_showcase_js --> src_avatar_coordinator_js : imports
 src_club_environment_js --> src_gift_props_js : imports
 src_club_environment_js --> src_cinematic_config_js : imports
 src_donation_queue_js --> src_donation_constants_js : imports
 src_donation_queue_js --> src_gift_props_js : imports
 src_donation_queue_js --> src_animation_constants_js : imports
 src_donation_queue_js --> src_cinematic_showcase_js : imports
+src_donation_queue_js --> src_avatar_coordinator_js : imports
 src_floor_slots_js --> src_club_environment_js : imports
 src_foreground_slime_js --> src_slime_model_js : imports
 src_live_event_handler_js --> src_avatar_manager_js : imports
@@ -554,6 +613,12 @@ src_main_js --> src_vip_lounge_manager_js : imports
 src_main_js --> src_live_event_handler_js : imports
 src_main_js --> src_cinematic_showcase_js : imports
 src_main_js --> src_donation_queue_js : imports
+src_main_js --> src_minigame_manager_js : imports
+src_minigame_constants_js --> src_avatar_manager_js : imports
+src_minigame_fx_js --> src_minigame_constants_js : imports
+src_minigame_manager_js --> src_avatar_manager_js : imports
+src_minigame_tally_js --> src_minigame_constants_js : imports
+src_minigame_ui_js --> src_minigame_constants_js : imports
 src_scene_manager_js --> src_cinematic_config_js : imports
 src_slime_model_js --> src_animation_constants_js : imports
 src_slime_model_js --> src_slime_aura_js : imports
@@ -645,15 +710,19 @@ preview_slime_preview_js --> src_donation_constants_js : imports
 - [toggleMute()](file:///e:/game/bar_room/src/audio-system.js#L482-L488): Toggles audio master gain between muted and unmuted states.
 
 ### src/avatar-coordinator.js
-- [getOrCreateAvatarMesh(userData, coins = 0, context)](file:///e:/game/bar_room/src/avatar-coordinator.js#L17-L101): Instantiates or retrieves a 3D Slime avatar mesh on dance floor or VIP platforms.
-- [sinkAndRemoveAvatar(userId, context)](file:///e:/game/bar_room/src/avatar-coordinator.js#L106-L117): Executes sinkAndRemoveAvatar operation within avatar-coordinator.js.
-- [deleteAvatar(userId, context)](file:///e:/game/bar_room/src/avatar-coordinator.js#L122-L163): Manually removes an avatar from the scene, tracking registry, and leaderboard, re-evaluating VIP assignments.
-- [clearAllAvatars(context)](file:///e:/game/bar_room/src/avatar-coordinator.js#L168-L204): Disposes and removes all avatars from the 3D scene and resets the leaderboard.
-- [syncActiveFloorAvatars(avatarMeshes, uiOverlay, ws)](file:///e:/game/bar_room/src/avatar-coordinator.js#L209-L228): Synchronizes active 3D avatar states with UI Overlay and WebSocket stream panels.
-- [_updateCyberSlime(mesh, data, delta, bands)](file:///e:/game/bar_room/src/avatar-coordinator.js#L234-L247): Updates procedural squash, stretch, and AI dance moves on modern CyberSlime controller.
-- [_updateProceduralSlime(mesh, data, phase, isBouncing, time, delta)](file:///e:/game/bar_room/src/avatar-coordinator.js#L252-L289): Applies volume-preserving squash-stretch kinematics and eye blinks to procedural slime mesh.
-- [_updateHumanoid(data, style, phase)](file:///e:/game/bar_room/src/avatar-coordinator.js#L294-L313): Applies procedural humanoid dance kinematics to limb and torso bones.
-- [updateAvatarKinematics(mesh, delta, time, bpmSpeed, frenzyMultiplier, bands, camera, isFrenzy = false)](file:///e:/game/bar_room/src/avatar-coordinator.js#L318-L350): Coordinates per-frame animation, leap physics, smooth scaling, and camera-facing billboards for an avatar.
+- [getOrCreateAvatarMesh(userData, coins = 0, context)](file:///e:/game/bar_room/src/avatar-coordinator.js#L21-L115): Instantiates or retrieves a 3D Slime avatar mesh on dance floor or VIP platforms.
+- [sinkAndRemoveAvatar(userId, context)](file:///e:/game/bar_room/src/avatar-coordinator.js#L120-L131): Executes sinkAndRemoveAvatar operation within avatar-coordinator.js.
+- [deleteAvatar(userId, context)](file:///e:/game/bar_room/src/avatar-coordinator.js#L136-L177): Manually removes an avatar from the scene, tracking registry, and leaderboard, re-evaluating VIP assignments.
+- [clearAllAvatars(context)](file:///e:/game/bar_room/src/avatar-coordinator.js#L182-L218): Disposes and removes all avatars from the 3D scene and resets the leaderboard.
+- [syncActiveFloorAvatars(avatarMeshes, uiOverlay, ws)](file:///e:/game/bar_room/src/avatar-coordinator.js#L223-L242): Synchronizes active 3D avatar states with UI Overlay and WebSocket stream panels.
+- [_updateCyberSlime(mesh, data, delta, bands)](file:///e:/game/bar_room/src/avatar-coordinator.js#L248-L261): Updates procedural squash, stretch, and AI dance moves on modern CyberSlime controller.
+- [_updateProceduralSlime(mesh, data, phase, isBouncing, time, delta)](file:///e:/game/bar_room/src/avatar-coordinator.js#L266-L303): Applies volume-preserving squash-stretch kinematics and eye blinks to procedural slime mesh.
+- [_updateHumanoid(data, style, phase)](file:///e:/game/bar_room/src/avatar-coordinator.js#L308-L327): Applies procedural humanoid dance kinematics to limb and torso bones.
+- [updateAvatarKinematics(mesh, delta, time, bpmSpeed, frenzyMultiplier, bands, camera, isFrenzy = false)](file:///e:/game/bar_room/src/avatar-coordinator.js#L332-L364): Coordinates per-frame animation, leap physics, smooth scaling, and camera-facing billboards for an avatar.
+- [isAvatarIsolationActive()](file:///e:/game/bar_room/src/avatar-coordinator.js#L370-L372): Executes isAvatarIsolationActive operation within avatar-coordinator.js.
+- [getCurrentHeroMesh()](file:///e:/game/bar_room/src/avatar-coordinator.js#L378-L380): Executes getCurrentHeroMesh operation within avatar-coordinator.js.
+- [isolateDonationAvatar(heroMesh, avatarMeshes)](file:///e:/game/bar_room/src/avatar-coordinator.js#L389-L420): Executes isolateDonationAvatar operation within avatar-coordinator.js.
+- [revealAvatarsForZoomOut(avatarMeshes, options = {})](file:///e:/game/bar_room/src/avatar-coordinator.js#L433-L433): Executes revealAvatarsForZoomOut operation within avatar-coordinator.js.
 
 ### src/avatar-manager.js
 - [parseColorCommand(comment)](file:///e:/game/bar_room/src/avatar-manager.js#L40-L65): Parses !color chat commands strictly supporting 3 canonical colors (green, red, blue) and aliases, returning isRandom flag for empty argument.
@@ -687,13 +756,13 @@ preview_slime_preview_js --> src_donation_constants_js : imports
 - [stopCinematicParticles()](file:///e:/game/bar_room/src/cinematic-particles.js#L1643-L1653): Cancels the canvas animation frame and clears the particle canvas context.
 
 ### src/cinematic-showcase.js
-- [initCinematicShowcase(ctx = {})](file:///e:/game/bar_room/src/cinematic-showcase.js#L19-L19): Injects preview studio context (camera, activeAvatars, clearFloorEffects callback) into the showcase controller.
-- [getScreenCoords(worldPos)](file:///e:/game/bar_room/src/cinematic-showcase.js#L23-L36): Projects 3D world coordinates onto 2D screen pixel coordinates for target-guided stage shrink animations.
-- [generateSvgAvatar(name = 'Viewer')](file:///e:/game/bar_room/src/cinematic-showcase.js#L38-L59): Generates a fallback data-URI SVG circular monogram avatar with user initials.
-- [enqueueHighTierShowcase(item)](file:///e:/game/bar_room/src/cinematic-showcase.js#L61-L66): Appends high-tier and ultra donations to the sequential FIFO showcase queue, starting playback if idle.
-- [processNextHighTier()](file:///e:/game/bar_room/src/cinematic-showcase.js#L68-L99): Dequeues and triggers the next cinematic showcase in sequence, maintaining queue state.
-- [runCinematic2DShowcase(item, onFinished)](file:///e:/game/bar_room/src/cinematic-showcase.js#L101-L379): Orchestrates the fullscreen cinematic overlay, backdrop blur, SVG ornaments, 2D particles, foreground 3D mascot, chibi badge, and safe termination.
-- [cleanupShowcase()](file:///e:/game/bar_room/src/cinematic-showcase.js#L302-L351): Safely closes the cinematic overlay, unpauses background avatars, disposes active foreground props, and invokes completion callbacks.
+- [initCinematicShowcase(ctx = {})](file:///e:/game/bar_room/src/cinematic-showcase.js#L20-L20): Injects preview studio context (camera, activeAvatars, clearFloorEffects callback) into the showcase controller.
+- [getScreenCoords(worldPos)](file:///e:/game/bar_room/src/cinematic-showcase.js#L24-L37): Projects 3D world coordinates onto 2D screen pixel coordinates for target-guided stage shrink animations.
+- [generateSvgAvatar(name = 'Viewer')](file:///e:/game/bar_room/src/cinematic-showcase.js#L39-L60): Generates a fallback data-URI SVG circular monogram avatar with user initials.
+- [enqueueHighTierShowcase(item)](file:///e:/game/bar_room/src/cinematic-showcase.js#L62-L67): Appends high-tier and ultra donations to the sequential FIFO showcase queue, starting playback if idle.
+- [processNextHighTier()](file:///e:/game/bar_room/src/cinematic-showcase.js#L69-L100): Dequeues and triggers the next cinematic showcase in sequence, maintaining queue state.
+- [runCinematic2DShowcase(item, onFinished)](file:///e:/game/bar_room/src/cinematic-showcase.js#L102-L390): Orchestrates the fullscreen cinematic overlay, backdrop blur, SVG ornaments, 2D particles, foreground 3D mascot, chibi badge, and safe termination.
+- [cleanupShowcase()](file:///e:/game/bar_room/src/cinematic-showcase.js#L308-L362): Safely closes the cinematic overlay, unpauses background avatars, disposes active foreground props, and invokes completion callbacks.
 
 ### src/club-constants.js
 - [count()](file:///e:/game/bar_room/src/club-constants.js#L33-L33): Executes count operation within club-constants.js.
@@ -760,18 +829,22 @@ preview_slime_preview_js --> src_donation_constants_js : imports
 - [dispose()](file:///e:/game/bar_room/src/donate-overlay.js#L695-L699): Executes dispose operation within donate-overlay.js.
 
 ### src/donation-queue.js
-- [initDonationQueue(context = {})](file:///e:/game/bar_room/src/donation-queue.js#L17-L17): Executes initDonationQueue operation within donation-queue.js.
-- [getDonationQueueLength()](file:///e:/game/bar_room/src/donation-queue.js#L24-L26): Executes getDonationQueueLength operation within donation-queue.js.
-- [isDonationProcessing()](file:///e:/game/bar_room/src/donation-queue.js#L31-L33): Executes isDonationProcessing operation within donation-queue.js.
-- [clearDonationQueue()](file:///e:/game/bar_room/src/donation-queue.js#L38-L46): Executes clearDonationQueue operation within donation-queue.js.
-- [enqueueDonation(item)](file:///e:/game/bar_room/src/donation-queue.js#L53-L61): Executes enqueueDonation operation within donation-queue.js.
-- [enqueueHighTierShowcase(item)](file:///e:/game/bar_room/src/donation-queue.js#L66-L76): Executes enqueueHighTierShowcase operation within donation-queue.js.
-- [processNextDonation()](file:///e:/game/bar_room/src/donation-queue.js#L81-L219): Executes processNextDonation operation within donation-queue.js.
-- [onTurnComplete()](file:///e:/game/bar_room/src/donation-queue.js#L116-L120): Executes onTurnComplete operation within donation-queue.js.
-- [startEffectsAndHold()](file:///e:/game/bar_room/src/donation-queue.js#L128-L133): Executes startEffectsAndHold operation within donation-queue.js.
-- [startEffectsAndHold()](file:///e:/game/bar_room/src/donation-queue.js#L150-L155): Executes startEffectsAndHold operation within donation-queue.js.
-- [_executeSmallEffects(mesh, origin, coins, shouldUpgradeTier, newTier, context)](file:///e:/game/bar_room/src/donation-queue.js#L225-L260): Executes _executeSmallEffects operation within donation-queue.js.
-- [_executeMediumEffects(mesh, origin, coins, shouldUpgradeTier, newTier, context)](file:///e:/game/bar_room/src/donation-queue.js#L266-L301): Executes _executeMediumEffects operation within donation-queue.js.
+- [initDonationQueue(context = {})](file:///e:/game/bar_room/src/donation-queue.js#L20-L20): Executes initDonationQueue operation within donation-queue.js.
+- [getDonationQueueLength()](file:///e:/game/bar_room/src/donation-queue.js#L27-L29): Executes getDonationQueueLength operation within donation-queue.js.
+- [isDonationProcessing()](file:///e:/game/bar_room/src/donation-queue.js#L34-L36): Executes isDonationProcessing operation within donation-queue.js.
+- [isDonationQueuePaused()](file:///e:/game/bar_room/src/donation-queue.js#L41-L43): Checks whether the donation celebration queue is currently paused.
+- [pauseDonationQueue()](file:///e:/game/bar_room/src/donation-queue.js#L48-L50): Pauses the donation queue during high-priority minigame judgment sequences.
+- [resumeDonationQueue()](file:///e:/game/bar_room/src/donation-queue.js#L55-L60): Resumes the donation queue after minigame judgment completes.
+- [waitForDonationCompletion()](file:///e:/game/bar_room/src/donation-queue.js#L67-L74): Returns a promise that resolves when any active donation celebration finishes.
+- [clearDonationQueue()](file:///e:/game/bar_room/src/donation-queue.js#L79-L87): Executes clearDonationQueue operation within donation-queue.js.
+- [enqueueDonation(item)](file:///e:/game/bar_room/src/donation-queue.js#L94-L102): Executes enqueueDonation operation within donation-queue.js.
+- [enqueueHighTierShowcase(item)](file:///e:/game/bar_room/src/donation-queue.js#L107-L117): Executes enqueueHighTierShowcase operation within donation-queue.js.
+- [processNextDonation()](file:///e:/game/bar_room/src/donation-queue.js#L122-L280): Executes processNextDonation operation within donation-queue.js.
+- [onTurnComplete()](file:///e:/game/bar_room/src/donation-queue.js#L168-L181): Executes onTurnComplete operation within donation-queue.js.
+- [startEffectsAndHold()](file:///e:/game/bar_room/src/donation-queue.js#L189-L194): Executes startEffectsAndHold operation within donation-queue.js.
+- [startEffectsAndHold()](file:///e:/game/bar_room/src/donation-queue.js#L211-L216): Executes startEffectsAndHold operation within donation-queue.js.
+- [_executeSmallEffects(mesh, origin, coins, shouldUpgradeTier, newTier, context)](file:///e:/game/bar_room/src/donation-queue.js#L286-L321): Executes _executeSmallEffects operation within donation-queue.js.
+- [_executeMediumEffects(mesh, origin, coins, shouldUpgradeTier, newTier, context)](file:///e:/game/bar_room/src/donation-queue.js#L327-L362): Executes _executeMediumEffects operation within donation-queue.js.
 
 ### src/equipment-config.js
 - [loadThresholds()](file:///e:/game/bar_room/src/equipment-config.js#L21-L37): Executes loadThresholds operation within equipment-config.js.
@@ -834,20 +907,64 @@ preview_slime_preview_js --> src_donation_constants_js : imports
 - [_triggerSmallCelebration(mesh, origin, giftKey, coins, shouldUpgradeTier, newTier, context)](file:///e:/game/bar_room/src/live-event-handler.js#L240-L275): Triggers small donation celebration (1-19 coins) with coin clink SFX, bounce jump, and dropping coins.
 - [_scheduleDeferredVipSwap(mesh, giftCategory, sortedDonors, executeVipPromotionAndSwap)](file:///e:/game/bar_room/src/live-event-handler.js#L280-L291): Defers bilateral VIP platform promotion until celebratory visual effects conclude.
 - [handleLikeEvent(evt, context)](file:///e:/game/bar_room/src/live-event-handler.js#L296-L344): Emits flying 3D hearts and charges the stream hype meter upon incoming likes.
-- [handleChatEvent(evt, context)](file:///e:/game/bar_room/src/live-event-handler.js#L349-L356): Processes chat comments, routes avatar commands, and increments stream hype.
-- [handleGiftEvent(evt, context)](file:///e:/game/bar_room/src/live-event-handler.js#L361-L472): Processes gift donations, updates leaderboard, triggers in-place celebrations, and schedules VIP promotion.
-- [handleAdminCommand(evt, context)](file:///e:/game/bar_room/src/live-event-handler.js#L477-L594): Applies administrative controls for camera presets, distance slider, chroma key, volume, and frenzy mode.
-- [handleRoomRanksEvent(evt, context)](file:///e:/game/bar_room/src/live-event-handler.js#L601-L671): Executes handleRoomRanksEvent operation within live-event-handler.js.
-- [handleSessionResetEvent(evt, context)](file:///e:/game/bar_room/src/live-event-handler.js#L676-L681): Executes handleSessionResetEvent operation within live-event-handler.js.
-- [handleMemberEvent(evt, context)](file:///e:/game/bar_room/src/live-event-handler.js#L687-L703): Executes handleMemberEvent operation within live-event-handler.js.
-- [handleFanEvent(evt, context)](file:///e:/game/bar_room/src/live-event-handler.js#L709-L726): Executes handleFanEvent operation within live-event-handler.js.
-- [handleFollowEvent(evt, context)](file:///e:/game/bar_room/src/live-event-handler.js#L732-L752): Executes handleFollowEvent operation within live-event-handler.js.
-- [handleLiveEvent(evt, context)](file:///e:/game/bar_room/src/live-event-handler.js#L760-L842): Central event router delegating normalized TikTok LIVE WebSocket payloads to specific event handlers.
+- [handleChatEvent(evt, context)](file:///e:/game/bar_room/src/live-event-handler.js#L349-L366): Processes chat comments, routes avatar commands, and increments stream hype.
+- [handleGiftEvent(evt, context)](file:///e:/game/bar_room/src/live-event-handler.js#L371-L482): Processes gift donations, updates leaderboard, triggers in-place celebrations, and schedules VIP promotion.
+- [handleAdminCommand(evt, context)](file:///e:/game/bar_room/src/live-event-handler.js#L487-L604): Applies administrative controls for camera presets, distance slider, chroma key, volume, and frenzy mode.
+- [handleRoomRanksEvent(evt, context)](file:///e:/game/bar_room/src/live-event-handler.js#L611-L681): Executes handleRoomRanksEvent operation within live-event-handler.js.
+- [handleSessionResetEvent(evt, context)](file:///e:/game/bar_room/src/live-event-handler.js#L686-L691): Executes handleSessionResetEvent operation within live-event-handler.js.
+- [handleMemberEvent(evt, context)](file:///e:/game/bar_room/src/live-event-handler.js#L697-L713): Executes handleMemberEvent operation within live-event-handler.js.
+- [handleFanEvent(evt, context)](file:///e:/game/bar_room/src/live-event-handler.js#L719-L736): Executes handleFanEvent operation within live-event-handler.js.
+- [handleFollowEvent(evt, context)](file:///e:/game/bar_room/src/live-event-handler.js#L742-L762): Executes handleFollowEvent operation within live-event-handler.js.
+- [handleLiveEvent(evt, context)](file:///e:/game/bar_room/src/live-event-handler.js#L770-L858): Central event router delegating normalized TikTok LIVE WebSocket payloads to specific event handlers.
 
 ### src/main.js
-- [initClientApp()](file:///e:/game/bar_room/src/main.js#L93-L314): Initializes the 3D client application, network sockets, audio, and UI overlays.
-- [onThresholdsUpdated(newThresholds)](file:///e:/game/bar_room/src/main.js#L210-L231): Executes onThresholdsUpdated operation within main.js.
-- [animate()](file:///e:/game/bar_room/src/main.js#L250-L311): Main 60 FPS WebGL render loop driving audio analysis, lights, VIP scheduler, avatars, and camera.
+- [initClientApp()](file:///e:/game/bar_room/src/main.js#L95-L333): Initializes the 3D client application, network sockets, audio, and UI overlays.
+- [onThresholdsUpdated(newThresholds)](file:///e:/game/bar_room/src/main.js#L229-L250): Executes onThresholdsUpdated operation within main.js.
+- [animate()](file:///e:/game/bar_room/src/main.js#L269-L330): Main 60 FPS WebGL render loop driving audio analysis, lights, VIP scheduler, avatars, and camera.
+
+### src/minigame-fx.js
+- [syncRoomNeonDeathColor(clubEnvironment, colorHex, durationSec = 3.5)](file:///e:/game/bar_room/src/minigame-fx.js#L12-L64): Synchronizes venue neon signage, lasers, and spotlights to Death Color with continuous floor sweeping.
+- [restoreRoomLighting(clubEnvironment)](file:///e:/game/bar_room/src/minigame-fx.js#L70-L119): Restores venue neon bar, spotlights, and laser beams back to standard club ambient colors.
+- [triggerLaserStrikes(scene, targetMeshes, colorHex, durationMs = 2800, sceneManager = null)](file:///e:/game/bar_room/src/minigame-fx.js#L130-L205): Casts vertical neon laser strike pillars from the ceiling onto eliminated slimes.
+- [anim()](file:///e:/game/bar_room/src/minigame-fx.js#L176-L202): Executes anim operation within minigame-fx.js.
+- [applyGhostState(mesh)](file:///e:/game/bar_room/src/minigame-fx.js#L211-L248): Transforms an eliminated slime mesh into a translucent dancing ghost avatar.
+- [revertGhostState(mesh)](file:///e:/game/bar_room/src/minigame-fx.js#L254-L279): Restores a ghost slime mesh back to its live material, opacity, and normal state.
+
+### src/minigame-manager.js
+- [constructor()](file:///e:/game/bar_room/src/minigame-manager.js#L40-L56): Initializes MinigameManager state machine, player maps, round timers, and context bindings.
+- [init(context = {})](file:///e:/game/bar_room/src/minigame-manager.js#L62-L62): Injects application context (scene, meshes, lighting, environment, socket) into MinigameManager.
+- [_getFloorMeshes()](file:///e:/game/bar_room/src/minigame-manager.js#L71-L80): Executes _getFloorMeshes operation within minigame-manager.js.
+- [startScheduledGame(countdownSec = MINIGAME_CONFIG.defaultStartCountdownSec, roundDurationSec = this.roundDurationSec)](file:///e:/game/bar_room/src/minigame-manager.js#L87-L118): Initiates pre-game countdown timer leading into Round 1.
+- [startGameImmediate(roundDurationSec = this.roundDurationSec)](file:///e:/game/bar_room/src/minigame-manager.js#L124-L137): Immediately begins Round 1 if minimum player count is met.
+- [startRound(roundNum)](file:///e:/game/bar_room/src/minigame-manager.js#L143-L186): Begins a new survival round with fresh tie-break multipliers and voting countdown.
+- [populateActivePlayersFromFloor()](file:///e:/game/bar_room/src/minigame-manager.js#L191-L210): Registers live dance floor slimes into active round participants.
+- [onVotingEnded()](file:///e:/game/bar_room/src/minigame-manager.js#L215-L238): Concludes voting phase, determines Death Color, pauses donations, and triggers laser judgment sequence.
+- [executeJudgment(deathColor)](file:///e:/game/bar_room/src/minigame-manager.js#L244-L303): Executes executeJudgment operation within minigame-manager.js.
+- [_handleOutcome(outcome)](file:///e:/game/bar_room/src/minigame-manager.js#L309-L347): Processes round outcome, advancing to next round or triggering winner celebration and automatic ghost revival.
+- [handleChatCommand(userId, username, comment)](file:///e:/game/bar_room/src/minigame-manager.js#L355-L403): Processes viewer !color chat commands, rejecting ghost votes and non-voting states.
+- [handleNewAvatarSpawn(userId, username, mesh)](file:///e:/game/bar_room/src/minigame-manager.js#L412-L433): Manages late joiners, auto-converting entrants into ghosts after Round 1 voting.
+- [stopMinigame(keepGhostUntilNextGame = false)](file:///e:/game/bar_room/src/minigame-manager.js#L439-L460): Halts the minigame, restores venue lighting, resumes donation queue, and revives all ghosts.
+- [reviveAllGhosts()](file:///e:/game/bar_room/src/minigame-manager.js#L465-L473): Revives all ghost slimes on the floor back to live dancing avatars.
+- [handleAdminAction(action, payload = {})](file:///e:/game/bar_room/src/minigame-manager.js#L480-L480): Handles administrative minigame commands (start, stop, force judgment, revive ghosts, set config) from Port 3001.
+- [_broadcastLiveStats()](file:///e:/game/bar_room/src/minigame-manager.js#L509-L512): Broadcasts live vote distribution to Admin cockpit and clients.
+- [_broadcastState(extra = {})](file:///e:/game/bar_room/src/minigame-manager.js#L517-L517): Broadcasts synchronized minigame state machine packets over WebSocket.
+
+### src/minigame-tally.js
+- [generateRoundTiebreakWeights(range = MINIGAME_CONFIG.tiebreakWeightRange)](file:///e:/game/bar_room/src/minigame-tally.js#L10-L28): Generates micro-multiplier weights [1.001, 1.009] for each color to break vote ties.
+- [calculateVoteScores(alivePlayers, weights)](file:///e:/game/bar_room/src/minigame-tally.js#L36-L79): Tallies active player color votes and multiplies by round weights to determine majority Death Color.
+- [evaluateRoundOutcome(alivePlayers, deathColor)](file:///e:/game/bar_room/src/minigame-tally.js#L87-L157): Evaluates round results determining survivors, eliminated players, and game progression state (NEXT_ROUND, SOLO_WINNER, CO_CHAMPIONS, NO_WINNER).
+
+### src/minigame-ui.js
+- [initMinigameUI()](file:///e:/game/bar_room/src/minigame-ui.js#L10-L30): Executes initMinigameUI operation within minigame-ui.js.
+- [updateCornerTiebreakBadge(weights, visible = true)](file:///e:/game/bar_room/src/minigame-ui.js#L38-L61): Updates the small glassmorphic corner badge displaying active round micro-multipliers.
+- [showStartCountdownBanner(remainingSec)](file:///e:/game/bar_room/src/minigame-ui.js#L67-L85): Displays countdown HUD banner announcing upcoming minigame start.
+- [showVotingBanner(roundNumber, remainingSec, totalSec)](file:///e:/game/bar_room/src/minigame-ui.js#L93-L112): Displays round voting countdown and minimal live vote tally HUD banner.
+- [showMinimalTallyBanner(roundNumber, counts, deathColor)](file:///e:/game/bar_room/src/minigame-ui.js#L121-L144): Executes showMinimalTallyBanner operation within minigame-ui.js.
+- [showJudgmentBanner(deathColor)](file:///e:/game/bar_room/src/minigame-ui.js#L150-L167): Displays Death Color judgment announcement and elimination notice.
+- [showWinnerBanner(winners, isCoChampions = false)](file:///e:/game/bar_room/src/minigame-ui.js#L174-L190): Displays victorious champion celebration HUD banner for solo winner or co-champions.
+- [showNoWinnerBanner()](file:///e:/game/bar_room/src/minigame-ui.js#L195-L208): Displays game over notice when all players are eliminated.
+- [showWarningBanner(msg, autoHideMs = 3500)](file:///e:/game/bar_room/src/minigame-ui.js#L215-L235): Displays warning toast when room conditions are not met.
+- [hideMinigameBanner()](file:///e:/game/bar_room/src/minigame-ui.js#L240-L243): Clears and hides all active minigame HUD marquee banners.
 
 ### src/preview-audio.js
 - [getPreviewAudioCtx()](file:///e:/game/bar_room/src/preview-audio.js#L5-L13): Lazily initializes and resumes the Web Audio API AudioContext instance.
@@ -869,12 +986,12 @@ preview_slime_preview_js --> src_donation_constants_js : imports
 - [update(deltaTime = 0.016, bassPunch = 0)](file:///e:/game/bar_room/src/scene-manager.js#L276-L390): Lerps camera position and look-at target smoothly toward the active preset, pulsing orbit distance on bass hits.
 - [getScreenCoords(worldPos)](file:///e:/game/bar_room/src/scene-manager.js#L398-L407): Executes getScreenCoords operation within scene-manager.js.
 - [focusSlimeCinematic(slimePos, onArrived = null, duration = 1.0, avatarMesh = null)](file:///e:/game/bar_room/src/scene-manager.js#L422-L484): Executes focusSlimeCinematic operation within scene-manager.js.
-- [revertFromCinematic()](file:///e:/game/bar_room/src/scene-manager.js#L489-L501): Executes revertFromCinematic operation within scene-manager.js.
-- [startDonateShowcase(slimePos, onArrived = null, duration = 1.0)](file:///e:/game/bar_room/src/scene-manager.js#L503-L505): Executes startDonateShowcase operation within scene-manager.js.
-- [endDonateShowcase()](file:///e:/game/bar_room/src/scene-manager.js#L507-L509): Executes endDonateShowcase operation within scene-manager.js.
-- [focusDonationAvatar(avatarMesh, options = {}, onArrived = null)](file:///e:/game/bar_room/src/scene-manager.js#L519-L519): Executes focusDonationAvatar operation within scene-manager.js.
-- [focusOnAvatar(avatarMesh, options = {})](file:///e:/game/bar_room/src/scene-manager.js#L596-L596): Focuses camera directly onto a selected Slime avatar with dynamic height framing and gentle 360-degree orbit rotation.
-- [clearAvatarFocus()](file:///e:/game/bar_room/src/scene-manager.js#L621-L634): Clears active avatar focus tracking and smoothly restores previous camera preset.
+- [revertFromCinematic()](file:///e:/game/bar_room/src/scene-manager.js#L489-L508): Executes revertFromCinematic operation within scene-manager.js.
+- [startDonateShowcase(slimePos, onArrived = null, duration = 1.0)](file:///e:/game/bar_room/src/scene-manager.js#L510-L512): Executes startDonateShowcase operation within scene-manager.js.
+- [endDonateShowcase()](file:///e:/game/bar_room/src/scene-manager.js#L514-L516): Executes endDonateShowcase operation within scene-manager.js.
+- [focusDonationAvatar(avatarMesh, options = {}, onArrived = null)](file:///e:/game/bar_room/src/scene-manager.js#L526-L526): Executes focusDonationAvatar operation within scene-manager.js.
+- [focusOnAvatar(avatarMesh, options = {})](file:///e:/game/bar_room/src/scene-manager.js#L603-L603): Focuses camera directly onto a selected Slime avatar with dynamic height framing and gentle 360-degree orbit rotation.
+- [clearAvatarFocus()](file:///e:/game/bar_room/src/scene-manager.js#L628-L641): Clears active avatar focus tracking and smoothly restores previous camera preset.
 
 ### src/slime-aura.js
 - [createBubbleSpriteTexture()](file:///e:/game/bar_room/src/slime-aura.js#L12-L33): Creates procedural luminous round glow sprite texture for mini bubbles.

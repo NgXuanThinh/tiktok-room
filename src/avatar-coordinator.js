@@ -75,6 +75,10 @@ export function getOrCreateAvatarMesh(userData, coins = 0, context) {
     sceneManager.scene.add(mesh);
     avatarMeshes.set(userId, mesh);
     trackedAvatar.mesh = mesh;
+
+    if (context.minigameManager) {
+      context.minigameManager.handleNewAvatarSpawn(userId, userData.nickname || userData.username, mesh);
+    }
   }
 
   const totalCoins = trackedAvatar.totalCoins || userData.totalCoins || 0;

@@ -55,7 +55,9 @@ const suites = [
   // Admin Threshold Adherence & Strict Tier 5 Exclusivity
   { name: 'verify-tier5-and-threshold-adherence', path: './verify-tier5-and-threshold-adherence.test.js' },
   // Unified Sequential Donation Queue & Camera Zoom (Small: 1s, Medium: 2s, High/Ultra: Preserved)
-  { name: 'donation-queue-sequential', path: './donation-queue-sequential.test.js' }
+  { name: 'donation-queue-sequential', path: './donation-queue-sequential.test.js' },
+  // Minigame Slime Survival Core Mechanics & Priority Coordinator
+  { name: 'minigame-survival', path: './minigame-survival.test.js' }
 ];
 
 async function runAll() {

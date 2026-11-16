@@ -108,6 +108,11 @@ export function runCinematic2DShowcase(item, onFinished) {
     isolateDonationAvatar(avatar, showcaseContext.activeAvatars);
   }
 
+  // Freeze Minigame countdown during VIP Showcase
+  if (showcaseContext.minigameManager?.freezeCountdown) {
+    showcaseContext.minigameManager.freezeCountdown();
+  }
+
   let tierClass = 'tier-money';
   let duration = 3.0;
   let sfxKey = 'goldChime';
@@ -350,6 +355,11 @@ export function runCinematic2DShowcase(item, onFinished) {
       stopChibiSlimeMascot();
     } catch (e) {
       console.error('cleanupShowcase error:', e);
+    }
+
+    // Unfreeze Minigame countdown when VIP Showcase concludes
+    if (showcaseContext.minigameManager?.unfreezeCountdown) {
+      showcaseContext.minigameManager.unfreezeCountdown();
     }
 
     if (onFinished) {
