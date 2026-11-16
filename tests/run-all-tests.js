@@ -57,7 +57,11 @@ const suites = [
   // Unified Sequential Donation Queue & Camera Zoom (Small: 1s, Medium: 2s, High/Ultra: Preserved)
   { name: 'donation-queue-sequential', path: './donation-queue-sequential.test.js' },
   // Minigame Slime Survival Core Mechanics & Priority Coordinator
-  { name: 'minigame-survival', path: './minigame-survival.test.js' }
+  { name: 'minigame-survival', path: './minigame-survival.test.js' },
+  // Graphics & Performance: Independent Cones and Laser Beams Toggles
+  { name: 'graphics-toggle-cones-lasers', path: './graphics-toggle-cones-lasers.test.js' },
+  // Slime CPU Optimization & 78 Slimes Synchronicity
+  { name: 'slime-cpu-optimization', path: './slime-cpu-optimization.test.js' }
 ];
 
 async function runAll() {
@@ -85,6 +89,8 @@ async function runAll() {
   console.log(`\nSummary: ${totalPassed} passed, ${totalFailed} failed out of ${totalTests} total tests`);
   if (totalFailed > 0) {
     process.exit(1);
+  } else {
+    process.exit(0);
   }
 }
 

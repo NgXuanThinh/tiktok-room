@@ -1,6 +1,6 @@
 {
   "scannerEnv": "docker:tiktok-live-bar",
-  "lastScanned": "2026-11-16T00:35:41.479Z",
+  "lastScanned": "2026-11-16T05:41:07.701Z",
   "functions": [
     {
       "file": "server/avatar-proxy.js",
@@ -262,24 +262,24 @@
       "file": "server/server.js",
       "name": "handleGetCooldown",
       "params": "req, res",
-      "startLine": 216,
-      "endLine": 227,
+      "startLine": 229,
+      "endLine": 240,
       "duty": "Executes handleGetCooldown operation within server.js."
     },
     {
       "file": "server/server.js",
       "name": "handleSetCooldown",
       "params": "req, res",
-      "startLine": 229,
-      "endLine": 249,
+      "startLine": 242,
+      "endLine": 262,
       "duty": "Executes handleSetCooldown operation within server.js."
     },
     {
       "file": "server/server.js",
       "name": "handleMockEvent",
       "params": "body",
-      "startLine": 255,
-      "endLine": 291,
+      "startLine": 268,
+      "endLine": 304,
       "duty": "Executes handleMockEvent operation within server.js."
     },
     {
@@ -494,160 +494,168 @@
       "file": "src/audio-system.js",
       "name": "constructor",
       "params": "",
-      "startLine": 339,
-      "endLine": 349,
+      "startLine": 348,
+      "endLine": 360,
       "duty": "Executes constructor operation within audio-system.js."
     },
     {
       "file": "src/audio-system.js",
       "name": "init",
       "params": "",
-      "startLine": 351,
-      "endLine": 368,
+      "startLine": 362,
+      "endLine": 379,
       "duty": "Initializes Web Audio context, master gain node, and 3-band FFT analyser node upon first audio unlock."
     },
     {
       "file": "src/audio-system.js",
       "name": "unlockAudio",
       "params": "",
-      "startLine": 370,
-      "endLine": 379,
+      "startLine": 381,
+      "endLine": 390,
       "duty": "Resumes the browser AudioContext from suspended state upon user interaction and starts the beat synthesizer."
     },
     {
       "file": "src/audio-system.js",
       "name": "getBands",
       "params": "",
-      "startLine": 381,
-      "endLine": 406,
+      "startLine": 392,
+      "endLine": 425,
       "duty": "Reads current frequency data from the AnalyserNode and returns normalized energy and flux across 3 audio bands."
     },
     {
       "file": "src/audio-system.js",
       "name": "playSfx",
       "params": "name",
-      "startLine": 408,
-      "endLine": 471,
+      "startLine": 427,
+      "endLine": 490,
       "duty": "Procedurally synthesizes sound effects (coin clink, air horn, bass boom) with exponential clickless decay envelopes."
     },
     {
       "file": "src/audio-system.js",
       "name": "setVolume",
       "params": "val",
-      "startLine": 473,
-      "endLine": 480,
+      "startLine": 492,
+      "endLine": 499,
       "duty": "Adjusts the master gain volume level of the procedural beat engine or sound effects."
     },
     {
       "file": "src/audio-system.js",
       "name": "toggleMute",
       "params": "",
-      "startLine": 482,
-      "endLine": 488,
+      "startLine": 501,
+      "endLine": 507,
       "duty": "Toggles audio master gain between muted and unmuted states."
     },
     {
       "file": "src/avatar-coordinator.js",
       "name": "getOrCreateAvatarMesh",
       "params": "userData, coins = 0, context",
-      "startLine": 21,
-      "endLine": 115,
+      "startLine": 22,
+      "endLine": 116,
       "duty": "Instantiates or retrieves a 3D Slime avatar mesh on dance floor or VIP platforms."
     },
     {
       "file": "src/avatar-coordinator.js",
       "name": "sinkAndRemoveAvatar",
       "params": "userId, context",
-      "startLine": 120,
-      "endLine": 131,
+      "startLine": 121,
+      "endLine": 132,
       "duty": "Executes sinkAndRemoveAvatar operation within avatar-coordinator.js."
     },
     {
       "file": "src/avatar-coordinator.js",
       "name": "deleteAvatar",
       "params": "userId, context",
-      "startLine": 136,
-      "endLine": 177,
+      "startLine": 137,
+      "endLine": 178,
       "duty": "Manually removes an avatar from the scene, tracking registry, and leaderboard, re-evaluating VIP assignments."
     },
     {
       "file": "src/avatar-coordinator.js",
       "name": "clearAllAvatars",
       "params": "context",
-      "startLine": 182,
-      "endLine": 218,
+      "startLine": 183,
+      "endLine": 219,
       "duty": "Disposes and removes all avatars from the 3D scene and resets the leaderboard."
     },
     {
       "file": "src/avatar-coordinator.js",
       "name": "syncActiveFloorAvatars",
       "params": "avatarMeshes, uiOverlay, ws",
-      "startLine": 223,
-      "endLine": 242,
+      "startLine": 224,
+      "endLine": 243,
       "duty": "Synchronizes active 3D avatar states with UI Overlay and WebSocket stream panels."
     },
     {
       "file": "src/avatar-coordinator.js",
+      "name": "computeSharedDanceFrame",
+      "params": "delta, time, bpmSpeed, frenzyMultiplier, bands, bpm = 128",
+      "startLine": 260,
+      "endLine": 309,
+      "duty": "Executes computeSharedDanceFrame operation within avatar-coordinator.js."
+    },
+    {
+      "file": "src/avatar-coordinator.js",
       "name": "_updateCyberSlime",
-      "params": "mesh, data, delta, bands",
-      "startLine": 248,
-      "endLine": 261,
+      "params": "mesh, data, delta, bands, sharedKinematics = null",
+      "startLine": 315,
+      "endLine": 332,
       "duty": "Updates procedural squash, stretch, and AI dance moves on modern CyberSlime controller."
     },
     {
       "file": "src/avatar-coordinator.js",
       "name": "_updateProceduralSlime",
       "params": "mesh, data, phase, isBouncing, time, delta",
-      "startLine": 266,
-      "endLine": 303,
+      "startLine": 337,
+      "endLine": 374,
       "duty": "Applies volume-preserving squash-stretch kinematics and eye blinks to procedural slime mesh."
     },
     {
       "file": "src/avatar-coordinator.js",
       "name": "_updateHumanoid",
       "params": "data, style, phase",
-      "startLine": 308,
-      "endLine": 327,
+      "startLine": 379,
+      "endLine": 398,
       "duty": "Applies procedural humanoid dance kinematics to limb and torso bones."
     },
     {
       "file": "src/avatar-coordinator.js",
       "name": "updateAvatarKinematics",
-      "params": "mesh, delta, time, bpmSpeed, frenzyMultiplier, bands, camera, isFrenzy = false",
-      "startLine": 332,
-      "endLine": 364,
+      "params": "mesh, delta, time, bpmSpeed, frenzyMultiplier, bands, camera, isFrenzy = false, sharedKinematics = null",
+      "startLine": 403,
+      "endLine": 441,
       "duty": "Coordinates per-frame animation, leap physics, smooth scaling, and camera-facing billboards for an avatar."
     },
     {
       "file": "src/avatar-coordinator.js",
       "name": "isAvatarIsolationActive",
       "params": "",
-      "startLine": 370,
-      "endLine": 372,
+      "startLine": 447,
+      "endLine": 449,
       "duty": "Executes isAvatarIsolationActive operation within avatar-coordinator.js."
     },
     {
       "file": "src/avatar-coordinator.js",
       "name": "getCurrentHeroMesh",
       "params": "",
-      "startLine": 378,
-      "endLine": 380,
+      "startLine": 455,
+      "endLine": 457,
       "duty": "Executes getCurrentHeroMesh operation within avatar-coordinator.js."
     },
     {
       "file": "src/avatar-coordinator.js",
       "name": "isolateDonationAvatar",
       "params": "heroMesh, avatarMeshes",
-      "startLine": 389,
-      "endLine": 420,
+      "startLine": 466,
+      "endLine": 497,
       "duty": "Executes isolateDonationAvatar operation within avatar-coordinator.js."
     },
     {
       "file": "src/avatar-coordinator.js",
       "name": "revealAvatarsForZoomOut",
       "params": "avatarMeshes, options = {}",
-      "startLine": 433,
-      "endLine": 433,
+      "startLine": 510,
+      "endLine": 510,
       "duty": "Executes revealAvatarsForZoomOut operation within avatar-coordinator.js."
     },
     {
@@ -908,282 +916,330 @@
     },
     {
       "file": "src/club-environment.js",
+      "name": "freezeStaticTree",
+      "params": "obj",
+      "startLine": 58,
+      "endLine": 71,
+      "duty": "Executes freezeStaticTree operation within club-environment.js."
+    },
+    {
+      "file": "src/club-environment.js",
       "name": "createHeartBubbleTexture",
       "params": "",
-      "startLine": 55,
-      "endLine": 111,
+      "startLine": 76,
+      "endLine": 132,
       "duty": "Executes createHeartBubbleTexture operation within club-environment.js."
     },
     {
       "file": "src/club-environment.js",
       "name": "constructor",
       "params": "scene",
-      "startLine": 114,
-      "endLine": 157,
+      "startLine": 135,
+      "endLine": 178,
       "duty": "Executes constructor operation within club-environment.js."
     },
     {
       "file": "src/club-environment.js",
       "name": "init",
       "params": "",
-      "startLine": 159,
-      "endLine": 174,
+      "startLine": 180,
+      "endLine": 221,
       "duty": "Coordinates setup of ambient lights, moving heads, lasers, VIP podium, DJ booth, and particle systems."
+    },
+    {
+      "file": "src/club-environment.js",
+      "name": "setMovingHeadLightsEnabled",
+      "params": "enabled",
+      "startLine": 223,
+      "endLine": 232,
+      "duty": "Executes setMovingHeadLightsEnabled operation within club-environment.js."
+    },
+    {
+      "file": "src/club-environment.js",
+      "name": "setMovingHeadConesEnabled",
+      "params": "enabled",
+      "startLine": 234,
+      "endLine": 242,
+      "duty": "Executes setMovingHeadConesEnabled operation within club-environment.js."
+    },
+    {
+      "file": "src/club-environment.js",
+      "name": "setLaserBeamsEnabled",
+      "params": "enabled",
+      "startLine": 244,
+      "endLine": 252,
+      "duty": "Executes setLaserBeamsEnabled operation within club-environment.js."
+    },
+    {
+      "file": "src/club-environment.js",
+      "name": "setUseGpuShaders",
+      "params": "enabled",
+      "startLine": 254,
+      "endLine": 268,
+      "duty": "Executes setUseGpuShaders operation within club-environment.js."
+    },
+    {
+      "file": "src/club-environment.js",
+      "name": "setStaticFloorEnabled",
+      "params": "enabled",
+      "startLine": 270,
+      "endLine": 291,
+      "duty": "Executes setStaticFloorEnabled operation within club-environment.js."
     },
     {
       "file": "src/club-environment.js",
       "name": "getSlimeMetrics",
       "params": "target",
-      "startLine": 181,
-      "endLine": 217,
+      "startLine": 298,
+      "endLine": 334,
       "duty": "Computes vertical apex, bounding radius, height, and root origin for dynamic relative cinematic animations."
     },
     {
       "file": "src/club-environment.js",
       "name": "getSlimeEffectiveRadius",
       "params": "targetAvatarOrOrigin",
-      "startLine": 224,
-      "endLine": 235,
+      "startLine": 341,
+      "endLine": 352,
       "duty": "Calculates boundary radius of slime avatar to avoid mesh clipping when spawning coin orbits."
     },
     {
       "file": "src/club-environment.js",
       "name": "createStarfield",
       "params": "",
-      "startLine": 240,
-      "endLine": 291,
+      "startLine": 357,
+      "endLine": 425,
       "duty": "Generates a 3,000-star twinkling midnight sky background using Three.js Points."
     },
     {
       "file": "src/club-environment.js",
       "name": "createAccentLights",
       "params": "",
-      "startLine": 296,
-      "endLine": 328,
+      "startLine": 430,
+      "endLine": 462,
       "duty": "Adds overhead spotlights for the DJ console and warm amber point lights for the bar lounge."
     },
     {
       "file": "src/club-environment.js",
       "name": "createLedFloor",
       "params": "",
-      "startLine": 334,
-      "endLine": 426,
+      "startLine": 468,
+      "endLine": 562,
       "duty": "Constructs a 12x12 LED purple dance floor matrix with glowing white border frames in a single draw call using Three.js InstancedMesh."
     },
     {
       "file": "src/club-environment.js",
       "name": "getTileIndexAtPosition",
       "params": "pos",
-      "startLine": 431,
-      "endLine": 443,
+      "startLine": 567,
+      "endLine": 579,
       "duty": "Executes getTileIndexAtPosition operation within club-environment.js."
     },
     {
       "file": "src/club-environment.js",
       "name": "setSlotFloorColor",
       "params": "slotPos, targetColor = 'default'",
-      "startLine": 452,
-      "endLine": 454,
+      "startLine": 588,
+      "endLine": 590,
       "duty": "Executes setSlotFloorColor operation within club-environment.js."
     },
     {
       "file": "src/club-environment.js",
       "name": "clearSlotFloorColors",
       "params": "",
-      "startLine": 456,
-      "endLine": 458,
+      "startLine": 592,
+      "endLine": 594,
       "duty": "Executes clearSlotFloorColors operation within club-environment.js."
     },
     {
       "file": "src/club-environment.js",
       "name": "createVipPodium",
       "params": "",
-      "startLine": 470,
-      "endLine": 670,
+      "startLine": 606,
+      "endLine": 807,
       "duty": "Builds an elevated circular VIP podium featuring a gold metallic rim and glowing neon glass stage top."
     },
     {
       "file": "src/club-environment.js",
       "name": "createDjBooth",
       "params": "",
-      "startLine": 676,
-      "endLine": 872,
+      "startLine": 813,
+      "endLine": 1009,
       "duty": "Assembles the DJ table with spinning vinyl records, Pioneer-style mixer, and animated pink female chubby slime DJ mascot."
     },
     {
       "file": "src/club-environment.js",
       "name": "createWallsAndNeon",
       "params": "",
-      "startLine": 877,
-      "endLine": 901,
+      "startLine": 1014,
+      "endLine": 1040,
       "duty": "Constructs club boundary walls, bar counters, and emissive neon club signage."
     },
     {
       "file": "src/club-environment.js",
       "name": "createMovingHeads",
       "params": "",
-      "startLine": 906,
-      "endLine": 961,
+      "startLine": 1045,
+      "endLine": 1100,
       "duty": "Builds 4 dual-axis moving head spotlights that sweep light cones across the venue."
     },
     {
       "file": "src/club-environment.js",
       "name": "createLightBeams",
       "params": "",
-      "startLine": 968,
-      "endLine": 1003,
+      "startLine": 1107,
+      "endLine": 1142,
       "duty": "Initializes overhead cylindrical geometry and additive materials for high-tier white and ultra golden light beams."
     },
     {
       "file": "src/club-environment.js",
       "name": "triggerWhiteLightBeam",
       "params": "targetX = 0, targetZ = 0, duration = 2.5",
-      "startLine": 1005,
-      "endLine": 1014,
+      "startLine": 1144,
+      "endLine": 1153,
       "duty": "Activates overhead white spotlight beam effect for high-tier donations (500–5000 coins)."
     },
     {
       "file": "src/club-environment.js",
       "name": "triggerGoldenLightBeam",
       "params": "targetX = 0, targetZ = 0, duration = 7.6",
-      "startLine": 1016,
-      "endLine": 1025,
+      "startLine": 1155,
+      "endLine": 1164,
       "duty": "Activates wide golden pillar of light beam for ultra luxury donations (>= 6000 coins)."
     },
     {
       "file": "src/club-environment.js",
       "name": "focusSpotlights",
       "params": "categoryOrTier = 1, targetPosition = null, duration = null, avatarManager = null, userId = null",
-      "startLine": 1034,
-      "endLine": 1101,
+      "startLine": 1173,
+      "endLine": 1245,
       "duty": "Dynamically focuses venue spotlights onto donating VIP avatars based on donation tier (1, 2, 6, or 8 spotlights)."
     },
     {
       "file": "src/club-environment.js",
       "name": "createLaserBeams",
       "params": "",
-      "startLine": 1106,
-      "endLine": 1124,
+      "startLine": 1250,
+      "endLine": 1268,
       "duty": "Creates 6 additive-blended laser beam geometry cones fanning out from the ceiling rig."
     },
     {
       "file": "src/club-environment.js",
       "name": "createFireworksSystem",
       "params": "",
-      "startLine": 1129,
-      "endLine": 1164,
+      "startLine": 1273,
+      "endLine": 1308,
       "duty": "Initializes a 6,000-particle single-buffer Points system for multi-tier fireworks bursts."
     },
     {
       "file": "src/club-environment.js",
       "name": "createFlyingHeartsSystem",
       "params": "",
-      "startLine": 1169,
-      "endLine": 1191,
+      "startLine": 1313,
+      "endLine": 1335,
       "duty": "Initializes a single-buffer particle system for floating 3D hearts triggered by viewer likes."
     },
     {
       "file": "src/club-environment.js",
       "name": "triggerFireworks",
       "params": "tier = 1, origin = new THREE.Vector3(0, 1.2, 0)",
-      "startLine": 1193,
-      "endLine": 1234,
+      "startLine": 1337,
+      "endLine": 1378,
       "duty": "Executes triggerFireworks operation within club-environment.js."
     },
     {
       "file": "src/club-environment.js",
       "name": "emitFlyingHearts",
       "params": "count = 10",
-      "startLine": 1236,
-      "endLine": 1259,
+      "startLine": 1380,
+      "endLine": 1403,
       "duty": "Spawns floating hearts that rise from the floor and sway upward upon viewer likes."
     },
     {
       "file": "src/club-environment.js",
       "name": "spawnHeartBubbles",
       "params": "origin = new THREE.Vector3(0, 0, 0), count = 4",
-      "startLine": 1265,
-      "endLine": 1303,
+      "startLine": 1409,
+      "endLine": 1447,
       "duty": "Executes spawnHeartBubbles operation within club-environment.js."
     },
     {
       "file": "src/club-environment.js",
       "name": "createDroppingCoinsSystem",
       "params": "",
-      "startLine": 1308,
-      "endLine": 1353,
+      "startLine": 1452,
+      "endLine": 1497,
       "duty": "Executes createDroppingCoinsSystem operation within club-environment.js."
     },
     {
       "file": "src/club-environment.js",
       "name": "spawnSingleCoinInstance",
       "params": "origin, cfg = {}",
-      "startLine": 1358,
-      "endLine": 1358,
+      "startLine": 1502,
+      "endLine": 1502,
       "duty": "Spawns a single 3D falling gold coin with randomized angular velocity and relative drop height."
     },
     {
       "file": "src/club-environment.js",
       "name": "spawnDroppingCoins",
       "params": "origin = new THREE.Vector3(0, 0, 0), count = 1, subType = 'drop_single', targetAvatar = null",
-      "startLine": 1394,
-      "endLine": 1439,
+      "startLine": 1538,
+      "endLine": 1583,
       "duty": "Spawns physics-based instanced 3D coins cascading and bouncing across the dance floor."
     },
     {
       "file": "src/club-environment.js",
       "name": "spawnOrbitingCoinRings",
       "params": "targetAvatarOrOrigin = new THREE.Vector3(0, 0, 0), coins = 20, duration = 2.0",
-      "startLine": 1446,
-      "endLine": 1553,
+      "startLine": 1590,
+      "endLine": 1697,
       "duty": "Spawns multi-level golden coin rings orbiting dynamically around the celebrating slime."
     },
     {
       "file": "src/club-environment.js",
       "name": "createShockwaveSystem",
       "params": "",
-      "startLine": 1558,
-      "endLine": 1560,
+      "startLine": 1702,
+      "endLine": 1704,
       "duty": "Executes createShockwaveSystem operation within club-environment.js."
     },
     {
       "file": "src/club-environment.js",
       "name": "triggerShockwave",
       "params": "origin = new THREE.Vector3(0, 0, 0), category = 'high'",
-      "startLine": 1562,
-      "endLine": 1604,
+      "startLine": 1706,
+      "endLine": 1748,
       "duty": "Spawns expanding circular shockwave ring on the dance floor."
     },
     {
       "file": "src/club-environment.js",
       "name": "createMythicCrownSystem",
       "params": "",
-      "startLine": 1609,
-      "endLine": 1662,
+      "startLine": 1753,
+      "endLine": 1806,
       "duty": "Executes createMythicCrownSystem operation within club-environment.js."
     },
     {
       "file": "src/club-environment.js",
       "name": "triggerMythicCrown",
       "params": "origin = new THREE.Vector3(0, 0, 0), duration = 7.6",
-      "startLine": 1664,
-      "endLine": 1673,
+      "startLine": 1808,
+      "endLine": 1817,
       "duty": "Executes triggerMythicCrown operation within club-environment.js."
     },
     {
       "file": "src/club-environment.js",
       "name": "triggerGiftProp",
       "params": "giftKey, origin = new THREE.Vector3(0, 0, 0), coins = 1",
-      "startLine": 1679,
-      "endLine": 1684,
+      "startLine": 1823,
+      "endLine": 1828,
       "duty": "Executes triggerGiftProp operation within club-environment.js."
     },
     {
       "file": "src/club-environment.js",
       "name": "update",
       "params": "delta, bands = {}, camera = null",
-      "startLine": 1686,
-      "endLine": 1686,
+      "startLine": 1830,
+      "endLine": 1830,
       "duty": "Updates vinyl rotation, DJ mascot bobbing, moving head sweeps, laser strobes, floor tile colors, and particle physics each frame."
     },
     {
@@ -1827,171 +1883,331 @@
       "duty": "Executes update operation within gift-props.js."
     },
     {
+      "file": "src/graphics-settings.js",
+      "name": "constructor",
+      "params": "options = {}",
+      "startLine": 16,
+      "endLine": 16,
+      "duty": "Executes constructor operation within graphics-settings.js."
+    },
+    {
+      "file": "src/graphics-settings.js",
+      "name": "loadFromStorage",
+      "params": "",
+      "startLine": 39,
+      "endLine": 76,
+      "duty": "Executes loadFromStorage operation within graphics-settings.js."
+    },
+    {
+      "file": "src/graphics-settings.js",
+      "name": "saveToStorage",
+      "params": "",
+      "startLine": 81,
+      "endLine": 88,
+      "duty": "Executes saveToStorage operation within graphics-settings.js."
+    },
+    {
+      "file": "src/graphics-settings.js",
+      "name": "addListener",
+      "params": "callback",
+      "startLine": 93,
+      "endLine": 98,
+      "duty": "Executes addListener operation within graphics-settings.js."
+    },
+    {
+      "file": "src/graphics-settings.js",
+      "name": "notify",
+      "params": "changedKey, value",
+      "startLine": 103,
+      "endLine": 112,
+      "duty": "Executes notify operation within graphics-settings.js."
+    },
+    {
+      "file": "src/graphics-settings.js",
+      "name": "getSnapshot",
+      "params": "",
+      "startLine": 117,
+      "endLine": 124,
+      "duty": "Executes getSnapshot operation within graphics-settings.js."
+    },
+    {
+      "file": "src/graphics-settings.js",
+      "name": "getEffectivePixelRatio",
+      "params": "",
+      "startLine": 128,
+      "endLine": 136,
+      "duty": "Executes getEffectivePixelRatio operation within graphics-settings.js."
+    },
+    {
+      "file": "src/graphics-settings.js",
+      "name": "setPixelRatioKey",
+      "params": "key",
+      "startLine": 138,
+      "endLine": 143,
+      "duty": "Executes setPixelRatioKey operation within graphics-settings.js."
+    },
+    {
+      "file": "src/graphics-settings.js",
+      "name": "setEnableMovingHeadLights",
+      "params": "enabled",
+      "startLine": 145,
+      "endLine": 150,
+      "duty": "Executes setEnableMovingHeadLights operation within graphics-settings.js."
+    },
+    {
+      "file": "src/graphics-settings.js",
+      "name": "setEnableMovingHeadCones",
+      "params": "enabled",
+      "startLine": 152,
+      "endLine": 157,
+      "duty": "Executes setEnableMovingHeadCones operation within graphics-settings.js."
+    },
+    {
+      "file": "src/graphics-settings.js",
+      "name": "setEnableLaserBeams",
+      "params": "enabled",
+      "startLine": 159,
+      "endLine": 164,
+      "duty": "Executes setEnableLaserBeams operation within graphics-settings.js."
+    },
+    {
+      "file": "src/graphics-settings.js",
+      "name": "setBillboardCpuLookAt",
+      "params": "enabled",
+      "startLine": 166,
+      "endLine": 171,
+      "duty": "Executes setBillboardCpuLookAt operation within graphics-settings.js."
+    },
+    {
+      "file": "src/graphics-settings.js",
+      "name": "setUseGpuShaders",
+      "params": "enabled",
+      "startLine": 173,
+      "endLine": 178,
+      "duty": "Executes setUseGpuShaders operation within graphics-settings.js."
+    },
+    {
+      "file": "src/graphics-settings.js",
+      "name": "setStaticFloor",
+      "params": "enabled",
+      "startLine": 180,
+      "endLine": 185,
+      "duty": "Executes setStaticFloor operation within graphics-settings.js."
+    },
+    {
+      "file": "src/graphics-settings.js",
+      "name": "getTargetFps",
+      "params": "",
+      "startLine": 187,
+      "endLine": 190,
+      "duty": "Executes getTargetFps operation within graphics-settings.js."
+    },
+    {
+      "file": "src/graphics-settings.js",
+      "name": "getFpsIntervalMs",
+      "params": "",
+      "startLine": 192,
+      "endLine": 195,
+      "duty": "Executes getFpsIntervalMs operation within graphics-settings.js."
+    },
+    {
+      "file": "src/graphics-settings.js",
+      "name": "setFpsCapKey",
+      "params": "key",
+      "startLine": 197,
+      "endLine": 202,
+      "duty": "Executes setFpsCapKey operation within graphics-settings.js."
+    },
+    {
+      "file": "src/graphics-settings.js",
+      "name": "getSlimeShadingConfig",
+      "params": "",
+      "startLine": 204,
+      "endLine": 206,
+      "duty": "Executes getSlimeShadingConfig operation within graphics-settings.js."
+    },
+    {
+      "file": "src/graphics-settings.js",
+      "name": "setSlimeShadingKey",
+      "params": "key",
+      "startLine": 208,
+      "endLine": 213,
+      "duty": "Executes setSlimeShadingKey operation within graphics-settings.js."
+    },
+    {
+      "file": "src/graphics-settings.js",
+      "name": "resetDefaults",
+      "params": "",
+      "startLine": 218,
+      "endLine": 229,
+      "duty": "Executes resetDefaults operation within graphics-settings.js."
+    },
+    {
       "file": "src/live-event-handler.js",
       "name": "resolveGiftCategory",
       "params": "coins",
-      "startLine": 18,
-      "endLine": 23,
+      "startLine": 19,
+      "endLine": 24,
       "duty": "Categorizes incoming donation coin values into small, medium, high, or ultra celebration tiers."
     },
     {
       "file": "src/live-event-handler.js",
       "name": "calculateSlimeTier",
       "params": "totalCoins, isTop1 = undefined",
-      "startLine": 31,
-      "endLine": 33,
+      "startLine": 32,
+      "endLine": 34,
       "duty": "Calculates Slime visual evolution tier (1 to 5) based on cumulative coin contributions."
     },
     {
       "file": "src/live-event-handler.js",
       "name": "_handleChatCommands",
       "params": "comment, mesh, syncActiveFloorAvatars",
-      "startLine": 42,
-      "endLine": 119,
+      "startLine": 43,
+      "endLine": 120,
       "duty": "Parses and executes first matching chat command for slime color (!color with random fallback), dance mode (!dance 1/2/toggle), or face mode (!face smile/normal/wink with random fallback)."
     },
     {
       "file": "src/live-event-handler.js",
       "name": "_triggerUltraCelebration",
       "params": "mesh, origin, giftKey, coins, shouldUpgradeTier, newTier, context, evt = {}",
-      "startLine": 125,
-      "endLine": 125,
+      "startLine": 126,
+      "endLine": 126,
       "duty": "Triggers ultra luxury coronation celebration (>= 6000 coins) with camera tracking, fanfare, golden beam, and fireworks."
     },
     {
       "file": "src/live-event-handler.js",
       "name": "_triggerHighCelebration",
       "params": "mesh, origin, giftKey, coins, shouldUpgradeTier, newTier, context, evt = {}",
-      "startLine": 165,
-      "endLine": 165,
+      "startLine": 166,
+      "endLine": 166,
       "duty": "Triggers high-tier VIP celebration (500-5000 coins) with VIP camera framing, white beam, and shockwave."
     },
     {
       "file": "src/live-event-handler.js",
       "name": "_triggerMediumCelebration",
       "params": "mesh, origin, giftKey, coins, shouldUpgradeTier, newTier, context",
-      "startLine": 203,
-      "endLine": 235,
+      "startLine": 204,
+      "endLine": 236,
       "duty": "Triggers medium donation celebration (20-499 coins) with bass boom SFX, spotlights, and orbiting coin rings."
     },
     {
       "file": "src/live-event-handler.js",
       "name": "_triggerSmallCelebration",
       "params": "mesh, origin, giftKey, coins, shouldUpgradeTier, newTier, context",
-      "startLine": 240,
-      "endLine": 275,
+      "startLine": 241,
+      "endLine": 276,
       "duty": "Triggers small donation celebration (1-19 coins) with coin clink SFX, bounce jump, and dropping coins."
     },
     {
       "file": "src/live-event-handler.js",
       "name": "_scheduleDeferredVipSwap",
       "params": "mesh, giftCategory, sortedDonors, executeVipPromotionAndSwap",
-      "startLine": 280,
-      "endLine": 291,
+      "startLine": 281,
+      "endLine": 292,
       "duty": "Defers bilateral VIP platform promotion until celebratory visual effects conclude."
     },
     {
       "file": "src/live-event-handler.js",
       "name": "handleLikeEvent",
       "params": "evt, context",
-      "startLine": 296,
-      "endLine": 344,
+      "startLine": 297,
+      "endLine": 345,
       "duty": "Emits flying 3D hearts and charges the stream hype meter upon incoming likes."
     },
     {
       "file": "src/live-event-handler.js",
       "name": "handleChatEvent",
       "params": "evt, context",
-      "startLine": 349,
-      "endLine": 366,
+      "startLine": 350,
+      "endLine": 367,
       "duty": "Processes chat comments, routes avatar commands, and increments stream hype."
     },
     {
       "file": "src/live-event-handler.js",
       "name": "handleGiftEvent",
       "params": "evt, context",
-      "startLine": 371,
-      "endLine": 482,
+      "startLine": 372,
+      "endLine": 483,
       "duty": "Processes gift donations, updates leaderboard, triggers in-place celebrations, and schedules VIP promotion."
     },
     {
       "file": "src/live-event-handler.js",
       "name": "handleAdminCommand",
       "params": "evt, context",
-      "startLine": 487,
-      "endLine": 604,
+      "startLine": 488,
+      "endLine": 628,
       "duty": "Applies administrative controls for camera presets, distance slider, chroma key, volume, and frenzy mode."
     },
     {
       "file": "src/live-event-handler.js",
       "name": "handleRoomRanksEvent",
       "params": "evt, context",
-      "startLine": 611,
-      "endLine": 681,
+      "startLine": 635,
+      "endLine": 705,
       "duty": "Executes handleRoomRanksEvent operation within live-event-handler.js."
     },
     {
       "file": "src/live-event-handler.js",
       "name": "handleSessionResetEvent",
       "params": "evt, context",
-      "startLine": 686,
-      "endLine": 691,
+      "startLine": 710,
+      "endLine": 715,
       "duty": "Executes handleSessionResetEvent operation within live-event-handler.js."
     },
     {
       "file": "src/live-event-handler.js",
       "name": "handleMemberEvent",
       "params": "evt, context",
-      "startLine": 697,
-      "endLine": 713,
+      "startLine": 721,
+      "endLine": 737,
       "duty": "Executes handleMemberEvent operation within live-event-handler.js."
     },
     {
       "file": "src/live-event-handler.js",
       "name": "handleFanEvent",
       "params": "evt, context",
-      "startLine": 719,
-      "endLine": 736,
+      "startLine": 743,
+      "endLine": 760,
       "duty": "Executes handleFanEvent operation within live-event-handler.js."
     },
     {
       "file": "src/live-event-handler.js",
       "name": "handleFollowEvent",
       "params": "evt, context",
-      "startLine": 742,
-      "endLine": 762,
+      "startLine": 766,
+      "endLine": 786,
       "duty": "Executes handleFollowEvent operation within live-event-handler.js."
     },
     {
       "file": "src/live-event-handler.js",
       "name": "handleLiveEvent",
       "params": "evt, context",
-      "startLine": 770,
-      "endLine": 858,
+      "startLine": 794,
+      "endLine": 894,
       "duty": "Central event router delegating normalized TikTok LIVE WebSocket payloads to specific event handlers."
     },
     {
       "file": "src/main.js",
       "name": "initClientApp",
       "params": "",
-      "startLine": 95,
-      "endLine": 338,
+      "startLine": 98,
+      "endLine": 377,
       "duty": "Initializes the 3D client application, network sockets, audio, and UI overlays."
     },
     {
       "file": "src/main.js",
       "name": "onThresholdsUpdated",
       "params": "newThresholds",
-      "startLine": 234,
-      "endLine": 255,
+      "startLine": 237,
+      "endLine": 258,
       "duty": "Executes onThresholdsUpdated operation within main.js."
     },
     {
       "file": "src/main.js",
       "name": "animate",
-      "params": "",
-      "startLine": 274,
-      "endLine": 335,
+      "params": "nowTimestamp",
+      "startLine": 290,
+      "endLine": 374,
       "duty": "Main 60 FPS WebGL render loop driving audio analysis, lights, VIP scheduler, avatars, and camera."
     },
     {
@@ -2318,169 +2534,185 @@
       "file": "src/scene-manager.js",
       "name": "getOrbitCameraPosition",
       "params": "theta, phi = 0.85, radius = ORBIT_CONFIG.radius",
-      "startLine": 29,
-      "endLine": 38,
+      "startLine": 30,
+      "endLine": 39,
       "duty": "Computes clamped spherical orbit coordinates keeping the camera within room boundaries and focused on the dance floor."
     },
     {
       "file": "src/scene-manager.js",
       "name": "constructor",
       "params": "container",
-      "startLine": 42,
-      "endLine": 73,
+      "startLine": 43,
+      "endLine": 74,
       "duty": "Executes constructor operation within scene-manager.js."
     },
     {
       "file": "src/scene-manager.js",
       "name": "init",
       "params": "",
-      "startLine": 75,
-      "endLine": 166,
+      "startLine": 76,
+      "endLine": 174,
       "duty": "Configures renderer pixel ratio, shadow-free tone mapping, and window resize event listeners."
     },
     {
       "file": "src/scene-manager.js",
       "name": "setCameraPreset",
       "params": "key, duration = null, customTarget = null",
-      "startLine": 168,
-      "endLine": 202,
+      "startLine": 176,
+      "endLine": 210,
       "duty": "Smoothly transitions the camera position, focus target, and FOV to a designated camera preset."
     },
     {
       "file": "src/scene-manager.js",
       "name": "setOrbitRadius",
       "params": "radius",
-      "startLine": 204,
-      "endLine": 208,
+      "startLine": 212,
+      "endLine": 216,
       "duty": "Dynamically alters camera orbit radius around the dance floor."
     },
     {
       "file": "src/scene-manager.js",
       "name": "setFov",
       "params": "fov",
-      "startLine": 210,
-      "endLine": 216,
+      "startLine": 218,
+      "endLine": 224,
       "duty": "Adjusts camera vertical field-of-view with projection matrix update."
     },
     {
       "file": "src/scene-manager.js",
       "name": "revertVipCamera",
       "params": "",
-      "startLine": 218,
-      "endLine": 221,
+      "startLine": 226,
+      "endLine": 229,
       "duty": "Reverts camera focus from VIP spotlight target back to the default overview preset."
     },
     {
       "file": "src/scene-manager.js",
       "name": "toggleChromaKey",
       "params": "",
-      "startLine": 223,
-      "endLine": 235,
+      "startLine": 231,
+      "endLine": 243,
       "duty": "Switches the viewport background between standard club atmosphere and chroma key green for OBS streaming."
     },
     {
       "file": "src/scene-manager.js",
       "name": "toggleAlpha",
       "params": "",
-      "startLine": 237,
-      "endLine": 244,
+      "startLine": 245,
+      "endLine": 252,
       "duty": "Toggles WebGL clear alpha between opaque black and transparent for OBS browser overlays."
     },
     {
       "file": "src/scene-manager.js",
       "name": "onResize",
       "params": "",
-      "startLine": 246,
-      "endLine": 252,
+      "startLine": 254,
+      "endLine": 260,
       "duty": "Updates camera aspect ratio and renderer dimensions when the browser window or stream canvas resizes."
     },
     {
       "file": "src/scene-manager.js",
       "name": "triggerCameraShake",
       "params": "intensity = 0.35, duration = 1.0",
-      "startLine": 254,
-      "endLine": 258,
+      "startLine": 262,
+      "endLine": 266,
       "duty": "Adds procedural camera shake impact during high-tier and ultra donations."
     },
     {
       "file": "src/scene-manager.js",
       "name": "startLionTracking",
       "params": "heroMesh, duration = 7.6",
-      "startLine": 260,
-      "endLine": 274,
+      "startLine": 268,
+      "endLine": 282,
       "duty": "Dynamically frames and tracks the soaring hero avatar up to 4.2m in the sky with camera shake during Lion celebrations."
     },
     {
       "file": "src/scene-manager.js",
       "name": "update",
       "params": "deltaTime = 0.016, bassPunch = 0",
-      "startLine": 276,
-      "endLine": 390,
+      "startLine": 284,
+      "endLine": 398,
       "duty": "Lerps camera position and look-at target smoothly toward the active preset, pulsing orbit distance on bass hits."
     },
     {
       "file": "src/scene-manager.js",
       "name": "getScreenCoords",
       "params": "worldPos",
-      "startLine": 398,
-      "endLine": 407,
+      "startLine": 406,
+      "endLine": 415,
       "duty": "Executes getScreenCoords operation within scene-manager.js."
     },
     {
       "file": "src/scene-manager.js",
       "name": "focusSlimeCinematic",
       "params": "slimePos, onArrived = null, duration = 1.0, avatarMesh = null",
-      "startLine": 422,
-      "endLine": 484,
+      "startLine": 430,
+      "endLine": 492,
       "duty": "Executes focusSlimeCinematic operation within scene-manager.js."
     },
     {
       "file": "src/scene-manager.js",
       "name": "revertFromCinematic",
       "params": "",
-      "startLine": 489,
-      "endLine": 508,
+      "startLine": 497,
+      "endLine": 516,
       "duty": "Executes revertFromCinematic operation within scene-manager.js."
     },
     {
       "file": "src/scene-manager.js",
       "name": "startDonateShowcase",
       "params": "slimePos, onArrived = null, duration = 1.0",
-      "startLine": 510,
-      "endLine": 512,
+      "startLine": 518,
+      "endLine": 520,
       "duty": "Executes startDonateShowcase operation within scene-manager.js."
     },
     {
       "file": "src/scene-manager.js",
       "name": "endDonateShowcase",
       "params": "",
-      "startLine": 514,
-      "endLine": 516,
+      "startLine": 522,
+      "endLine": 524,
       "duty": "Executes endDonateShowcase operation within scene-manager.js."
     },
     {
       "file": "src/scene-manager.js",
       "name": "focusDonationAvatar",
       "params": "avatarMesh, options = {}, onArrived = null",
-      "startLine": 526,
-      "endLine": 526,
+      "startLine": 534,
+      "endLine": 534,
       "duty": "Executes focusDonationAvatar operation within scene-manager.js."
     },
     {
       "file": "src/scene-manager.js",
       "name": "focusOnAvatar",
       "params": "avatarMesh, options = {}",
-      "startLine": 603,
-      "endLine": 603,
+      "startLine": 611,
+      "endLine": 611,
       "duty": "Focuses camera directly onto a selected Slime avatar with dynamic height framing and gentle 360-degree orbit rotation."
     },
     {
       "file": "src/scene-manager.js",
       "name": "clearAvatarFocus",
       "params": "",
-      "startLine": 628,
-      "endLine": 641,
+      "startLine": 636,
+      "endLine": 649,
       "duty": "Clears active avatar focus tracking and smoothly restores previous camera preset."
+    },
+    {
+      "file": "src/shaders/floor-shader.js",
+      "name": "createGpuFloorMaterial",
+      "params": "uniforms = {}",
+      "startLine": 54,
+      "endLine": 54,
+      "duty": "Executes createGpuFloorMaterial operation within floor-shader.js."
+    },
+    {
+      "file": "src/shaders/starfield-shader.js",
+      "name": "createGpuStarfieldMaterial",
+      "params": "size = 0.18",
+      "startLine": 41,
+      "endLine": 54,
+      "duty": "Executes createGpuStarfieldMaterial operation within starfield-shader.js."
     },
     {
       "file": "src/slime-aura.js",
@@ -2534,288 +2766,304 @@
       "file": "src/slime-model.js",
       "name": "createBasicHalfSphereGeometry",
       "params": "",
-      "startLine": 38,
-      "endLine": 49,
+      "startLine": 40,
+      "endLine": 51,
       "duty": "Generates Tier 1 classic half-sphere geometry with smooth flattened underside."
     },
     {
       "file": "src/slime-model.js",
       "name": "createChubbyMochiSlimeGeometry",
       "params": "",
-      "startLine": 56,
-      "endLine": 90,
+      "startLine": 58,
+      "endLine": 92,
       "duty": "Generates Tier 2 chubby mochi teardrop slime geometry with wider base and organic taper."
+    },
+    {
+      "file": "src/slime-model.js",
+      "name": "createSlimeMaterialByConfig",
+      "params": "paletteKey, shadingKey = graphicsSettings.settings.slimeShadingKey",
+      "startLine": 113,
+      "endLine": 150,
+      "duty": "Executes createSlimeMaterialByConfig operation within slime-model.js."
     },
     {
       "file": "src/slime-model.js",
       "name": "getClonedSlimeMaterial",
       "params": "paletteKey",
-      "startLine": 111,
-      "endLine": 118,
+      "startLine": 152,
+      "endLine": 154,
       "duty": "Executes getClonedSlimeMaterial operation within slime-model.js."
     },
     {
       "file": "src/slime-model.js",
       "name": "sharedMiniSlimeGeom",
       "params": "(",
-      "startLine": 131,
-      "endLine": 140,
+      "startLine": 167,
+      "endLine": 176,
       "duty": "Instantiates shared mini-slime companion pet mesh geometry."
     },
     {
       "file": "src/slime-model.js",
       "name": "sharedHornGeom",
       "params": "(",
-      "startLine": 155,
-      "endLine": 160,
+      "startLine": 191,
+      "endLine": 196,
       "duty": "Instantiates shared evolutionary head horn accessory geometry."
     },
     {
       "file": "src/slime-model.js",
       "name": "sharedTailSegmentGeom",
       "params": "(",
-      "startLine": 162,
-      "endLine": 167,
+      "startLine": 198,
+      "endLine": 203,
       "duty": "Instantiates shared articulated tail segment accessory geometry."
     },
     {
       "file": "src/slime-model.js",
       "name": "sharedTailTipGeom",
       "params": "(",
-      "startLine": 169,
-      "endLine": 175,
+      "startLine": 205,
+      "endLine": 211,
       "duty": "Instantiates shared tapered tail tip mesh geometry."
     },
     {
       "file": "src/slime-model.js",
       "name": "sharedSideMochiGeom",
       "params": "(",
-      "startLine": 178,
-      "endLine": 184,
+      "startLine": 214,
+      "endLine": 220,
       "duty": "Instantiates shared side cheek mochi puff geometry."
     },
     {
       "file": "src/slime-model.js",
       "name": "createBillboardSprite",
       "params": "userData = {}",
-      "startLine": 207,
-      "endLine": 207,
+      "startLine": 243,
+      "endLine": 243,
       "duty": "Builds high-contrast overhead user badge with sharp contrast (#ffffff text), VIP avatar border, level, and rank tags."
     },
     {
       "file": "src/slime-model.js",
       "name": "redraw",
       "params": "img = null",
-      "startLine": 231,
-      "endLine": 425,
+      "startLine": 267,
+      "endLine": 461,
       "duty": "Redraws billboard canvas texture with current viewer level, coins, and ranking tags."
     },
     {
       "file": "src/slime-model.js",
       "name": "drawBorderRing",
       "params": "radius, borderCfg",
-      "startLine": 294,
-      "endLine": 304,
+      "startLine": 330,
+      "endLine": 340,
       "duty": "Executes drawBorderRing operation within slime-model.js."
     },
     {
       "file": "src/slime-model.js",
       "name": "createCyberSlime",
       "params": "paletteKey = 'cyan', rawUserData = {}",
-      "startLine": 470,
-      "endLine": 470,
+      "startLine": 506,
+      "endLine": 506,
       "duty": "Instantiates complete Slime mesh hierarchy with dual-mesh body, blushing cheeks, permanent Gold halo and aura ring, 3D animated eyes, horns, and wings."
     },
     {
       "file": "src/slime-model.js",
       "name": "create3DEye",
       "params": "isLeft = true",
-      "startLine": 514,
-      "endLine": 540,
+      "startLine": 550,
+      "endLine": 576,
       "duty": "Builds 3D chibi eye mesh hierarchy with glossy cornea sphere and specular reflective highlights."
     },
     {
       "file": "src/slime-model.js",
       "name": "setLabelVisible",
       "params": "visible",
-      "startLine": 955,
-      "endLine": 957,
+      "startLine": 991,
+      "endLine": 993,
       "duty": "Toggles visibility of the 3D billboard sprite above the slime."
     },
     {
       "file": "src/slime-model.js",
       "name": "setBillboardScale",
       "params": "scale = 1.0",
-      "startLine": 958,
-      "endLine": 964,
+      "startLine": 994,
+      "endLine": 1000,
       "duty": "Scales the 3D overhead billboard sprite proportionally with bottom-anchored expansion."
     },
     {
       "file": "src/slime-model.js",
       "name": "setTikTokLevel",
       "params": "lvl",
-      "startLine": 965,
-      "endLine": 971,
+      "startLine": 1001,
+      "endLine": 1007,
       "duty": "Sets the TikTok badge level on the billboard."
     },
     {
       "file": "src/slime-model.js",
       "name": "setDonateRank",
       "params": "rank",
-      "startLine": 972,
-      "endLine": 978,
+      "startLine": 1008,
+      "endLine": 1014,
       "duty": "Sets the donor rank title (e.g., TOP 1) on the billboard."
     },
     {
       "file": "src/slime-model.js",
       "name": "setFanStatus",
       "params": "isFan = true",
-      "startLine": 979,
-      "endLine": 985,
+      "startLine": 1015,
+      "endLine": 1021,
       "duty": "Executes setFanStatus operation within slime-model.js."
     },
     {
       "file": "src/slime-model.js",
       "name": "setFollowerStatus",
       "params": "isFollower = true",
-      "startLine": 986,
-      "endLine": 992,
+      "startLine": 1022,
+      "endLine": 1028,
       "duty": "Executes setFollowerStatus operation within slime-model.js."
     },
     {
       "file": "src/slime-model.js",
       "name": "updateBillboard",
       "params": "coinsToAdd = 0, newLevel = null, newRank = null",
-      "startLine": 993,
-      "endLine": 1019,
+      "startLine": 1029,
+      "endLine": 1055,
       "duty": "Redraws the 2D canvas texture for the billboard sprite with updated coins, level, and rank."
     },
     {
       "file": "src/slime-model.js",
       "name": "setFootRings",
       "params": "level = 0",
-      "startLine": 1068,
-      "endLine": 1076,
+      "startLine": 1104,
+      "endLine": 1112,
       "duty": "Executes setFootRings operation within slime-model.js."
     },
     {
       "file": "src/slime-model.js",
       "name": "setBodyAura",
       "params": "typeOrBool = false",
-      "startLine": 1078,
-      "endLine": 1087,
+      "startLine": 1114,
+      "endLine": 1123,
       "duty": "Executes setBodyAura operation within slime-model.js."
     },
     {
       "file": "src/slime-model.js",
       "name": "setPalette",
       "params": "newKey",
-      "startLine": 1089,
-      "endLine": 1127,
+      "startLine": 1125,
+      "endLine": 1163,
       "duty": "Switches avatar body palette among cyan, pink, and lime while preserving permanent Gold halo and foot ring."
+    },
+    {
+      "file": "src/slime-model.js",
+      "name": "setShadingModel",
+      "params": "shadingKey",
+      "startLine": 1165,
+      "endLine": 1203,
+      "duty": "Executes setShadingModel operation within slime-model.js."
     },
     {
       "file": "src/slime-model.js",
       "name": "setGender",
       "params": "gender",
-      "startLine": 1129,
-      "endLine": 1134,
+      "startLine": 1205,
+      "endLine": 1210,
       "duty": "Sets slime gender presentation accessories (e.g., cute bow for female slimes)."
     },
     {
       "file": "src/slime-model.js",
       "name": "setTier",
       "params": "tierNum",
-      "startLine": 1144,
-      "endLine": 1204,
+      "startLine": 1220,
+      "endLine": 1280,
       "duty": "Updates slime evolutionary visual tier (1 to 5) with corresponding horns, tail, wings, and mini-slimes."
     },
     {
       "file": "src/slime-model.js",
       "name": "setExpression",
       "params": "exp",
-      "startLine": 1206,
-      "endLine": 1218,
+      "startLine": 1282,
+      "endLine": 1294,
       "duty": "Updates 3D chibi eye scale and mouth expression (smile, normal, wink, happy, squint)."
     },
     {
       "file": "src/slime-model.js",
       "name": "setDanceMode",
       "params": "mode = null",
-      "startLine": 1220,
-      "endLine": 1235,
+      "startLine": 1296,
+      "endLine": 1311,
       "duty": "Sets or toggles CyberSlime dance mode (1: continuous body spin around Z-axis while keeping billboard upright, 2: default rhythmic bounce)."
     },
     {
       "file": "src/slime-model.js",
       "name": "setPaused",
       "params": "paused",
-      "startLine": 1237,
-      "endLine": 1251,
+      "startLine": 1313,
+      "endLine": 1327,
       "duty": "Pauses or resumes slime breathing/dancing animations and resets expression state."
     },
     {
       "file": "src/slime-model.js",
       "name": "triggerDanceMove",
       "params": "moveType",
-      "startLine": 1259,
-      "endLine": 1292,
+      "startLine": 1335,
+      "endLine": 1368,
       "duty": "Dispatches tier-differentiated dance moves (spin for Tier 3+, flip for Tier 4-5)."
     },
     {
       "file": "src/slime-model.js",
       "name": "triggerLikeJump",
       "params": "",
-      "startLine": 1294,
-      "endLine": 1302,
+      "startLine": 1370,
+      "endLine": 1378,
       "duty": "Triggers single celebratory jump and smile expression on like event using central LIKE_JUMP_CONFIG."
     },
     {
       "file": "src/slime-model.js",
       "name": "triggerSink",
       "params": "onComplete = null",
-      "startLine": 1304,
-      "endLine": 1313,
+      "startLine": 1380,
+      "endLine": 1389,
       "duty": "Executes triggerSink operation within slime-model.js."
     },
     {
       "file": "src/slime-model.js",
       "name": "shuffleDanceMove",
       "params": "",
-      "startLine": 1315,
-      "endLine": 1333,
+      "startLine": 1391,
+      "endLine": 1409,
       "duty": "Randomly triggers tier-appropriate flourish actions (spin or flip) with randomized directions and expressions."
     },
     {
       "file": "src/slime-model.js",
       "name": "setAutoDanceRoutine",
       "params": "enabled",
-      "startLine": 1335,
-      "endLine": 1341,
+      "startLine": 1411,
+      "endLine": 1417,
       "duty": "Toggles automated periodic dance routines for autonomous slime behavior."
     },
     {
       "file": "src/slime-model.js",
       "name": "triggerDonateAnimation",
       "params": "typeOrConfig = 'small', upgradeTier = false, targetTier = 1, coins = 1",
-      "startLine": 1359,
-      "endLine": 1495,
+      "startLine": 1435,
+      "endLine": 1571,
       "duty": "Triggers categorized donation celebration animation reading jump counts, durations and apex heights from DONATE_CELEBRATION_CONFIG."
     },
     {
       "file": "src/slime-model.js",
       "name": "triggerLionCelebration",
       "params": "upgradeTier = false",
-      "startLine": 1497,
-      "endLine": 1506,
+      "startLine": 1573,
+      "endLine": 1582,
       "duty": "Initiates ultra luxury celebration coronation sequence with golden beam and restored open eyes upon completion."
     },
     {
       "file": "src/slime-model.js",
       "name": "update",
-      "params": "deltaTime, audioKick = 0",
-      "startLine": 1508,
-      "endLine": 2073,
+      "params": "deltaTime, audioKick = 0, sharedKinematics = null",
+      "startLine": 1584,
+      "endLine": 2168,
       "duty": "Per-frame animation loop evaluating physics-driven slime dancing, breathing, audio kick bouncing, and eyelids."
     },
     {

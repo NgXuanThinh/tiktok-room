@@ -76,6 +76,19 @@ const sessionActiveUsers = new Map();
 let sessionTopDonors = [];
 let lastMinigameState = null;
 
+const DEFAULT_SESSION_GRAPHICS_SETTINGS = {
+  pixelRatioKey: 'BALANCED',
+  enableMovingHeadLights: false,
+  enableMovingHeadCones: true,
+  enableLaserBeams: true,
+  enableBillboardCpuLookAt: false,
+  useGpuShaders: true,
+  enableStaticFloor: false,
+  fpsCapKey: 'FPS_60',
+  slimeShadingKey: 'PBR_TRANSLUCENT'
+};
+let sessionGraphicsSettings = { ...DEFAULT_SESSION_GRAPHICS_SETTINGS };
+
 // Rate Limiter with 500ms combo aggregation and VIP bypass
 const rateLimiter = new EventQueueRateLimiter({
   maxQueueSize: 100,
@@ -338,7 +351,8 @@ wss.on('connection', (ws) => {
     activeUsers: Array.from(sessionActiveUsers.values()),
     topDonors: sessionTopDonors,
     minigameState: lastMinigameState,
-    commandCooldownSec: commandThrottler.baseCooldownSec
+    commandCooldownSec: commandThrottler.baseCooldownSec,
+    graphicsSettings: sessionGraphicsSettings
   }));
 
   // Handle incoming messages from frontend client & admin panel
@@ -423,6 +437,11 @@ wss.on('connection', (ws) => {
           total: tiktokService.viewerCount
         });
       } else if (data.type === 'admin_command') {
+        if (data.command === 'set_graphics_setting' && data.setting) {
+          sessionGraphicsSettings[data.setting] = data.value;
+        } else if (data.command === 'reset_graphics_defaults') {
+          sessionGraphicsSettings = { ...DEFAULT_SESSION_GRAPHICS_SETTINGS };
+        }
         // Forward admin commands from Port 3001 Cockpit to all 3D Room viewers
         broadcast(data);
       } else if (data.type === 'minigame_state_sync') {

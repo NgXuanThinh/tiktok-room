@@ -332,6 +332,15 @@ export async function unlockAudio(instance = null) {
   return true;
 }
 
+export const SILENT_BANDS = Object.freeze({
+  bass: 0,
+  mids: 0,
+  treble: 0,
+  bassFlux: 0,
+  midsFlux: 0,
+  trebleFlux: 0
+});
+
 /**
  * Audio System Manager running in browser with Web Audio API.
  */
@@ -346,6 +355,8 @@ export class AudioSystem {
     this.midsAvg = 50;
     this.trebleAvg = 50;
     this.isMuted = false;
+    this.bandsResult = { bass: 0, mids: 0, treble: 0, bassFlux: 0, midsFlux: 0, trebleFlux: 0 };
+    this.lastFftTime = 0;
   }
 
   init() {
@@ -379,9 +390,17 @@ export class AudioSystem {
   }
 
   getBands() {
-    if (!this.analyser) {
-      return { bass: 0, mids: 0, treble: 0, bassFlux: 0, midsFlux: 0, trebleFlux: 0 };
+    // Silent Guard: If audio context is inactive, suspended, or beat engine is not playing, return cached silent bands
+    if (!this.analyser || !this.ctx || this.ctx.state !== 'running' || (this.beatEngine && !this.beatEngine.isPlaying)) {
+      return SILENT_BANDS;
     }
+
+    const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
+    // 30Hz FFT Throttling (~32ms interval): Re-use cached analysis between frames to cut CPU by 50%
+    if (now - this.lastFftTime < 32 && this.lastFftTime > 0) {
+      return this.bandsResult;
+    }
+    this.lastFftTime = now;
 
     this.analyser.getByteFrequencyData(this.spectrum);
     const bands = split3BandFrequency(this.spectrum, this.ctx.sampleRate, this.analyser.fftSize);
@@ -395,14 +414,14 @@ export class AudioSystem {
     const trebRes = calculateAudioFlux(bands.trebleEnergy, this.trebleAvg);
     this.trebleAvg = trebRes.newAvg;
 
-    return {
-      bass: bands.bassEnergy,
-      mids: bands.midsEnergy,
-      treble: bands.trebleEnergy,
-      bassFlux: bassRes.flux,
-      midsFlux: midsRes.flux,
-      trebleFlux: trebRes.flux
-    };
+    this.bandsResult.bass = bands.bassEnergy;
+    this.bandsResult.mids = bands.midsEnergy;
+    this.bandsResult.treble = bands.trebleEnergy;
+    this.bandsResult.bassFlux = bassRes.flux;
+    this.bandsResult.midsFlux = midsRes.flux;
+    this.bandsResult.trebleFlux = trebRes.flux;
+
+    return this.bandsResult;
   }
 
   playSfx(name) {

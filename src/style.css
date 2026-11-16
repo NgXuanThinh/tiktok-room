@@ -43,11 +43,9 @@ body, html {
   pointer-events: auto;
 }
 
-/* Glassmorphism Common Style */
+/* Glassmorphism Common Style (High performance - Blur free for Chrome Compositor optimization) */
 .glass-panel {
-  background: rgba(15, 15, 28, 0.75);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(15, 15, 28, 0.88);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 16px rgba(0, 242, 254, 0.2);
@@ -192,7 +190,7 @@ body, html {
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   pointer-events: none;
   z-index: 90;
-  backdrop-filter: blur(12px);
+  background: rgba(13, 14, 28, 0.94);
 }
 
 .gift-banner.show {
@@ -536,9 +534,7 @@ body, html {
     .cinematic-backdrop {
       position: absolute;
       inset: 0;
-      background: radial-gradient(circle at 50% 50%, rgba(12, 12, 28, 0.18) 0%, rgba(4, 4, 12, 0.65) 100%);
-      backdrop-filter: blur(1.5px);
-      -webkit-backdrop-filter: blur(1.5px);
+      background: radial-gradient(circle at 50% 50%, rgba(12, 12, 28, 0.55) 0%, rgba(4, 4, 12, 0.88) 100%);
       opacity: 0;
       transition: opacity 0.4s ease;
       z-index: 0;
@@ -870,7 +866,7 @@ body, html {
       font-weight: 700;
       padding: 7px 16px;
       border-radius: 20px;
-      backdrop-filter: blur(8px);
+      background: rgba(13, 14, 28, 0.92);
       transition: all 0.2s ease;
       pointer-events: auto;
       cursor: pointer;

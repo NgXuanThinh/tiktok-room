@@ -1,5 +1,7 @@
 // preview/slime-model.js - Complete Tier Evolution (Free Tier: Half-Sphere, T1-T4: Chubby Mochi with Additive Features)
 import * as THREE from 'three';
+import { graphicsSettings } from './graphics-settings.js';
+import { SLIME_SHADING_MODES } from './graphics-constants.js';
 import {
   SLIME_BASE_RADIUS,
   SLIME_BASE_HEIGHT,
@@ -108,13 +110,47 @@ Object.entries({ ...SLIME_PALETTES, ...ULTRA_PALETTES }).forEach(([key, spec]) =
   sharedMaterialsPool[key] = mat;
 });
 
-export function getClonedSlimeMaterial(paletteKey) {
-  const base = sharedMaterialsPool[paletteKey] || sharedMaterialsPool.cyan;
-  const mat = base.clone();
-  mat.userData = { isShared: false };
-  mat.opacity = 0.92;
-  mat.transparent = true;
+export function createSlimeMaterialByConfig(paletteKey, shadingKey = graphicsSettings.settings.slimeShadingKey) {
+  const spec = SLIME_PALETTES[paletteKey] || ULTRA_PALETTES[paletteKey] || SLIME_PALETTES.cyan;
+  const cfg = SLIME_SHADING_MODES[shadingKey] || SLIME_SHADING_MODES.PBR_TRANSLUCENT;
+
+  let mat;
+  if (cfg.materialType === 'MeshToonMaterial') {
+    mat = new THREE.MeshToonMaterial({
+      color: spec.shellColor,
+      emissive: spec.coreEmissive,
+      emissiveIntensity: 0.25,
+      transparent: false,
+      opacity: 1.0,
+      depthWrite: true
+    });
+  } else if (cfg.materialType === 'MeshLambertMaterial') {
+    mat = new THREE.MeshLambertMaterial({
+      color: spec.shellColor,
+      emissive: spec.coreEmissive,
+      emissiveIntensity: 0.25,
+      transparent: false,
+      opacity: 1.0,
+      depthWrite: true
+    });
+  } else {
+    mat = new THREE.MeshStandardMaterial({
+      color: spec.shellColor,
+      emissive: spec.coreEmissive,
+      emissiveIntensity: 0.35,
+      roughness: 0.12,
+      metalness: 0.06,
+      transparent: true,
+      opacity: 0.92,
+      depthWrite: true
+    });
+  }
+  mat.userData = { isShared: false, paletteKey, shadingKey };
   return mat;
+}
+
+export function getClonedSlimeMaterial(paletteKey) {
+  return createSlimeMaterialByConfig(paletteKey, graphicsSettings.settings.slimeShadingKey);
 }
 
 // Shared Accessories
@@ -1126,6 +1162,46 @@ export function createCyberSlime(paletteKey = 'cyan', rawUserData = {}) {
       this.blushR.material.color.setHex(pal.blushColor);
     },
 
+    setShadingModel(shadingKey) {
+      const activeColorKey = this.userData?.slimeColor || this.userData?.color || this.mesh?.userData?.colorKey;
+      let pKey = this.currentPaletteKey || 'cyan';
+      if (activeColorKey === 'green') pKey = 'lime';
+      else if (activeColorKey === 'red') pKey = 'pink';
+      else if (activeColorKey === 'blue') pKey = 'cyan';
+
+      const newMat = createSlimeMaterialByConfig(pKey, shadingKey);
+
+      // Preserve specific canonical colors (green 0x00ff88, red 0xff2a6d, blue 0x00f2fe)
+      const CANONICAL_COLORS = { green: 0x00ff88, red: 0xff2a6d, blue: 0x00f2fe };
+      const matchedColor = activeColorKey ? CANONICAL_COLORS[activeColorKey] : null;
+      if (matchedColor) {
+        if (newMat.color?.setHex) newMat.color.setHex(matchedColor);
+        if (newMat.emissive?.setHex) newMat.emissive.setHex(matchedColor);
+      }
+
+      this.slimeMesh.material = newMat;
+      if (this.userData) this.userData.slimeMat = newMat;
+      if (this.mesh && this.mesh.userData) this.mesh.userData.slimeMat = newMat;
+      if (this.accessories.sideMochis) {
+        if (this.accessories.sideMochis.mochiL) {
+          const earMatL = createSlimeMaterialByConfig(pKey, shadingKey);
+          if (matchedColor && earMatL.color?.setHex) earMatL.color.setHex(matchedColor);
+          this.accessories.sideMochis.mochiL.material = earMatL;
+        }
+        if (this.accessories.sideMochis.mochiR) {
+          const earMatR = createSlimeMaterialByConfig(pKey, shadingKey);
+          if (matchedColor && earMatR.color?.setHex) earMatR.color.setHex(matchedColor);
+          this.accessories.sideMochis.mochiR.material = earMatR;
+        }
+      }
+      if (this.accessories.miniPet && this.accessories.miniPet.mesh) {
+        this.accessories.miniPet.mesh.material = createSlimeMaterialByConfig(pKey, shadingKey);
+      }
+      if (this.accessories.tail && this.accessories.tail.tailSegment) {
+        this.accessories.tail.tailSegment.material = createSlimeMaterialByConfig(pKey, shadingKey);
+      }
+    },
+
     setGender(gender) {
       this.userData.gender = gender;
       const hasBlush = (gender === 'female');
@@ -1505,7 +1581,7 @@ export function createCyberSlime(paletteKey = 'cyan', rawUserData = {}) {
       this.setExpression('smile');
     },
 
-    update(deltaTime, audioKick = 0) {
+    update(deltaTime, audioKick = 0, sharedKinematics = null) {
       if (this.state.isPaused) return;
 
       // Handle Slime Sinking animation on Leave / Idle Culling
@@ -1834,10 +1910,16 @@ export function createCyberSlime(paletteKey = 'cyan', rawUserData = {}) {
       }
 
       // Standard Kinematics & Tier Dance Choreography
-      const bps = this.state.bpm / 60;
-      this.state.bpmPhase = (this.state.bpmPhase + deltaTime * bps * Math.PI * 2) % (Math.PI * 2);
-      // Strictly clamp normalized audio kick effect to [0, 1.0] to prevent erratic jerking
-      const kickEffect = Math.min(1.0, Math.max(0, audioKick));
+      let kickEffect;
+      if (sharedKinematics) {
+        this.state.bpmPhase = sharedKinematics.bpmPhase;
+        kickEffect = sharedKinematics.kickEffect;
+      } else {
+        const bps = this.state.bpm / 60;
+        this.state.bpmPhase = (this.state.bpmPhase + deltaTime * bps * Math.PI * 2) % (Math.PI * 2);
+        // Strictly clamp normalized audio kick effect to [0, 1.0] to prevent erratic jerking
+        kickEffect = Math.min(1.0, Math.max(0, audioKick));
+      }
       const tier = this.state.tier || 1;
 
       let scaleY = 1.0, scaleXZ = 1.0, jumpY = 0;
@@ -1962,17 +2044,25 @@ export function createCyberSlime(paletteKey = 'cyan', rawUserData = {}) {
           rotZ = 0;
         }
 
-        const sinVal = Math.sin(this.state.bpmPhase);
-        if (sinVal < 0) {
-          const squash = Math.abs(sinVal);
-          scaleY = 1.0 - (squash * 0.22 + kickEffect * 0.05);
-          scaleXZ = 1.0 + (squash * 0.12 + kickEffect * 0.04);
-          jumpY = 0;
+        let sinVal;
+        if (sharedKinematics) {
+          sinVal = sharedKinematics.sinVal;
+          scaleY = sharedKinematics.scaleY;
+          scaleXZ = sharedKinematics.scaleXZ;
+          jumpY = sharedKinematics.jumpY;
         } else {
-          const stretch = sinVal;
-          scaleY = 1.0 + (stretch * 0.20 + kickEffect * 0.08);
-          scaleXZ = 1.0 - (stretch * 0.08 + kickEffect * 0.03);
-          jumpY = (stretch * 0.26 + kickEffect * 0.08);
+          sinVal = Math.sin(this.state.bpmPhase);
+          if (sinVal < 0) {
+            const squash = Math.abs(sinVal);
+            scaleY = 1.0 - (squash * 0.22 + kickEffect * 0.05);
+            scaleXZ = 1.0 + (squash * 0.12 + kickEffect * 0.04);
+            jumpY = 0;
+          } else {
+            const stretch = sinVal;
+            scaleY = 1.0 + (stretch * 0.20 + kickEffect * 0.08);
+            scaleXZ = 1.0 - (stretch * 0.08 + kickEffect * 0.03);
+            jumpY = (stretch * 0.26 + kickEffect * 0.08);
+          }
         }
 
         // Tự động kích hoạt ngẫu hứng sinh động nếu bật autoDanceRoutine
@@ -2026,31 +2116,36 @@ export function createCyberSlime(paletteKey = 'cyan', rawUserData = {}) {
 
       // 2 Tai Mochi 2 bên nhún nhảy theo nhịp nhạc
       if (this.accessories.sideMochis && this.accessories.sideMochis.visible) {
-        const earJiggle = Math.sin(this.state.bpmPhase) * 0.05 + kickEffect * 0.10;
+        const earJiggle = sharedKinematics ? sharedKinematics.earJiggle : (Math.sin(this.state.bpmPhase) * 0.05 + kickEffect * 0.10);
         this.accessories.sideMochis.earNodeL.rotation.z = 0.38 + earJiggle;
         this.accessories.sideMochis.earNodeR.rotation.z = -0.38 - earJiggle;
       }
 
       // Wagging Devil Tail animation (sync with dance beat)
       if (this.accessories.tail && this.accessories.tail.visible) {
-        this.accessories.tail.rotation.y = Math.sin(this.state.bpmPhase) * 0.42;
-        this.accessories.tail.rotation.x = -0.15 + Math.cos(this.state.bpmPhase * 2) * 0.12 + kickEffect * 0.18;
+        if (sharedKinematics) {
+          this.accessories.tail.rotation.y = sharedKinematics.tailRotY;
+          this.accessories.tail.rotation.x = sharedKinematics.tailRotX;
+        } else {
+          this.accessories.tail.rotation.y = Math.sin(this.state.bpmPhase) * 0.42;
+          this.accessories.tail.rotation.x = -0.15 + Math.cos(this.state.bpmPhase * 2) * 0.12 + kickEffect * 0.18;
+        }
       }
 
       if (this.accessories.halo.visible) {
-        this.accessories.halo.rotation.z += 1.8 * deltaTime;
+        this.accessories.halo.rotation.z += (sharedKinematics ? sharedKinematics.haloDelta : (1.8 * deltaTime));
         this.accessories.halo.position.y = 1.15 * scaleY + jumpY * 0.2;
       }
 
       if (this.accessories.auraRing.visible) {
         if (this.accessories.auraRing.auraPerimeter) {
-          this.accessories.auraRing.auraPerimeter.rotation.z += 1.4 * deltaTime;
+          this.accessories.auraRing.auraPerimeter.rotation.z += (sharedKinematics ? sharedKinematics.auraPerimeterDelta : (1.4 * deltaTime));
         }
         if (this.accessories.auraRing.auraInner) {
-          this.accessories.auraRing.auraInner.rotation.z -= 1.8 * deltaTime;
+          this.accessories.auraRing.auraInner.rotation.z += (sharedKinematics ? sharedKinematics.auraInnerDelta : (-1.8 * deltaTime));
         }
         if (this.accessories.auraRing.runesGroup) {
-          this.accessories.auraRing.runesGroup.rotation.y += 1.4 * deltaTime;
+          this.accessories.auraRing.runesGroup.rotation.y += (sharedKinematics ? sharedKinematics.runesDelta : (1.4 * deltaTime));
         }
       }
 

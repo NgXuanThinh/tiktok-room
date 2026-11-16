@@ -5,6 +5,7 @@ import { createAvatarMesh, getSlimeKinematics, getDanceKinematics } from './avat
 import { updateLeapAnimation } from './vip-lounge-manager.js';
 import { CINEMATIC_CONFIG } from './cinematic-config.js';
 import { evaluateEquipment } from './equipment-config.js';
+import { graphicsSettings } from './graphics-settings.js';
 
 let isDonationIsolationActive = false;
 let currentHeroMesh = null;
@@ -241,18 +242,88 @@ export function syncActiveFloorAvatars(avatarMeshes, uiOverlay, ws) {
   }
 }
 
+let globalDancePhase = 0;
+let globalAudioKick = 0;
+
+/**
+ * Computes batched global kinematics once per frame for 100% synchronized dance moves
+ * and massive CPU savings across 78+ slimes.
+ *
+ * @param {number} delta - Frame delta in seconds
+ * @param {number} time - Global club time
+ * @param {number} bpmSpeed - Computed angular speed based on BPM
+ * @param {number} frenzyMultiplier - Multiplier when frenzy mode is active
+ * @param {object} bands - Audio frequency bands from AudioSystem
+ * @param {number} [bpm=128] - Venue BPM
+ * @returns {object} Shared frame kinematics
+ */
+export function computeSharedDanceFrame(delta, time, bpmSpeed, frenzyMultiplier, bands, bpm = 128) {
+  const bps = (bpm || 128) / 60;
+  globalDancePhase = (globalDancePhase + delta * bps * Math.PI * 2 * (frenzyMultiplier || 1.0)) % (Math.PI * 2);
+
+  const divisor = CINEMATIC_CONFIG?.audioBounce?.fluxDivisor || 80.0;
+  const rawFlux = bands ? (bands.bassFlux || 0) : 0;
+  const normKick = Math.min(1.0, Math.max(0, rawFlux / divisor));
+  const smooth = CINEMATIC_CONFIG?.audioBounce?.smoothingFactor || 0.85;
+  globalAudioKick = (globalAudioKick || 0) * smooth + normKick * (1.0 - smooth);
+  const kickEffect = Math.min(1.0, Math.max(0, globalAudioKick));
+
+  const sinVal = Math.sin(globalDancePhase);
+  let scaleY = 1.0, scaleXZ = 1.0, jumpY = 0;
+  if (sinVal < 0) {
+    const squash = Math.abs(sinVal);
+    scaleY = 1.0 - (squash * 0.22 + kickEffect * 0.05);
+    scaleXZ = 1.0 + (squash * 0.12 + kickEffect * 0.04);
+    jumpY = 0;
+  } else {
+    const stretch = sinVal;
+    scaleY = 1.0 + (stretch * 0.20 + kickEffect * 0.08);
+    scaleXZ = 1.0 - (stretch * 0.08 + kickEffect * 0.03);
+    jumpY = (stretch * 0.26 + kickEffect * 0.08);
+  }
+
+  const earJiggle = Math.sin(globalDancePhase) * 0.05 + kickEffect * 0.10;
+  const tailRotY = Math.sin(globalDancePhase) * 0.42;
+  const tailRotX = -0.15 + Math.cos(globalDancePhase * 2) * 0.12 + kickEffect * 0.18;
+  const haloDelta = 1.8 * delta;
+  const auraPerimeterDelta = 1.4 * delta;
+  const auraInnerDelta = -1.8 * delta;
+  const runesDelta = 1.4 * delta;
+
+  return {
+    bpmPhase: globalDancePhase,
+    audioKick: globalAudioKick,
+    kickEffect,
+    sinVal,
+    scaleY,
+    scaleXZ,
+    jumpY,
+    earJiggle,
+    tailRotY,
+    tailRotX,
+    haloDelta,
+    auraPerimeterDelta,
+    auraInnerDelta,
+    runesDelta
+  };
+}
+
 /**
  * Procedural animation for modern CyberSlime controller.
  * Normalizes raw audio flux and applies exponential lerp smoothing to prevent vertical jerking.
  */
-function _updateCyberSlime(mesh, data, delta, bands) {
-  const divisor = CINEMATIC_CONFIG?.audioBounce?.fluxDivisor || 80.0;
-  const rawFlux = bands.bassFlux || 0;
-  const normKick = Math.min(1.0, Math.max(0, rawFlux / divisor));
-  const smooth = CINEMATIC_CONFIG?.audioBounce?.smoothingFactor || 0.85;
-  data.audioKick = (data.audioKick || 0) * smooth + normKick * (1.0 - smooth);
+function _updateCyberSlime(mesh, data, delta, bands, sharedKinematics = null) {
+  if (sharedKinematics && typeof sharedKinematics.audioKick === 'number') {
+    data.audioKick = sharedKinematics.audioKick;
+  } else {
+    const divisor = CINEMATIC_CONFIG?.audioBounce?.fluxDivisor || 80.0;
+    const rawFlux = bands ? (bands.bassFlux || 0) : 0;
+    const normKick = Math.min(1.0, Math.max(0, rawFlux / divisor));
+    const smooth = CINEMATIC_CONFIG?.audioBounce?.smoothingFactor || 0.85;
+    data.audioKick = (data.audioKick || 0) * smooth + normKick * (1.0 - smooth);
+  }
 
-  data.controller.update(delta, data.audioKick);
+  data.controller.update(delta, data.audioKick, sharedKinematics);
 
   if (!data.leapAnimation && !data.isSinking && !data.controller?.sinkAnim) {
     const targetBaseY = data.levitateY !== undefined ? data.levitateY : (data.assignedSlot?.y || 0);
@@ -329,13 +400,13 @@ function _updateHumanoid(data, style, phase) {
 /**
  * Updates procedural kinematics, leap animations, and facing direction for a single avatar mesh.
  */
-export function updateAvatarKinematics(mesh, delta, time, bpmSpeed, frenzyMultiplier, bands, camera, isFrenzy = false) {
+export function updateAvatarKinematics(mesh, delta, time, bpmSpeed, frenzyMultiplier, bands, camera, isFrenzy = false, sharedKinematics = null) {
   const data = mesh.userData;
   const style = isFrenzy ? 'jump' : data.danceStyle;
   const phase = time * bpmSpeed * frenzyMultiplier + (data.phaseOffset || 0);
 
   if (data.controller) {
-    _updateCyberSlime(mesh, data, delta, bands);
+    _updateCyberSlime(mesh, data, delta, bands, sharedKinematics);
   } else if (data.isSlime && data.slimeBody) {
     const isBouncing = data.isSuperBounce || style === 'jump' || isFrenzy;
     _updateProceduralSlime(mesh, data, phase, isBouncing, time, delta);
@@ -353,12 +424,18 @@ export function updateAvatarKinematics(mesh, delta, time, bpmSpeed, frenzyMultip
     mesh.rotation.y = THREE.MathUtils.lerp(mesh.rotation.y, targetRotY, 0.1);
   }
 
-  // Smooth scale lerp
-  data.currentScale = THREE.MathUtils.lerp(data.currentScale, data.targetScale, 0.08);
-  mesh.scale.setScalar(data.currentScale * BASE_AVATAR_SCALE);
+  // Smooth scale lerp with settled guard (avoids triggering Three.js dirty matrix updates when settled)
+  if (data.currentScale !== data.targetScale) {
+    if (Math.abs(data.currentScale - data.targetScale) < 0.0005) {
+      data.currentScale = data.targetScale;
+    } else {
+      data.currentScale = THREE.MathUtils.lerp(data.currentScale, data.targetScale, 0.08);
+    }
+    mesh.scale.setScalar(data.currentScale * BASE_AVATAR_SCALE);
+  }
 
-  // Billboard always faces active camera
-  if (data.billboard && camera) {
+  // Billboard always faces active camera (when CPU lookAt is enabled in admin panel; otherwise GPU Sprite auto-orients)
+  if (graphicsSettings?.settings?.enableBillboardCpuLookAt && data.billboard && camera) {
     data.billboard.lookAt(camera.position);
   }
 }

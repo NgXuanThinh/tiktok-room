@@ -1,4 +1,5 @@
 // src/live-event-handler.js - Ingestion, routing, and dispatching of real-time LIVE stream events
+import { graphicsSettings } from './graphics-settings.js';
 import { parseColorCommand, setSlimeColor, applyWhaleSlimeAesthetics, DANCE_STYLES } from './avatar-manager.js';
 import { DONATE_GIFTS } from './gift-props.js';
 import { enqueueHighTierShowcase } from './cinematic-showcase.js';
@@ -523,6 +524,29 @@ export function handleAdminCommand(evt, context) {
     if (uiOverlay?.setMaxHype) {
       uiOverlay.setMaxHype(val);
     }
+  } else if (command === 'set_graphics_setting') {
+    const { setting, value } = evt;
+    if (setting === 'pixelRatioKey') {
+      graphicsSettings.setPixelRatioKey(value);
+    } else if (setting === 'enableMovingHeadLights') {
+      graphicsSettings.setEnableMovingHeadLights(value);
+    } else if (setting === 'enableMovingHeadCones') {
+      graphicsSettings.setEnableMovingHeadCones(value);
+    } else if (setting === 'enableLaserBeams') {
+      graphicsSettings.setEnableLaserBeams(value);
+    } else if (setting === 'enableBillboardCpuLookAt') {
+      graphicsSettings.setBillboardCpuLookAt(value);
+    } else if (setting === 'useGpuShaders') {
+      graphicsSettings.setUseGpuShaders(value);
+    } else if (setting === 'enableStaticFloor') {
+      graphicsSettings.setStaticFloor(value);
+    } else if (setting === 'fpsCapKey') {
+      graphicsSettings.setFpsCapKey(value);
+    } else if (setting === 'slimeShadingKey') {
+      graphicsSettings.setSlimeShadingKey(value);
+    }
+  } else if (command === 'reset_graphics_defaults') {
+    graphicsSettings.resetDefaults();
   } else if (command === 'set_billboard_scale' && typeof value === 'number') {
     context.currentBillboardScale = value;
     if (context.avatarMeshes) {
@@ -815,6 +839,18 @@ export function handleLiveEvent(evt, context) {
       break;
 
     case 'initial_session_state':
+      if (evt.graphicsSettings) {
+        const gs = evt.graphicsSettings;
+        if (gs.pixelRatioKey) graphicsSettings.setPixelRatioKey(gs.pixelRatioKey);
+        if (typeof gs.enableMovingHeadLights === 'boolean') graphicsSettings.setEnableMovingHeadLights(gs.enableMovingHeadLights);
+        if (typeof gs.enableMovingHeadCones === 'boolean') graphicsSettings.setEnableMovingHeadCones(gs.enableMovingHeadCones);
+        if (typeof gs.enableLaserBeams === 'boolean') graphicsSettings.setEnableLaserBeams(gs.enableLaserBeams);
+        if (typeof gs.enableBillboardCpuLookAt === 'boolean') graphicsSettings.setBillboardCpuLookAt(gs.enableBillboardCpuLookAt);
+        if (typeof gs.useGpuShaders === 'boolean') graphicsSettings.setUseGpuShaders(gs.useGpuShaders);
+        if (typeof gs.enableStaticFloor === 'boolean') graphicsSettings.setStaticFloor(gs.enableStaticFloor);
+        if (gs.fpsCapKey) graphicsSettings.setFpsCapKey(gs.fpsCapKey);
+        if (gs.slimeShadingKey) graphicsSettings.setSlimeShadingKey(gs.slimeShadingKey);
+      }
       if (evt.status && context.uiOverlay?.updateTikTokStatus) {
         context.uiOverlay.updateTikTokStatus(evt.status);
       }

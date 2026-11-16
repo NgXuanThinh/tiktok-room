@@ -5,730 +5,738 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TikTok LIVE Bar — Streamer Admin Cockpit (Port 3001)</title>
-  <link rel="stylesheet" href="/src/style.css" />
-  <style>
-    body {
-      background: radial-gradient(circle at 50% 20%, #150d2a 0%, #080511 100%);
-      color: #fff;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      margin: 0;
-      padding: 20px;
-      min-height: 100vh;
-      box-sizing: border-box;
-      overflow-y: auto;
-    }
-
-    .cockpit-container {
-      max-width: 1400px;
-      margin: 0 auto;
-    }
-
-    .cockpit-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 16px 24px;
-      margin-bottom: 20px;
-      border-radius: 16px;
-      background: rgba(20, 15, 35, 0.75);
-      border: 1px solid rgba(0, 242, 254, 0.3);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-    }
-
-    .cockpit-title {
-      font-size: 20px;
-      font-weight: 800;
-      letter-spacing: 1.5px;
-      background: linear-gradient(135deg, #00f2fe, #4facfe, #d946ef);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .status-group {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-
-    .status-pill {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 12px;
-      font-weight: 600;
-      padding: 6px 14px;
-      border-radius: 20px;
-      background: rgba(10, 10, 20, 0.6);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-    }
-
-    .status-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: #ff4757;
-      box-shadow: 0 0 8px #ff4757;
-      transition: all 0.3s ease;
-    }
-
-    .status-dot.connected {
-      background: #00ff88;
-      box-shadow: 0 0 10px #00ff88;
-    }
-
-    .cockpit-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
-      gap: 20px;
-    }
-
-    .card {
-      background: rgba(18, 14, 32, 0.7);
-      backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 16px;
-      padding: 20px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .card-title {
-      font-size: 13px;
-      font-weight: 800;
-      letter-spacing: 1.2px;
-      text-transform: uppercase;
-      color: #00f2fe;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      padding-bottom: 8px;
-      margin: 0;
-    }
-
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .form-label {
-      font-size: 12px;
-      font-weight: 600;
-      color: #8c90b0;
-    }
-
-    .btn-group-row {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-      gap: 8px;
-    }
-
-    .log-box {
-      background: rgba(8, 6, 18, 0.88);
-      border: 1px solid rgba(0, 242, 254, 0.25);
-      border-radius: 10px;
-      padding: 14px;
-      font-family: 'JetBrains Mono', Consolas, Menlo, Monaco, monospace;
-      font-size: 12px;
-      line-height: 1.6;
-      color: #cbd5e1;
-      height: 480px;
-      max-height: 500px;
-      overflow-y: auto;
-    }
-
-    .log-item {
-      margin-bottom: 4px;
-      word-break: break-all;
-    }
-
-    .log-item.sent {
-      color: #00f2fe;
-    }
-
-    .log-item.recv {
-      color: #a78bfa;
-    }
-
-    .log-item.err {
-      color: #ff6b81;
-    }
-
-    .quick-cooldown-btn.active {
-      background: rgba(255, 215, 0, 0.25) !important;
-      border-color: #ffd700 !important;
-      color: #ffd700 !important;
-      font-weight: bold;
-    }
-  </style>
+  <link rel="stylesheet" href="/src/admin.css" />
 </head>
 
 <body>
   <div class="cockpit-container">
-    <!-- Header -->
+    <!-- Header Bar -->
     <header class="cockpit-header">
-      <div class="cockpit-title">
-        <span>🎛️</span> TIKTOK LIVE BAR — ADMIN CONTROL COCKPIT
+      <div class="cockpit-title-wrap">
+        <div class="cockpit-badge-icon">🎛️</div>
+        <div>
+          <h1 class="cockpit-title">
+            TIKTOK LIVE BAR
+            <span style="font-size: 11px; font-weight: 500; color: var(--accent-cyan); background: rgba(56, 189, 248, 0.12); padding: 2px 8px; border-radius: 9999px;">
+              STUDIO COCKPIT
+            </span>
+          </h1>
+          <div class="cockpit-subtitle">Streamer Control Deck • Port 3001</div>
+        </div>
       </div>
+
+      <!-- Live Connection Statuses -->
       <div class="status-group">
         <div class="status-pill">
           <div id="ws-indicator" class="status-dot"></div>
           <span id="ws-status-text">WS 3D Room: Disconnected</span>
         </div>
         <div class="status-pill">
-          <span id="tiktok-status-dot" style="color: #ff4757; transition: color 0.3s ease;">●</span>
+          <span id="tiktok-status-dot" class="status-dot"></span>
           <span id="tiktok-status-text">TikTok: Disconnected</span>
         </div>
       </div>
+
+      <!-- Quick Actions & Sidebar Toggle -->
+      <div class="header-quick-actions">
+        <button id="btn-toggle-sidebar" class="btn btn-secondary" title="Thu gọn / Mở rộng bảng Sân Khấu khi chia đôi màn hình">
+          ◀ Thu Gọn Sân Khấu
+        </button>
+        <button id="btn-refresh-floor" class="btn btn-secondary" title="Dọn dẹp và làm mới sàn">
+          🔄 Refresh Sàn
+        </button>
+        <button id="btn-chroma" class="btn btn-secondary" title="Phông xanh OBS (F2)">
+          🟩 Chroma (F2)
+        </button>
+        <button id="btn-alpha" class="btn btn-secondary" title="Trong suốt OBS">
+          🔳 Alpha
+        </button>
+      </div>
     </header>
 
-    <div class="cockpit-grid">
-      <!-- COLUMN 1: Live Stream, Camera & Audio Controls -->
-      <div class="card">
-        <h2 class="card-title">📡 1. TikTok LIVE & Camera Angles</h2>
+    <!-- Master-Detail Studio Workspace -->
+    <div class="cockpit-studio" id="cockpit-studio">
 
-        <!-- TikTok Connect -->
-        <div class="form-group">
-          <label class="form-label">TikTok LIVE Username:</label>
-          <div class="admin-input-group">
-            <input id="tiktok-username-input" class="admin-input" type="text" placeholder="@username" />
-            <button id="btn-tiktok-connect" class="btn">Connect</button>
-          </div>
-          <div style="display: flex; gap: 8px; margin-top: 4px;">
-            <button id="btn-tiktok-disconnect" class="btn btn-secondary" style="flex: 1;">Disconnect</button>
-            <button id="btn-refresh-floor" class="btn btn-secondary"
-              style="flex: 1; border-color: #00f2fe; color: #00f2fe;">Refresh Sàn</button>
-          </div>
-        </div>
+      <!-- ====================================================================
+           LEFT COLUMN: STAGE & VENUE DIRECTOR (Cài Đặt Sân Khấu & Hệ Thống)
+           ==================================================================== -->
+      <aside class="sidebar-panel" id="sidebar-stage">
+        <section class="card">
+          <h2 class="card-title">
+            <span class="card-title-left">📡 Sân Khấu & Đồ Họa</span>
+          </h2>
 
-        <!-- Camera Angles -->
-        <div class="form-group">
-          <label class="form-label">Camera Angle Presets:</label>
-          <div class="btn-group-row">
-            <button class="btn btn-secondary btn-cam" data-cam="orbit">1. Orbit</button>
-            <button class="btn btn-secondary btn-cam" data-cam="dj">2. DJ Front</button>
-            <button class="btn btn-secondary btn-cam" data-cam="top">3. Top-Down</button>
-            <button class="btn btn-secondary btn-cam" data-cam="vip">4. VIP Stage</button>
+          <!-- TikTok Connection -->
+          <div class="form-group">
+            <label class="form-label">TikTok LIVE Username:</label>
+            <div class="admin-input-group">
+              <input id="tiktok-username-input" class="admin-input" type="text" placeholder="@username" />
+              <button id="btn-tiktok-connect" class="btn btn-primary">Connect</button>
+              <button id="btn-tiktok-disconnect" class="btn btn-secondary">Ngắt</button>
+            </div>
           </div>
-        </div>
 
-        <!-- Camera Distance Zoom -->
-        <div class="form-group">
+          <!-- Camera Angle Presets -->
+          <div class="form-group">
+            <label class="form-label">Góc Quay Sân Khấu:</label>
+            <div class="btn-group-row">
+              <button class="btn btn-secondary btn-cam active" data-cam="orbit">1. Orbit</button>
+              <button class="btn btn-secondary btn-cam" data-cam="dj">2. DJ Front</button>
+              <button class="btn btn-secondary btn-cam" data-cam="top">3. Top-Down</button>
+              <button class="btn btn-secondary btn-cam" data-cam="vip">4. VIP Stage</button>
+            </div>
+          </div>
+
+          <!-- Camera Distance & Zoom -->
+          <div class="form-group">
+            <div class="form-label">
+              <span>Khoảng Cách Camera Orbit:</span>
+              <span id="camera-distance-val" class="form-label-value" style="color: var(--accent-cyan);">10.0m</span>
+            </div>
+            <input id="camera-distance-slider" type="range" min="6" max="25" step="0.5" value="10" />
+            <div class="btn-group-row" style="margin-top: 2px;">
+              <button class="btn btn-secondary" id="btn-cam-close" style="font-size: 10px;">Gần (7m)</button>
+              <button class="btn btn-secondary" id="btn-cam-mid" style="font-size: 10px;">Vừa (10m)</button>
+              <button class="btn btn-secondary" id="btn-cam-wide" style="font-size: 10px;">Xa (16m)</button>
+            </div>
+          </div>
+
+          <!-- Sound & Music -->
+          <div class="form-group">
+            <div class="form-label">
+              <span>Âm Lượng Nhạc Club & SFX:</span>
+              <span id="volume-val" class="form-label-value" style="color: var(--accent-emerald);">80%</span>
+            </div>
+            <input id="volume-slider" type="range" min="0" max="1" step="0.05" value="0.8" />
+            <div class="btn-group-row" style="margin-top: 2px;">
+              <button id="btn-mute-sfx" class="btn btn-secondary">Mute SFX</button>
+              <button id="btn-trigger-frenzy" class="btn btn-secondary" style="border-color: rgba(168, 85, 247, 0.4); color: #d8b4fe;">
+                ⚡ Frenzy (15s)
+              </button>
+            </div>
+          </div>
+
+          <!-- Hype Meter Goal -->
+          <div class="sub-panel" style="border-color: rgba(168, 85, 247, 0.25);">
+            <div class="form-label">
+              <span style="color: #d8b4fe;">🎯 Mục Tiêu Hype Frenzy:</span>
+              <span id="hype-goal-display" class="form-label-value" style="color: #f472b6;">1000 pts</span>
+            </div>
+            <div class="admin-input-group">
+              <input id="input-max-hype" class="admin-input" type="number" min="50" step="50" value="1000" placeholder="1000" />
+              <button id="btn-set-max-hype" class="btn btn-secondary" style="background: rgba(168, 85, 247, 0.15); border-color: rgba(168, 85, 247, 0.4); color: #e9d5ff;">
+                Áp Dụng
+              </button>
+            </div>
+          </div>
+
+          <!-- Cooldown Control -->
+          <div class="sub-panel">
+            <div class="form-label">
+              <span>⏱️ Cooldown Lệnh Chat (!color):</span>
+              <span id="cooldown-val-display" class="form-label-value" style="color: var(--accent-amber);">10s</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <input type="range" id="cooldown-slider" min="1" max="60" step="1" value="10" />
+              <input type="number" id="cooldown-number-input" min="1" max="120" value="10" class="admin-input" style="width: 50px; text-align: center; padding: 4px; font-weight: 700; color: var(--accent-amber);" />
+            </div>
+            <div class="btn-group-row" style="margin-top: 4px;">
+              <button type="button" class="btn btn-secondary quick-cooldown-btn" data-sec="3">3s</button>
+              <button type="button" class="btn btn-secondary quick-cooldown-btn" data-sec="5">5s</button>
+              <button type="button" class="btn btn-secondary quick-cooldown-btn active" data-sec="10">10s</button>
+              <button type="button" class="btn btn-secondary quick-cooldown-btn" data-sec="20">20s</button>
+              <button type="button" id="btn-save-cooldown" class="btn btn-primary" style="font-size: 10px; padding: 4px 6px;">💾</button>
+            </div>
+          </div>
+
+          <!-- Accordion: Graphics & GPU Optimization -->
+          <div class="form-group" style="margin-top: 2px;">
+            <div class="accordion-toggle" id="toggle-graphics-panel">
+              <span style="display: flex; align-items: center; gap: 6px;">🎮 Cài Đặt Đồ Họa & GPU</span>
+              <span class="toggle-icon">▼</span>
+            </div>
+            <div class="accordion-body" id="body-graphics-panel">
+              <div class="sub-panel">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                  <span style="font-size: 10px; color: var(--text-muted);">Tùy chỉnh hiệu năng</span>
+                  <button id="btn-reset-graphics" class="btn btn-secondary" style="font-size: 10px; padding: 2px 6px;">Mặc định</button>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Pixel Ratio:</label>
+                  <select id="select-pixel-ratio" class="admin-input">
+                    <option value="ECO">1.0x (Tiết kiệm ~50% GPU)</option>
+                    <option value="BALANCED" selected>1.25x (Cân bằng - Khuyên dùng)</option>
+                    <option value="HIGH">1.5x (Độ nét cao)</option>
+                    <option value="NATIVE">Màn hình gốc (2.0x)</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">FPS Cap:</label>
+                  <select id="select-fps-cap" class="admin-input">
+                    <option value="FPS_60" selected>60 FPS (Chuẩn mượt)</option>
+                    <option value="FPS_30">30 FPS (Eco Mode)</option>
+                    <option value="FPS_UNLIMITED">Không giới hạn</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Chất liệu Slime:</label>
+                  <select id="select-slime-shading" class="admin-input">
+                    <option value="PBR_TRANSLUCENT" selected>Thạch trong suốt (PBR gốc)</option>
+                    <option value="TOON_OPAQUE">Mochi hoạt hình (Toon Shading)</option>
+                    <option value="LAMBERT_FAST">Lambert (Siêu nhẹ)</option>
+                  </select>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px;">
+                  <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-size: 10px; color: var(--text-secondary);">
+                    <span>8 Moving Head Spotlights</span>
+                    <input type="checkbox" id="check-moving-lights" />
+                  </label>
+                  <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-size: 10px; color: var(--text-secondary);">
+                    <span>8 Tia sáng nón 3D (Cones)</span>
+                    <input type="checkbox" id="check-moving-cones" checked />
+                  </label>
+                  <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-size: 10px; color: var(--text-secondary);">
+                    <span>6 Tia Laser trần</span>
+                    <input type="checkbox" id="check-laser-beams" checked />
+                  </label>
+                  <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-size: 10px; color: var(--text-secondary);">
+                    <span>Tăng tốc GPU Shaders</span>
+                    <input type="checkbox" id="check-gpu-shaders" checked />
+                  </label>
+                  <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-size: 10px; color: var(--text-secondary);">
+                    <span>Sàn LED tĩnh</span>
+                    <input type="checkbox" id="check-static-floor" />
+                  </label>
+                  <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-size: 10px; color: var(--text-secondary);">
+                    <span>LookAt CPU</span>
+                    <input type="checkbox" id="check-billboard-lookat" />
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Accordion: Coin Thresholds -->
+          <div class="form-group" style="margin-top: 2px;">
+            <div class="accordion-toggle" id="toggle-thresholds-panel">
+              <span style="display: flex; align-items: center; gap: 6px;">⚙️ Ngưỡng Coin Tiến Hóa</span>
+              <span class="toggle-icon">▼</span>
+            </div>
+            <div class="accordion-body" id="body-thresholds-panel">
+              <div class="sub-panel">
+                <div style="font-size: 10px; font-weight: 700; color: var(--accent-cyan);">👾 SLIME TIERS:</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
+                  <label style="display: flex; justify-content: space-between; align-items: center; font-size: 10px;">
+                    <span>T2:</span>
+                    <input id="cfg-slime-t2" type="number" min="1" class="admin-input" style="width: 55px; padding: 2px 4px;" />
+                  </label>
+                  <label style="display: flex; justify-content: space-between; align-items: center; font-size: 10px;">
+                    <span>T3:</span>
+                    <input id="cfg-slime-t3" type="number" min="1" class="admin-input" style="width: 55px; padding: 2px 4px;" />
+                  </label>
+                  <label style="display: flex; justify-content: space-between; align-items: center; font-size: 10px;">
+                    <span>T4:</span>
+                    <input id="cfg-slime-t4" type="number" min="1" class="admin-input" style="width: 55px; padding: 2px 4px;" />
+                  </label>
+                  <label style="display: flex; justify-content: space-between; align-items: center; font-size: 10px;">
+                    <span>T5:</span>
+                    <input id="cfg-slime-t5" type="number" min="1" class="admin-input" style="width: 55px; padding: 2px 4px;" />
+                  </label>
+                </div>
+
+                <div style="font-size: 10px; font-weight: 700; color: var(--accent-amber); margin-top: 4px;">⭕ VÒNG CHÂN:</div>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;">
+                  <label style="font-size: 9px; color: var(--text-secondary);">
+                    V1:
+                    <input id="cfg-foot-r1" type="number" min="1" class="admin-input" style="padding: 2px 4px;" />
+                  </label>
+                  <label style="font-size: 9px; color: var(--text-secondary);">
+                    V2:
+                    <input id="cfg-foot-r2" type="number" min="1" class="admin-input" style="padding: 2px 4px;" />
+                  </label>
+                  <label style="font-size: 9px; color: var(--text-secondary);">
+                    V3:
+                    <input id="cfg-foot-r3" type="number" min="1" class="admin-input" style="padding: 2px 4px;" />
+                  </label>
+                </div>
+
+                <div style="font-size: 10px; font-weight: 700; color: #ffaa00; margin-top: 4px;">✨ 3 AURA THÂN:</div>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;">
+                  <label style="font-size: 9px; color: #c084fc;">
+                    Tím:
+                    <input id="cfg-aura-purple" type="number" min="1" class="admin-input" style="padding: 2px 4px;" />
+                  </label>
+                  <label style="font-size: 9px; color: #fb923c;">
+                    Cam:
+                    <input id="cfg-aura-orange" type="number" min="1" class="admin-input" style="padding: 2px 4px;" />
+                  </label>
+                  <label style="font-size: 9px; color: #fde047;">
+                    Vàng:
+                    <input id="cfg-aura-gold" type="number" min="1" class="admin-input" style="padding: 2px 4px;" />
+                  </label>
+                </div>
+
+                <div style="display: flex; gap: 6px; justify-content: flex-end; margin-top: 6px;">
+                  <button id="btn-cfg-reset" class="btn btn-secondary" style="font-size: 9px; padding: 3px 8px;">🔄 Mặc Định</button>
+                  <button id="btn-cfg-save" class="btn btn-primary" style="font-size: 9px; padding: 3px 10px;">💾 Lưu</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Minigame: Slime Sinh Tồn (Survival Showdown) -->
+        <section class="card minigame-card" id="card-minigame">
           <div style="display: flex; justify-content: space-between; align-items: center;">
-            <label class="form-label">Camera Orbit Distance & Zoom:</label>
-            <span id="camera-distance-val" style="font-size: 12px; color: #00f2fe; font-weight: bold;">10.0m</span>
+            <h2 class="card-title" style="border: none; padding: 0; margin: 0; font-size: 12px; color: #fda4af;">
+              <span class="card-title-left">🎮 Slime Sinh Tồn</span>
+            </h2>
+            <span id="minigame-status-badge" class="minigame-status-badge idle">Chờ bắt đầu</span>
           </div>
-          <input id="camera-distance-slider" type="range" min="6" max="25" step="0.5" value="10"
-            style="width: 100%; accent-color: #00f2fe;" />
-          <div class="btn-group-row">
-            <button class="btn btn-secondary" id="btn-cam-close">Close (7m)</button>
-            <button class="btn btn-secondary" id="btn-cam-mid">Normal (10m)</button>
-            <button class="btn btn-secondary" id="btn-cam-wide">Wide (16m)</button>
-          </div>
-        </div>
 
-        <!-- Camera Focus on Selected Slime -->
-        <div class="form-group"
-          style="background: rgba(0, 242, 254, 0.06); border: 1px solid rgba(0, 242, 254, 0.3); border-radius: 12px; padding: 12px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-            <label class="form-label" style="color: #00f2fe; margin-bottom: 0; font-size: 12px; font-weight: 700;">🎥
-              Focus Camera Vào Slime Được Chọn:</label>
-            <span id="camera-focus-status" style="font-size: 11px; color: #aaa; font-weight: 600;">Chưa focus</span>
+          <!-- Stats Line -->
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--text-secondary); background: rgba(0,0,0,0.25); padding: 5px 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+            <span>Hiệp đấu: <strong id="minigame-round-val" style="color: var(--accent-cyan);">Vòng 1</strong></span>
+            <span>Sống: <strong id="minigame-survivor-count" style="color: #34d399;">0</strong></span>
+            <span>Ma 👻: <strong id="minigame-ghost-count" style="color: #fda4af;">0</strong></span>
           </div>
-          <select id="camera-focus-avatar-select" class="admin-input"
-            style="width: 100%; color: #00f2fe; font-weight: bold; margin-bottom: 8px;">
-            <option value="">-- Chọn Slime để Camera Focus --</option>
-          </select>
+
+          <!-- Live Voting Tally Bars -->
+          <div class="sub-panel" style="padding: 6px 8px;">
+            <div style="font-size: 10px; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">
+              Bình Chọn Đội (Chat: !xanh, !do, !duong):
+            </div>
+            <div class="minigame-tally-row">
+              <div class="minigame-tally-pill green">
+                <span class="minigame-tally-count green" id="minigame-vote-green">0</span>
+                <span class="minigame-tally-label">🟢 Xanh Lá</span>
+              </div>
+              <div class="minigame-tally-pill red">
+                <span class="minigame-tally-count red" id="minigame-vote-red">0</span>
+                <span class="minigame-tally-label">🔴 Đỏ</span>
+              </div>
+              <div class="minigame-tally-pill blue">
+                <span class="minigame-tally-count blue" id="minigame-vote-blue">0</span>
+                <span class="minigame-tally-label">🔵 Xanh D.</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
           <div class="btn-group-row">
-            <button id="btn-camera-focus-start" class="btn btn-secondary"
-              style="background: linear-gradient(135deg, rgba(0, 242, 254, 0.25), rgba(79, 172, 254, 0.35)); border-color: #00f2fe; color: #fff; font-weight: bold; flex: 1;">
-              🔍 Focus Slime
+            <button id="btn-minigame-start-now" class="btn btn-primary" style="font-size: 10px; background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+              ▶️ Chơi Ngay
             </button>
-            <button id="btn-camera-focus-clear" class="btn btn-secondary"
-              style="border-color: rgba(255, 255, 255, 0.25); color: #ddd; flex: 1;">
-              ↩️ Bỏ Focus (Về Orbit)
+            <button id="btn-minigame-start-30" class="btn btn-secondary" style="font-size: 10px; border-color: rgba(16, 185, 129, 0.4); color: #34d399;">
+              ⏱️ Sau 30s
             </button>
-          </div>
-        </div>
-
-        <!-- OBS Settings -->
-        <div class="form-group">
-          <label class="form-label">OBS Canvas Settings:</label>
-          <div class="btn-group-row">
-            <button id="btn-alpha" class="btn btn-secondary">Toggle Alpha</button>
-            <button id="btn-chroma" class="btn btn-secondary">Chroma Green (F2)</button>
-          </div>
-        </div>
-
-        <!-- Sound & Music -->
-        <div class="form-group">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <label class="form-label">Club Audio & SFX:</label>
-            <span id="volume-val" style="font-size: 12px; color: #00ff88; font-weight: bold;">80%</span>
-          </div>
-          <input id="volume-slider" type="range" min="0" max="1" step="0.05" value="0.8"
-            style="width: 100%; accent-color: #00ff88;" />
-          <div class="btn-group-row">
-            <button id="btn-mute-sfx" class="btn btn-secondary">Mute SFX</button>
-            <button id="btn-trigger-frenzy" class="btn btn-secondary"
-              style="border-color: rgba(217, 70, 239, 0.6); color: #d946ef;">⚡ Frenzy Party (15s)</button>
-          </div>
-        </div>
-
-        <!-- Hype Meter Goal -->
-        <div class="form-group"
-          style="background: rgba(217, 70, 239, 0.08); border: 1px solid rgba(217, 70, 239, 0.3); border-radius: 12px; padding: 12px; margin-top: 10px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-            <label class="form-label" style="color: #d946ef; margin-bottom: 0; font-size: 12px; font-weight: 700;">🎯
-              Mục Tiêu Hype Meter (Frenzy Goal):</label>
-            <span id="hype-goal-display" style="font-size: 11px; color: #ff007f; font-weight: bold;">1000 pts</span>
-          </div>
-          <div class="admin-input-group">
-            <input id="input-max-hype" class="admin-input" type="number" min="50" step="50" value="1000"
-              placeholder="Mục tiêu (ví dụ: 1000)" style="color: #d946ef; font-weight: bold;" />
-            <button id="btn-set-max-hype" class="btn btn-secondary"
-              style="background: linear-gradient(135deg, rgba(217, 70, 239, 0.3), rgba(255, 0, 127, 0.4)); border-color: #d946ef; color: #fff; font-weight: bold; white-space: nowrap;">
-              Áp Dụng
+            <button id="btn-minigame-force-judgment" class="btn btn-secondary" style="font-size: 10px; border-color: rgba(244, 63, 94, 0.4); color: #fda4af;">
+              ⚡ Phán Xét
             </button>
           </div>
-        </div>
-      </div>
 
-      <!-- COLUMN 2: Avatar & Viewer Management -->
-      <div class="card">
-        <h2 class="card-title">👾 2. Avatar & Viewer Management</h2>
-
-        <!-- Custom Slime Spawner -->
-        <div class="form-group">
-          <label class="form-label">Tạo Slime Nhân Vật:</label>
-          <div class="admin-input-group">
-            <input id="mock-custom-username" class="admin-input" type="text" placeholder="Username" value="Bot" />
-            <button id="btn-random-name" class="btn btn-secondary" title="Random Nickname"
-              style="padding: 6px 12px;">🎲</button>
+          <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 5px;">
+            <button id="btn-minigame-stop" class="btn btn-danger" style="font-size: 10px;">
+              ⏹️ Dừng Game
+            </button>
+            <button id="btn-minigame-revive" class="btn btn-secondary" style="font-size: 10px; color: #fde68a; border-color: rgba(245, 158, 11, 0.3);">
+              👻 Hồi Sinh Tất Cả
+            </button>
           </div>
-          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 6px;">
-            <select id="mock-custom-tier" class="admin-input"
-              style="color: #00f2fe; font-weight: bold; padding: 6px 4px; font-size: 11px;">
-              <option value="1" selected>Tier 1 (Bán Cầu)</option>
-              <option value="2">Tier 2 (Chubby)</option>
-              <option value="3">Tier 3 (Mochi 2 bên)</option>
-              <option value="4">Tier 4 (Sừng+Đuôi)</option>
-              <option value="5">Tier 5 (VIP Max)</option>
+
+          <!-- Minigame Config Accordion -->
+          <div class="form-group" style="margin-top: -2px;">
+            <div class="accordion-toggle" id="toggle-minigame-config">
+              <span style="font-size: 10px; display: flex; align-items: center; gap: 4px;">⚙️ Tùy Chỉnh Giây Minigame</span>
+              <span class="toggle-icon">▼</span>
+            </div>
+            <div class="accordion-body" id="body-minigame-config">
+              <div class="sub-panel" style="padding: 6px 8px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+                  <label style="font-size: 10px; color: var(--text-secondary);">
+                    Mỗi Vòng (giây):
+                    <input id="cfg-minigame-duration" type="number" min="10" max="60" value="20" class="admin-input" style="padding: 2px 4px; margin-top: 2px;" />
+                  </label>
+                  <label style="font-size: 10px; color: var(--text-secondary);">
+                    Đếm Ngược (giây):
+                    <input id="cfg-minigame-countdown" type="number" min="10" max="120" value="60" class="admin-input" style="padding: 2px 4px; margin-top: 2px;" />
+                  </label>
+                </div>
+                <button id="btn-save-minigame-cfg" class="btn btn-secondary" style="font-size: 10px; padding: 3px 8px; align-self: flex-end; margin-top: 4px;">
+                  💾 Cập Nhật Giây
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </aside>
+
+      <!-- ====================================================================
+           RIGHT COLUMN: TARGET INTERACTION STUDIO (Trung Tâm Tác Vụ Mục Tiêu)
+           ==================================================================== -->
+      <main class="interaction-studio">
+
+        <!-- 1. Unified Target Selection Header (Sticky / Prominent) -->
+        <section class="card target-selector-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+            <h2 class="card-title" style="border: none; padding: 0; margin: 0; font-size: 13px;">
+              <span class="card-title-left">🎯 Mục Tiêu Khán Giả Đang Chọn</span>
+            </h2>
+            <div id="camera-focus-status" class="form-label-value" style="color: var(--text-muted); font-size: 11px;">
+              Chưa focus
+            </div>
+          </div>
+
+          <!-- Main Target Dropdown & Quick Actions -->
+          <div style="display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center;">
+            <select id="mock-target-avatar" class="admin-input" style="font-weight: 600;">
+              <option value="">-- Mục tiêu: Tạo mới / Custom Input --</option>
             </select>
-            <select id="mock-custom-level" class="admin-input" style="padding: 6px 4px; font-size: 11px;">
-              <option value="Lv.1" selected>Lv.1</option>
-              <option value="Lv.10">Lv.10</option>
-              <option value="Lv.25">Lv.25</option>
-              <option value="Lv.50">Lv.50</option>
-              <option value="VIP">VIP</option>
-              <option value="TOP 1">TOP 1</option>
-            </select>
-            <select id="mock-custom-color" class="admin-input" style="padding: 6px 4px; font-size: 11px;">
-              <option value="green" selected>Green</option>
-              <option value="red">Red</option>
-              <option value="blue">Blue</option>
-            </select>
-          </div>
-          <button id="btn-mock-spawn" class="btn"
-            style="margin-top: 8px; justify-content: center; background: linear-gradient(135deg, #00f2fe, #4facfe); color: #000; font-weight: bold;">
-            ✨ Spawn Slime (Theo Tier & Màu)
-          </button>
-        </div>
-
-        <!-- Floor Avatars Control (Live Synced from Room) -->
-        <div class="form-group">
-          <label class="form-label">🎯 Mục Tiêu Đang Nhảy Trên Sàn (Tự Động Sync):</label>
-          <select id="mock-target-avatar" class="admin-input" style="width: 100%; color: #00f2fe; font-weight: bold;">
-            <option value="">-- Mục tiêu: Tạo mới / Custom Input --</option>
-          </select>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px;">
-            <button id="btn-mock-delete-target" class="btn btn-secondary"
-              style="border-color: rgba(255, 71, 87, 0.6); color: #ff6b81;">
-              🗑️ Xóa Avatar Đang Chọn
-            </button>
-            <button id="btn-mock-clear-all" class="btn btn-secondary"
-              style="border-color: rgba(255, 71, 87, 0.6); color: #ff6b81;">
-              🧹 Xóa Tất Cả Trên Sàn
-            </button>
-          </div>
-          <button id="btn-mock-focus-avatar" class="btn btn-secondary"
-            style="width: 100%; margin-top: 6px; border-color: rgba(0, 242, 254, 0.6); color: #00f2fe; font-weight: bold; justify-content: center; background: rgba(0, 242, 254, 0.08);">
-            🎥 Focus Camera Vào Slime Này
-          </button>
-        </div>
-
-        <!-- Billboard Label Scale Slider -->
-        <div class="form-group" style="margin-top: -4px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-            <label style="color: #00f2fe; font-weight: 700; font-size: 11px;">🏷️ Kích Thước Label Billboard
-              (Scale):</label>
-            <span class="slider-value" id="billboard-scale-val"
-              style="color: #00f2fe; font-weight: 700; font-size: 11px;">1.00x</span>
-          </div>
-          <div class="admin-input-group">
-            <input type="range" id="billboard-scale-slider" min="0.5" max="5" step="0.05" value="2.5"
-              style="flex: 1; accent-color: #00f2fe; cursor: pointer;" />
-          </div>
-        </div>
-
-        <!-- Test Level TikTok & Rank Donate for Selected Avatar -->
-        <div
-          style="background: rgba(16, 18, 35, 0.7); border: 1px solid rgba(0, 242, 254, 0.25); border-radius: 8px; padding: 10px; margin-bottom: 12px;">
-          <div
-            style="font-size: 11px; color: #8c90b0; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center;">
-            <span>Cấp TikTok (Avatar Đang Chọn):</span>
-            <span id="hero-lvl-val" style="color: #00f2fe; font-weight: 700; font-size: 12px;">Lv.45</span>
-          </div>
-          <div style="margin-bottom: 6px;">
-            <input type="range" id="hero-lvl-slider" min="1" max="60" value="45"
-              style="width: 100%; accent-color: #00f2fe; cursor: pointer;" />
-          </div>
-          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-bottom: 8px;">
-            <button class="btn btn-secondary quick-lvl-btn" data-lvl="1"
-              style="font-size: 10px; padding: 4px; justify-content: center;">Lv.1</button>
-            <button class="btn btn-secondary quick-lvl-btn" data-lvl="15"
-              style="font-size: 10px; padding: 4px; justify-content: center;">Lv.15</button>
-            <button class="btn btn-secondary quick-lvl-btn" data-lvl="30"
-              style="font-size: 10px; padding: 4px; justify-content: center;">Lv.30</button>
-            <button class="btn btn-secondary quick-lvl-btn" data-lvl="60"
-              style="font-size: 10px; padding: 4px; justify-content: center;">Lv.60</button>
-          </div>
-
-          <div style="font-size: 11px; color: #8c90b0; margin-bottom: 4px;">
-            <span>Rank Donate (Avatar Đang Chọn):</span>
-          </div>
-          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-bottom: 4px;">
-            <button class="btn rank-test-btn active" data-rank="👑 TOP 1"
-              style="background: rgba(255, 215, 0, 0.15); border-color: #ffd700; color: #ffd700; font-size: 10px; padding: 5px 2px; justify-content: center;">👑
-              TOP 1</button>
-            <button class="btn rank-test-btn" data-rank="🥈 TOP 2"
-              style="background: rgba(224, 224, 235, 0.15); border-color: #e0e0e8; color: #f0f0f5; font-size: 10px; padding: 5px 2px; justify-content: center;">🥈
-              TOP 2</button>
-            <button class="btn rank-test-btn" data-rank="🥉 TOP 3"
-              style="background: rgba(205, 127, 50, 0.15); border-color: #cd7f32; color: #f5a65b; font-size: 10px; padding: 5px 2px; justify-content: center;">🥉
-              TOP 3</button>
-          </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
-            <button class="btn rank-test-btn" data-rank="💎 VIP"
-              style="background: rgba(199, 125, 255, 0.15); border-color: #c77dff; color: #e0aaff; font-size: 10px; padding: 5px 2px; justify-content: center;">💎
-              VIP</button>
-            <button class="btn rank-test-btn" data-rank=""
-              style="background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.25); color: #fff; font-size: 10px; padding: 5px 2px; justify-content: center;">⚪
-              Không Rank</button>
-          </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 4px;">
-            <button class="btn" id="btn-toggle-fan"
-              style="background: rgba(199, 125, 255, 0.2); border-color: #c77dff; color: #e0aaff; font-size: 10px; padding: 5px 2px; justify-content: center; font-weight: 700;">💜
-              Bật/Tắt Fan</button>
-            <button class="btn" id="btn-toggle-follow"
-              style="background: rgba(216, 180, 254, 0.2); border-color: #d8b4fe; color: #f3e8ff; font-size: 10px; padding: 5px 2px; justify-content: center;">➕
-              Bật/Tắt Follow</button>
-          </div>
-        </div>
-
-        <!-- Crowd Scalability Actions -->
-        <div style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px;">
-          <button class="btn" id="btn-crowd-rank-sim"
-            style="background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(0, 242, 254, 0.2)); border-color: #ffd700; color: #fff; font-weight: 700; padding: 6px 10px; font-size: 11px; justify-content: center;">
-            🏆 Gán Rank Top 1-3 & VIP Cho Đám Đông
-          </button>
-          <button class="btn btn-secondary" id="btn-crowd-clear-rank"
-            style="padding: 5px 10px; font-size: 10px; justify-content: center;">
-            ⚪ Xóa Hết Rank Đám Đông (Chỉ Giữ Level TikTok)
-          </button>
-        </div>
-
-        <!-- Chat & Likes Simulator -->
-        <div class="form-group">
-          <label class="form-label">Tương Tác Chat & Thả Tim:</label>
-          <div class="admin-input-group">
-            <input id="mock-custom-chat" class="admin-input" type="text" placeholder="Nội dung chat..." />
-            <button id="btn-mock-chat" class="btn btn-secondary">Send Chat</button>
-          </div>
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
-            <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; cursor: pointer;">
-              <input type="checkbox" id="mock-random-chat" checked style="accent-color: #00f2fe;" />
-              <span>Random Chat Vui Nhộn</span>
-            </label>
             <div style="display: flex; gap: 6px;">
-              <button id="btn-mock-likes-1" class="btn btn-primary"
-                style="padding: 4px 10px; font-size: 11px; background: linear-gradient(135deg, #ff1744, #ff5252);">❤️
-                Thả 1 Tim</button>
-              <button id="btn-mock-likes-10" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;">+10
-                Tim</button>
-              <button id="btn-mock-likes-50" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;">+50
-                Tim</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Anti-Spam Command Cooldown Control -->
-        <div class="form-group" style="background: rgba(16, 18, 35, 0.7); border: 1px solid rgba(0, 242, 254, 0.25); border-radius: 8px; padding: 10px; margin-top: 10px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-            <label style="color: #00f2fe; font-weight: 700; font-size: 11px; margin-bottom: 0;">⏱️ Thời Gian Cấm Chat / Cooldown Lệnh (!color, !dance, !face):</label>
-            <span id="cooldown-val-display" style="color: #ffd700; font-weight: 800; font-size: 13px;">10s</span>
-          </div>
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-            <input type="range" id="cooldown-slider" min="1" max="60" step="1" value="10" style="flex: 1; accent-color: #ffd700; cursor: pointer;" />
-            <input type="number" id="cooldown-number-input" min="1" max="120" value="10" class="admin-input" style="width: 58px; text-align: center; padding: 4px; font-weight: bold; color: #ffd700;" />
-            <span style="font-size: 11px; color: #8c90b0;">giây</span>
-          </div>
-          <div style="display: grid; grid-template-columns: repeat(4, 1fr) 1.2fr; gap: 4px;">
-            <button type="button" class="btn btn-secondary quick-cooldown-btn" data-sec="3" style="font-size: 10px; padding: 4px; justify-content: center;">3s</button>
-            <button type="button" class="btn btn-secondary quick-cooldown-btn" data-sec="5" style="font-size: 10px; padding: 4px; justify-content: center;">5s</button>
-            <button type="button" class="btn btn-secondary quick-cooldown-btn active" data-sec="10" style="font-size: 10px; padding: 4px; justify-content: center;">10s</button>
-            <button type="button" class="btn btn-secondary quick-cooldown-btn" data-sec="20" style="font-size: 10px; padding: 4px; justify-content: center;">20s</button>
-            <button type="button" id="btn-save-cooldown" class="btn" style="background: linear-gradient(135deg, #00f2fe, #4facfe); color: #000; font-weight: bold; font-size: 10px; padding: 4px; justify-content: center;">💾 Cập Nhật</button>
-          </div>
-          <div id="cooldown-hint" style="font-size: 10px; color: #8c90b0; margin-top: 6px;">
-            💡 Áp dụng ngay cho TikTok LIVE & Mock Chat. Lệnh spam trong thời gian này sẽ tự động bị chặn.
-          </div>
-        </div>
-      </div>
-
-      <!-- COLUMN 3: Gift & Donation Triggers -->
-      <div class="card">
-        <h2 class="card-title">🎁 3. Bảng Tặng Quà TikTok LIVE</h2>
-
-        <!-- Epic Lion Button -->
-        <button class="lion-btn" id="btn-mock-lion-epic">
-          🦁 VINH DANH LION (BAY LỘN VÒNG SIÊU XA XỈ)
-        </button>
-
-        <!-- Toggle Tier-Up vs Keep Shape Option -->
-        <div
-          style="display: flex; align-items: center; justify-content: space-between; background: rgba(16, 18, 35, 0.7); border: 1px solid rgba(0, 242, 254, 0.25); border-radius: 6px; padding: 6px 10px; margin-bottom: 8px;">
-          <span style="font-size: 11px; color: #8c90b0;">Tùy chọn nâng cấp Tier khi Donate:</span>
-          <label
-            style="display: flex; align-items: center; gap: 6px; font-size: 11px; cursor: pointer; color: #00f2fe; font-weight: 700;">
-            <input type="checkbox" id="toggle-tier-up" style="accent-color: #00f2fe;" />
-            <span>Biến hình Slime (Tier-Up)</span>
-          </label>
-        </div>
-
-        <!-- Category Selector Tabs -->
-        <div class="gift-cat-tabs">
-          <div class="gift-cat-tab active" data-cat="small">Nhỏ (1-10🪙)</div>
-          <div class="gift-cat-tab" data-cat="medium">Trung (20-199🪙)</div>
-          <div class="gift-cat-tab" data-cat="high">Cao Cấp (500-5k🪙)</div>
-          <div class="gift-cat-tab" data-cat="ultra">Siêu Xa Xỉ 👑</div>
-        </div>
-
-        <!-- Container 1: Quà Nhỏ (1 - 10 xu) -->
-        <div class="gift-grid-container" data-cat="small">
-          <button class="donate-btn" data-gift="rose" data-tier="1" data-coins="1" data-name="Hoa hồng">🌹 Hoa hồng
-            (1🪙)</button>
-          <button class="donate-btn" data-gift="gg" data-tier="1" data-coins="1" data-name="GG Game">⚡ GG Game
-            (1🪙)</button>
-          <button class="donate-btn" data-gift="ice_cream" data-tier="1" data-coins="1" data-name="Kem ốc quế">🍦 Kem ốc
-            quế (1🪙)</button>
-          <button class="donate-btn" data-gift="finger_heart" data-tier="1" data-coins="5" data-name="Finger Heart">💖
-            Bắn tim (5🪙)</button>
-          <button class="donate-btn" data-gift="panda" data-tier="1" data-coins="5" data-name="Gấu trúc">🐼 Gấu trúc
-            (5🪙)</button>
-          <button class="donate-btn" data-gift="wave_hand" data-tier="1" data-coins="9" data-name="Sóng tay">👋 Sóng tay
-            (9🪙)</button>
-          <button class="donate-btn" data-gift="conical_hat" data-tier="1" data-coins="10" data-name="Nón lá"
-            style="grid-column: span 2;">👒 Nón lá (10🪙)</button>
-        </div>
-
-        <!-- Container 2: Quà Trung (20 - 199 xu) -->
-        <div class="gift-grid-container" data-cat="medium" style="display: none;">
-          <button class="donate-btn" data-gift="perfume" data-tier="2" data-coins="20" data-name="Nước hoa">🧴 Nước hoa
-            (20🪙)</button>
-          <button class="donate-btn" data-gift="sunscreen" data-tier="2" data-coins="50" data-name="Kem chống nắng">🧴
-            Kem c.nắng (50🪙)</button>
-          <button class="donate-btn" data-gift="confetti" data-tier="2" data-coins="100" data-name="Pháo hoa giấy">🎊
-            Pháo giấy (100🪙)</button>
-          <button class="donate-btn" data-gift="rainbow" data-tier="2" data-coins="100" data-name="Cầu vồng">🌈 Cầu vồng
-            (100🪙)</button>
-          <button class="donate-btn" data-gift="sunglasses" data-tier="2" data-coins="199" data-name="Kính râm Cyber"
-            style="grid-column: span 2;">🕶️ Kính râm Cyber (199🪙)</button>
-        </div>
-
-        <!-- Container 3: Quà Cao Cấp (500 - 5.000 xu) -->
-        <div class="gift-grid-container" data-cat="high" style="display: none;">
-          <button class="donate-btn" data-gift="money_gun" data-tier="3" data-coins="500"
-            data-name="Súng tiền (Money Gun)">🔫 Súng tiền (500🪙)</button>
-          <button class="donate-btn" data-gift="money_rain" data-tier="3" data-coins="500" data-name="Mưa tiền">💸 Mưa
-            tiền (500🪙)</button>
-          <button class="donate-btn" data-gift="concert" data-tier="3" data-coins="500" data-name="Buổi hòa nhạc">🎸 Hòa
-            nhạc (500🪙)</button>
-          <button class="donate-btn" data-gift="swan" data-tier="3" data-coins="699" data-name="Thiên nga">🦢 Thiên nga
-            (699🪙)</button>
-          <button class="donate-btn" data-gift="love_balloon" data-tier="3" data-coins="699"
-            data-name="Bóng bay tình yêu">🎈 Bóng bay tình (699🪙)</button>
-          <button class="donate-btn" data-gift="galaxy" data-tier="4" data-coins="1000" data-name="Vũ trụ Galaxy">🌌 Vũ
-            trụ Galaxy (1.000🪙)</button>
-          <button class="donate-btn" data-gift="disco_ball" data-tier="4" data-coins="1000" data-name="Quả cầu Disco">🪩
-            Cầu Disco (1.000🪙)</button>
-          <button class="donate-btn" data-gift="legend" data-tier="4" data-coins="1000" data-name="Huyền thoại">⚔️ Huyền
-            thoại (1.000🪙)</button>
-          <button class="donate-btn" data-gift="whale_diving" data-tier="4" data-coins="2150"
-            data-name="Cá voi lặn (Whale Diving)">🐋 Cá voi lặn (2.150🪙)</button>
-          <button class="donate-btn" data-gift="private_jet" data-tier="5" data-coins="4888"
-            data-name="Chuyên cơ Private Jet">🛩️ Private Jet (4.888🪙)</button>
-          <button class="donate-btn" data-gift="diamond_gun" data-tier="5" data-coins="5000"
-            data-name="Pháo Kim Cương (Diamond Gun)">💎 Pháo K.Cương (5.000🪙)</button>
-          <button class="donate-btn" data-gift="drama_queen" data-tier="5" data-coins="5000" data-name="Drama Queen">👑
-            Drama Queen (5.000🪙)</button>
-        </div>
-
-        <!-- Container 4: Quà Siêu Xa Xỉ (6.000 - 44.999 xu) -->
-        <div class="gift-grid-container" data-cat="ultra" style="display: none;">
-          <button class="donate-btn" data-gift="jet" data-tier="5" data-coins="6000" data-name="Máy bay">✈️ Máy bay
-            (6.000🪙)</button>
-          <button class="donate-btn" data-gift="panther" data-tier="5" data-coins="10000"
-            data-name="Báo đốm (Shadow Panther)">🐆 Báo đen (10.000🪙)</button>
-          <button class="donate-btn" data-gift="phoenix" data-tier="5" data-coins="25999" data-name="Phượng hoàng">🦅
-            Phượng hoàng (25.999🪙)</button>
-          <button class="donate-btn" data-gift="tiger" data-tier="5" data-coins="26999" data-name="Hổ lửa">🐅 Hổ lửa
-            (26.999🪙)</button>
-          <button class="donate-btn" data-gift="lion" data-tier="5" data-coins="29999" data-name="Sư tử">🦁 Sư tử
-            (29.999🪙)</button>
-          <button class="donate-btn" data-gift="pegasus" data-tier="5" data-coins="34000" data-name="Ngựa thần">🦄 Ngựa
-            thần (34.000🪙)</button>
-          <button class="donate-btn" data-gift="universe" data-tier="5" data-coins="44999" data-name="Vũ trụ TikTok"
-            style="grid-column: span 2; background: linear-gradient(135deg, rgba(0, 242, 254, 0.3), rgba(121, 40, 202, 0.4)); border-color: #00f2fe; color: #fff; font-weight: 800;">
-            🪐 Vũ trụ TikTok (44.999🪙)
-          </button>
-        </div>
-
-        <!-- Continuous Donate Storm Toggle -->
-        <button id="btn-donate-storm" class="btn btn-secondary"
-          style="width: 100%; justify-content: center; margin-top: 4px;">
-          🌧️ Bão Donate Liên Tục: OFF
-        </button>
-      </div>
-
-      <!-- COLUMN 4: Cấu Hình Ngưỡng Coin Trang Bị & Tiến Hóa -->
-      <div class="card" style="grid-column: 1 / -1;">
-        <h2 class="card-title">⚙️ 4. Cấu Hình Ngưỡng Coin / Kim Cương Cho Trang Bị & Tiến Hóa</h2>
-        <div style="font-size: 12px; color: #a0a5c0; margin-bottom: 8px;">
-          Khi một account donate hoa / coin, tổng coin tích lũy sẽ được so sánh với các ngưỡng bên dưới để tự động mở
-          khóa trang bị và tiến hóa Slime.
-        </div>
-
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
-          <!-- Slime Tiers -->
-          <div
-            style="background: rgba(0, 0, 0, 0.3); padding: 10px; border-radius: 8px; border: 1px solid rgba(0, 242, 254, 0.2);">
-            <div style="font-size: 11px; font-weight: 800; color: #00f2fe; margin-bottom: 6px;">👾 SLIME TIERS (HÌNH
-              THÁI)</div>
-            <div style="display: flex; flex-direction: column; gap: 6px; font-size: 11px;">
-              <label style="display: flex; justify-content: space-between; align-items: center;">
-                <span>Tier 2 (Chubby):</span>
-                <input id="cfg-slime-t2" type="number" min="1" class="admin-input"
-                  style="width: 75px; padding: 3px 6px; font-size: 11px;" />
-              </label>
-              <label style="display: flex; justify-content: space-between; align-items: center;">
-                <span>Tier 3 (Má mochi):</span>
-                <input id="cfg-slime-t3" type="number" min="1" class="admin-input"
-                  style="width: 75px; padding: 3px 6px; font-size: 11px;" />
-              </label>
-              <label style="display: flex; justify-content: space-between; align-items: center;">
-                <span>Tier 4 (Sừng+Đuôi):</span>
-                <input id="cfg-slime-t4" type="number" min="1" class="admin-input"
-                  style="width: 75px; padding: 3px 6px; font-size: 11px;" />
-              </label>
-              <label style="display: flex; justify-content: space-between; align-items: center;">
-                <span title="Chỉ áp dụng cho người TOP 1 donate có tổng coin >= ngưỡng">Tier 5 (Chỉ TOP 1):</span>
-                <input id="cfg-slime-t5" type="number" min="1" class="admin-input"
-                  style="width: 75px; padding: 3px 6px; font-size: 11px;" />
-              </label>
+              <button id="btn-mock-focus-avatar" class="btn btn-secondary" style="border-color: rgba(56, 189, 248, 0.4); color: var(--accent-cyan);" title="Bám góc quay theo Slime này">
+                🎥 Focus Slime
+              </button>
+              <button id="btn-mock-delete-target" class="btn btn-danger" title="Xóa avatar đang chọn khỏi sàn">
+                🗑️ Xóa
+              </button>
+              <button id="btn-mock-clear-all" class="btn btn-secondary" style="color: var(--text-muted);" title="Xóa toàn bộ avatar trên sàn">
+                🧹 Xóa Hết
+              </button>
             </div>
           </div>
 
-          <!-- Vòng Chân (Tĩnh, tương thích kích thước) -->
-          <div
-            style="background: rgba(0, 0, 0, 0.3); padding: 10px; border-radius: 8px; border: 1px solid rgba(255, 215, 0, 0.2);">
-            <div style="font-size: 11px; font-weight: 800; color: #ffd700; margin-bottom: 6px;">⭕ VÒNG CHÂN DƯỚI ĐẤT
-              (TĨNH)</div>
-            <div style="display: flex; flex-direction: column; gap: 6px; font-size: 11px;">
-              <label style="display: flex; justify-content: space-between; align-items: center;">
-                <span>Vòng 1 (Trắng nhỏ):</span>
-                <input id="cfg-foot-r1" type="number" min="1" class="admin-input"
-                  style="width: 75px; padding: 3px 6px; font-size: 11px;" />
-              </label>
-              <label style="display: flex; justify-content: space-between; align-items: center;">
-                <span>Vòng 2 (Vàng trung):</span>
-                <input id="cfg-foot-r2" type="number" min="1" class="admin-input"
-                  style="width: 75px; padding: 3px 6px; font-size: 11px;" />
-              </label>
-              <label style="display: flex; justify-content: space-between; align-items: center;">
-                <span>Vòng 3 (Cam lớn):</span>
-                <input id="cfg-foot-r3" type="number" min="1" class="admin-input"
-                  style="width: 75px; padding: 3px 6px; font-size: 11px;" />
-              </label>
+          <!-- Quick Slime Spawner (Tạo mới khi không chọn trên sàn) -->
+          <div class="sub-panel" style="background: rgba(0,0,0,0.2);">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px;">
+              <span style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Hoặc Tạo Slime Khán Giả Mới:</span>
+              <button id="btn-random-name" class="btn btn-secondary" title="Random Tên Khán Giả" style="font-size: 10px; padding: 2px 8px;">🎲 Đổi Tên</button>
+            </div>
+            <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr auto; gap: 6px; align-items: center;">
+              <input id="mock-custom-username" class="admin-input" type="text" placeholder="Username" value="Bot" />
+              <select id="mock-custom-tier" class="admin-input">
+                <option value="1" selected>T1 (Bán Cầu)</option>
+                <option value="2">T2 (Chubby)</option>
+                <option value="3">T3 (Má Mochi)</option>
+                <option value="4">T4 (Sừng+Đuôi)</option>
+                <option value="5">T5 (VIP Max)</option>
+              </select>
+              <select id="mock-custom-level" class="admin-input">
+                <option value="Lv.1" selected>Lv.1</option>
+                <option value="Lv.10">Lv.10</option>
+                <option value="Lv.25">Lv.25</option>
+                <option value="Lv.50">Lv.50</option>
+                <option value="VIP">VIP</option>
+                <option value="TOP 1">TOP 1</option>
+              </select>
+              <select id="mock-custom-color" class="admin-input">
+                <option value="green" selected>Xanh Lá</option>
+                <option value="red">Đỏ Ruby</option>
+                <option value="blue">Xanh Dương</option>
+              </select>
+              <button id="btn-mock-spawn" class="btn btn-primary" style="white-space: nowrap;">
+                ✨ Spawn
+              </button>
             </div>
           </div>
 
-          <!-- Hệ Thống 3 Aura Quanh Thân (Tím / Cam / Vàng + Mini Bubbles) -->
-          <div
-            style="background: rgba(0, 0, 0, 0.3); padding: 10px; border-radius: 8px; border: 1px solid rgba(255, 170, 0, 0.2);">
-            <div style="font-size: 11px; font-weight: 800; color: #ffaa00; margin-bottom: 6px;">✨ 3 AURA XOAY QUANH
-              NGƯỜI</div>
-            <div style="display: flex; flex-direction: column; gap: 6px; font-size: 11px;">
-              <label style="display: flex; justify-content: space-between; align-items: center;">
-                <span style="color: #c084fc;">Aura Tím (Epic):</span>
-                <input id="cfg-aura-purple" type="number" min="1" class="admin-input"
-                  style="width: 75px; padding: 3px 6px; font-size: 11px;" />
-              </label>
-              <label style="display: flex; justify-content: space-between; align-items: center;">
-                <span style="color: #fb923c;">Aura Cam (Legendary):</span>
-                <input id="cfg-aura-orange" type="number" min="1" class="admin-input"
-                  style="width: 75px; padding: 3px 6px; font-size: 11px;" />
-              </label>
-              <label style="display: flex; justify-content: space-between; align-items: center;">
-                <span style="color: #fde047;">Aura Vàng (+Bubbles):</span>
-                <input id="cfg-aura-gold" type="number" min="1" class="admin-input"
-                  style="width: 75px; padding: 3px 6px; font-size: 11px;" />
+          <!-- Hidden fallback elements for backward compatibility with automated tests -->
+          <div style="display: none;">
+            <select id="camera-focus-avatar-select"><option value=""></option></select>
+            <button id="btn-camera-focus-start"></button>
+            <button id="btn-camera-focus-clear"></button>
+          </div>
+        </section>
+
+        <!-- 2. Co-Located Action Decks: Gift Deck (Left) & Engagement Deck (Right) -->
+        <div class="target-actions-grid">
+
+          <!-- 🎁 BẢNG QUÀ TẶNG & DONATE (GIFT DECK) -->
+          <section class="card gift-deck-card">
+            <h2 class="card-title">
+              <span class="card-title-left">🎁 Bảng Tặng Quà TikTok LIVE</span>
+            </h2>
+
+            <!-- Epic Lion Highlight Button -->
+            <button class="lion-btn" id="btn-mock-lion-epic">
+              🦁 VINH DANH LION CORONATION (29.999🪙)
+            </button>
+
+            <!-- Auto Tier-Up Toggle -->
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; background: rgba(0,0,0,0.25); border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+              <span style="font-size: 11px; color: var(--text-secondary);">Tùy chọn nâng cấp Tier khi Donate:</span>
+              <label style="display: flex; align-items: center; gap: 6px; font-size: 11px; cursor: pointer; color: var(--accent-cyan); font-weight: 600;">
+                <input type="checkbox" id="toggle-tier-up" />
+                <span>Biến hình Slime (Tier-Up)</span>
               </label>
             </div>
-          </div>
-        </div>
 
-        <div style="display: flex; gap: 10px; margin-top: 10px; justify-content: flex-end;">
-          <button id="btn-cfg-reset" class="btn btn-secondary" style="padding: 8px 16px;">🔄 Mặc Định</button>
-          <button id="btn-cfg-save" class="btn btn-primary"
-            style="padding: 8px 20px; background: linear-gradient(135deg, #00f2fe, #4facfe); font-weight: 800;">💾 Lưu &
-            Áp Dụng Ngay</button>
-        </div>
-      </div>
+            <!-- Gift Category Selector Tabs -->
+            <div class="gift-cat-tabs">
+              <div class="gift-cat-tab active" data-cat="small">Nhỏ (1-10🪙)</div>
+              <div class="gift-cat-tab" data-cat="medium">Trung (20-199🪙)</div>
+              <div class="gift-cat-tab" data-cat="high">Cao (500-5k🪙)</div>
+              <div class="gift-cat-tab" data-cat="ultra">Siêu Xa Xỉ 👑</div>
+            </div>
 
-      <!-- Real-Time Activity Log (Expanded Console View) -->
-      <div class="card" style="grid-column: 1 / -1; margin-top: 10px;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <h2 class="card-title" style="font-size: 16px;">Live Stream Logs (Console Giám Sát Thời Gian Thực)</h2>
-          <button id="btn-clear-logs" class="btn btn-secondary" style="padding: 4px 14px; font-size: 11px;">Xóa
-            Log</button>
+            <!-- Container 1: Quà Nhỏ (1 - 10 xu) -->
+            <div class="gift-grid-container" data-cat="small">
+              <button class="donate-btn" data-gift="rose" data-tier="1" data-coins="1" data-name="Hoa hồng">🌹 Hoa hồng (1🪙)</button>
+              <button class="donate-btn" data-gift="gg" data-tier="1" data-coins="1" data-name="GG Game">⚡ GG Game (1🪙)</button>
+              <button class="donate-btn" data-gift="ice_cream" data-tier="1" data-coins="1" data-name="Kem ốc quế">🍦 Kem ốc quế (1🪙)</button>
+              <button class="donate-btn" data-gift="finger_heart" data-tier="1" data-coins="5" data-name="Finger Heart">💖 Bắn tim (5🪙)</button>
+              <button class="donate-btn" data-gift="panda" data-tier="1" data-coins="5" data-name="Gấu trúc">🐼 Gấu trúc (5🪙)</button>
+              <button class="donate-btn" data-gift="wave_hand" data-tier="1" data-coins="9" data-name="Sóng tay">👋 Sóng tay (9🪙)</button>
+              <button class="donate-btn" data-gift="conical_hat" data-tier="1" data-coins="10" data-name="Nón lá" style="grid-column: span 2;">👒 Nón lá (10🪙)</button>
+            </div>
+
+            <!-- Container 2: Quà Trung (20 - 199 xu) -->
+            <div class="gift-grid-container" data-cat="medium" style="display: none;">
+              <button class="donate-btn" data-gift="perfume" data-tier="2" data-coins="20" data-name="Nước hoa">🧴 Nước hoa (20🪙)</button>
+              <button class="donate-btn" data-gift="sunscreen" data-tier="2" data-coins="50" data-name="Kem chống nắng">🧴 Kem c.nắng (50🪙)</button>
+              <button class="donate-btn" data-gift="confetti" data-tier="2" data-coins="100" data-name="Pháo hoa giấy">🎊 Pháo giấy (100🪙)</button>
+              <button class="donate-btn" data-gift="rainbow" data-tier="2" data-coins="100" data-name="Cầu vồng">🌈 Cầu vồng (100🪙)</button>
+              <button class="donate-btn" data-gift="sunglasses" data-tier="2" data-coins="199" data-name="Kính râm Cyber" style="grid-column: span 2;">🕶️ Kính râm Cyber (199🪙)</button>
+            </div>
+
+            <!-- Container 3: Quà Cao Cấp (500 - 5.000 xu) -->
+            <div class="gift-grid-container" data-cat="high" style="display: none;">
+              <button class="donate-btn" data-gift="money_gun" data-tier="3" data-coins="500" data-name="Súng tiền (Money Gun)">🔫 Súng tiền (500🪙)</button>
+              <button class="donate-btn" data-gift="money_rain" data-tier="3" data-coins="500" data-name="Mưa tiền">💸 Mưa tiền (500🪙)</button>
+              <button class="donate-btn" data-gift="concert" data-tier="3" data-coins="500" data-name="Buổi hòa nhạc">🎸 Hòa nhạc (500🪙)</button>
+              <button class="donate-btn" data-gift="swan" data-tier="3" data-coins="699" data-name="Thiên nga">🦢 Thiên nga (699🪙)</button>
+              <button class="donate-btn" data-gift="love_balloon" data-tier="3" data-coins="699" data-name="Bóng bay tình yêu">🎈 Bóng bay tình (699🪙)</button>
+              <button class="donate-btn" data-gift="galaxy" data-tier="4" data-coins="1000" data-name="Vũ trụ Galaxy">🌌 Vũ trụ Galaxy (1.000🪙)</button>
+              <button class="donate-btn" data-gift="disco_ball" data-tier="4" data-coins="1000" data-name="Quả cầu Disco">🪩 Cầu Disco (1.000🪙)</button>
+              <button class="donate-btn" data-gift="legend" data-tier="4" data-coins="1000" data-name="Huyền thoại">⚔️ Huyền thoại (1.000🪙)</button>
+              <button class="donate-btn" data-gift="whale_diving" data-tier="4" data-coins="2150" data-name="Cá voi lặn (Whale Diving)">🐋 Cá voi lặn (2.150🪙)</button>
+              <button class="donate-btn" data-gift="private_jet" data-tier="5" data-coins="4888" data-name="Chuyên cơ Private Jet">🛩️ Private Jet (4.888🪙)</button>
+              <button class="donate-btn" data-gift="diamond_gun" data-tier="5" data-coins="5000" data-name="Pháo Kim Cương (Diamond Gun)">💎 Pháo K.Cương (5.000🪙)</button>
+              <button class="donate-btn" data-gift="drama_queen" data-tier="5" data-coins="5000" data-name="Drama Queen">👑 Drama Queen (5.000🪙)</button>
+            </div>
+
+            <!-- Container 4: Quà Siêu Xa Xỉ (6.000 - 44.999 xu) -->
+            <div class="gift-grid-container" data-cat="ultra" style="display: none;">
+              <button class="donate-btn" data-gift="jet" data-tier="5" data-coins="6000" data-name="Máy bay">✈️ Máy bay (6.000🪙)</button>
+              <button class="donate-btn" data-gift="panther" data-tier="5" data-coins="10000" data-name="Báo đốm (Shadow Panther)">🐆 Báo đen (10.000🪙)</button>
+              <button class="donate-btn" data-gift="phoenix" data-tier="5" data-coins="25999" data-name="Phượng hoàng">🦅 Phượng hoàng (25.999🪙)</button>
+              <button class="donate-btn" data-gift="tiger" data-tier="5" data-coins="26999" data-name="Hổ lửa">🐅 Hổ lửa (26.999🪙)</button>
+              <button class="donate-btn" data-gift="lion" data-tier="5" data-coins="29999" data-name="Sư tử">🦁 Sư tử (29.999🪙)</button>
+              <button class="donate-btn" data-gift="pegasus" data-tier="5" data-coins="34000" data-name="Ngựa thần">🦄 Ngựa thần (34.000🪙)</button>
+              <button class="donate-btn" data-gift="universe" data-tier="5" data-coins="44999" data-name="Vũ trụ TikTok" style="grid-column: span 2; border-color: rgba(56, 189, 248, 0.4); color: #bae6fd;">
+                🪐 Vũ trụ TikTok (44.999🪙)
+              </button>
+            </div>
+
+            <!-- Continuous Donate Storm Toggle -->
+            <button id="btn-donate-storm" class="btn btn-secondary" style="width: 100%;">
+              🌧️ Bão Donate Liên Tục: OFF
+            </button>
+          </section>
+
+          <!-- 💬 CHAT, THẢ TIM & THUỘC TÍNH (ENGAGEMENT DECK) -->
+          <section class="card engagement-deck-card">
+            <h2 class="card-title">
+              <span class="card-title-left">💬 Chat, Thả Tim & Thuộc Tính Mục Tiêu</span>
+            </h2>
+
+            <!-- Chat & Likes Simulator -->
+            <div class="sub-panel">
+              <label class="form-label">Tương Tác Chat & Thả Tim:</label>
+              <div class="admin-input-group">
+                <input id="mock-custom-chat" class="admin-input" type="text" placeholder="Nhập nội dung chat..." />
+                <button id="btn-mock-chat" class="btn btn-secondary">Gửi Chat</button>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+                <label style="display: flex; align-items: center; gap: 6px; font-size: 11px; cursor: pointer; color: var(--text-secondary);">
+                  <input type="checkbox" id="mock-random-chat" checked />
+                  <span>Random Chat Vui</span>
+                </label>
+                <div style="display: flex; gap: 4px;">
+                  <button id="btn-mock-likes-1" class="btn" style="background: rgba(244, 63, 94, 0.2); border: 1px solid rgba(244, 63, 94, 0.4); color: #fda4af; padding: 4px 8px; font-size: 10px;">❤️ +1</button>
+                  <button id="btn-mock-likes-10" class="btn btn-secondary" style="padding: 4px 8px; font-size: 10px;">+10 Tim</button>
+                  <button id="btn-mock-likes-50" class="btn btn-secondary" style="padding: 4px 8px; font-size: 10px;">+50 Tim</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Avatar Level & Billboard Scale -->
+            <div class="sub-panel">
+              <div class="form-label">
+                <span>Cấp Độ TikTok (Avatar Đang Chọn):</span>
+                <span id="hero-lvl-val" class="form-label-value" style="color: var(--accent-cyan);">Lv.45</span>
+              </div>
+              <input type="range" id="hero-lvl-slider" min="1" max="60" value="45" />
+              <div class="btn-group-row" style="margin-top: 2px;">
+                <button class="btn btn-secondary quick-lvl-btn" data-lvl="1">Lv.1</button>
+                <button class="btn btn-secondary quick-lvl-btn" data-lvl="15">Lv.15</button>
+                <button class="btn btn-secondary quick-lvl-btn" data-lvl="30">Lv.30</button>
+                <button class="btn btn-secondary quick-lvl-btn active" data-lvl="45">Lv.45</button>
+                <button class="btn btn-secondary quick-lvl-btn" data-lvl="60">Lv.60</button>
+              </div>
+
+              <!-- Billboard Label Scale -->
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
+                <span style="font-size: 10px; color: var(--text-secondary);">Kích thước Billboard Label:</span>
+                <span id="billboard-scale-val" class="form-label-value" style="color: var(--text-muted); font-size: 10px;">2.50x</span>
+              </div>
+              <input type="range" id="billboard-scale-slider" min="0.5" max="5" step="0.05" value="2.5" />
+            </div>
+
+            <!-- Donate Rank Buttons -->
+            <div class="sub-panel">
+              <div style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">
+                Gán Rank Donate (Avatar Đang Chọn):
+              </div>
+              <div class="btn-group-row">
+                <button class="btn rank-test-btn btn-secondary active" data-rank="👑 TOP 1">👑 TOP 1</button>
+                <button class="btn rank-test-btn btn-secondary" data-rank="🥈 TOP 2">🥈 TOP 2</button>
+                <button class="btn rank-test-btn btn-secondary" data-rank="🥉 TOP 3">🥉 TOP 3</button>
+                <button class="btn rank-test-btn btn-secondary" data-rank="💎 VIP">💎 VIP</button>
+                <button class="btn rank-test-btn btn-secondary" data-rank="">⚪ Bỏ Rank</button>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 4px;">
+                <button class="btn btn-secondary" id="btn-toggle-fan" style="font-size: 10px;">💜 Bật/Tắt Fan</button>
+                <button class="btn btn-secondary" id="btn-toggle-follow" style="font-size: 10px;">➕ Bật/Tắt Follow</button>
+              </div>
+              <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 6px; margin-top: 4px;">
+                <button class="btn btn-secondary" id="btn-crowd-rank-sim" style="font-size: 10px; border-color: rgba(245, 158, 11, 0.3); color: #fde68a;">
+                  🏆 Random Rank Đám Đông
+                </button>
+                <button class="btn btn-secondary" id="btn-crowd-clear-rank" style="font-size: 10px;">
+                  ⚪ Xóa Hết Rank Sàn
+                </button>
+              </div>
+            </div>
+          </section>
+
         </div>
-        <div id="log-box" class="log-box">
-          <div class="log-item">Sẵn sàng kết nối WebSocket với Port 3000...</div>
-        </div>
-      </div>
+      </main>
+
     </div>
+
+    <!-- ====================================================================
+         BOTTOM DOCK: SMART ACTIVITY CONSOLE MONITOR
+         ==================================================================== -->
+    <section class="card console-card">
+      <div class="console-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <h2 class="card-title" style="border: none; padding: 0; margin: 0; font-size: 12px;">
+            📊 Live Activity Console
+          </h2>
+          <div class="console-filter-tabs">
+            <button class="console-filter-chip active" data-filter="all">Tất Cả</button>
+            <button class="console-filter-chip" data-filter="chat">Chat</button>
+            <button class="console-filter-chip" data-filter="gift">Quà</button>
+            <button class="console-filter-chip" data-filter="like">Tim</button>
+            <button class="console-filter-chip" data-filter="sys">Hệ Thống</button>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span id="log-count" style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono);">0 sự kiện</span>
+          <button id="btn-clear-logs" class="btn btn-secondary" style="font-size: 10px; padding: 2px 8px;">Xóa Console</button>
+        </div>
+      </div>
+
+      <div id="log-box" class="log-box">
+        <div class="log-item" data-type="sys">
+          <span class="log-time">[System]</span>
+          <span class="log-badge info">INFO</span>
+          <span class="log-msg">Sẵn sàng kết nối WebSocket tới 3D Room...</span>
+        </div>
+      </div>
+    </section>
   </div>
 
   <script type="module">
     // --- Streamer Admin Cockpit Controller ---
     const logBox = document.getElementById('log-box');
+    const logCountEl = document.getElementById('log-count');
+    let totalLogs = 1;
+    let currentFilter = 'all';
+
     function log(msg, type = 'info') {
+      totalLogs++;
+      if (logCountEl) logCountEl.textContent = `${totalLogs} sự kiện`;
+
       const el = document.createElement('div');
       el.className = `log-item ${type}`;
+
+      let cat = 'sys';
+      let badgeLabel = 'INFO';
+      if (type === 'sent') { badgeLabel = 'SENT'; cat = 'sys'; }
+      else if (type === 'err') { badgeLabel = 'ERR'; cat = 'sys'; }
+      else if (msg.startsWith('CHAT:')) { badgeLabel = 'CHAT'; cat = 'chat'; }
+      else if (msg.startsWith('GIFT:') || msg.includes('LION')) { badgeLabel = 'GIFT'; cat = 'gift'; }
+      else if (msg.startsWith('LIKE:')) { badgeLabel = 'LIKE'; cat = 'like'; }
+
+      el.setAttribute('data-type', cat);
+      if (currentFilter !== 'all' && currentFilter !== cat) {
+        el.style.display = 'none';
+      }
+
       const time = new Date().toLocaleTimeString();
-      el.textContent = `[${time}] ${msg}`;
+      el.innerHTML = `
+        <span class="log-time">${time}</span>
+        <span class="log-badge ${cat}">${badgeLabel}</span>
+        <span class="log-msg">${msg}</span>
+      `;
+
       logBox.appendChild(el);
       logBox.scrollTop = logBox.scrollHeight;
     }
 
-    // Connect to WebSocket server directly on current host (Port 3001 adminServer or 3000 stream server)
+    // Console Filter Chips Handling
+    document.querySelectorAll('.console-filter-chip').forEach((chip) => {
+      chip.addEventListener('click', () => {
+        document.querySelectorAll('.console-filter-chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        currentFilter = chip.getAttribute('data-filter');
+        document.querySelectorAll('.log-item').forEach((item) => {
+          const itemCat = item.getAttribute('data-type') || 'sys';
+          if (currentFilter === 'all' || itemCat === currentFilter) {
+            item.style.display = 'flex';
+          } else {
+            item.style.display = 'none';
+          }
+        });
+        logBox.scrollTop = logBox.scrollHeight;
+      });
+    });
+
+    // Accordions Handling
+    function setupAccordion(toggleId, bodyId) {
+      const toggle = document.getElementById(toggleId);
+      const body = document.getElementById(bodyId);
+      if (toggle && body) {
+        toggle.addEventListener('click', () => {
+          const isOpen = body.classList.toggle('open');
+          toggle.classList.toggle('open', isOpen);
+        });
+      }
+    }
+    setupAccordion('toggle-graphics-panel', 'body-graphics-panel');
+    setupAccordion('toggle-thresholds-panel', 'body-thresholds-panel');
+    setupAccordion('toggle-minigame-config', 'body-minigame-config');
+
+    // Sidebar Toggle (Collapse / Expand Sân Khấu for Split-Screen mode)
+    const btnToggleSidebar = document.getElementById('btn-toggle-sidebar');
+    const sidebarStage = document.getElementById('sidebar-stage');
+    const studioContainer = document.getElementById('cockpit-studio');
+    if (btnToggleSidebar && sidebarStage && studioContainer) {
+      let isSidebarCollapsed = false;
+      btnToggleSidebar.addEventListener('click', () => {
+        isSidebarCollapsed = !isSidebarCollapsed;
+        sidebarStage.classList.toggle('collapsed', isSidebarCollapsed);
+        studioContainer.classList.toggle('sidebar-hidden', isSidebarCollapsed);
+        btnToggleSidebar.textContent = isSidebarCollapsed ? '▶ Mở Rộng Sân Khấu' : '◀ Thu Gọn Sân Khấu';
+      });
+    }
+
+    // Connect to WebSocket server directly on current host
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsHost = window.location.host;
     const wsUrl = `${wsProtocol}//${wsHost}/ws`;
@@ -740,16 +748,75 @@
     let isDonateStormActive = false;
     let donateStormInterval = null;
 
+    // --- Minigame Slime Survival UI Updater ---
+    function updateMinigameStateUI(data) {
+      if (!data) return;
+      const badge = document.getElementById('minigame-status-badge');
+      const roundVal = document.getElementById('minigame-round-val');
+      const survivorCount = document.getElementById('minigame-survivor-count');
+      const ghostCount = document.getElementById('minigame-ghost-count');
+      const voteGreen = document.getElementById('minigame-vote-green');
+      const voteRed = document.getElementById('minigame-vote-red');
+      const voteBlue = document.getElementById('minigame-vote-blue');
+
+      if (roundVal && data.roundNumber !== undefined) {
+        roundVal.textContent = `Vòng ${data.roundNumber}`;
+      }
+      if (survivorCount && data.activeCount !== undefined) {
+        survivorCount.textContent = data.activeCount;
+      }
+      if (ghostCount && data.ghostCount !== undefined) {
+        ghostCount.textContent = data.ghostCount;
+      }
+
+      if (badge && data.state) {
+        badge.className = 'minigame-status-badge';
+        switch (data.state) {
+          case 'IDLE':
+            badge.textContent = 'Chờ bắt đầu';
+            badge.classList.add('idle');
+            break;
+          case 'COUNTDOWN_START':
+            badge.textContent = 'Đang đếm ngược';
+            badge.classList.add('winner');
+            break;
+          case 'ROUND_VOTING':
+            badge.textContent = 'Đang bỏ phiếu';
+            badge.classList.add('voting');
+            break;
+          case 'TALLY_REVEAL':
+          case 'JUDGMENT':
+            badge.textContent = 'Phán xét laser';
+            badge.classList.add('judgment');
+            break;
+          case 'WINNER_CELEBRATION':
+            badge.textContent = 'Vinh danh thắng';
+            badge.classList.add('winner');
+            break;
+          default:
+            badge.textContent = data.state;
+            badge.classList.add('idle');
+        }
+      }
+
+      if (data.tally) {
+        if (voteGreen) voteGreen.textContent = data.tally.green?.count ?? 0;
+        if (voteRed) voteRed.textContent = data.tally.red?.count ?? 0;
+        if (voteBlue) voteBlue.textContent = data.tally.blue?.count ?? 0;
+      }
+    }
+
     function connectWs() {
       ws = new WebSocket(wsUrl);
 
       ws.onopen = () => {
         isConnected = true;
-        document.getElementById('ws-indicator').classList.add('connected');
-        document.getElementById('ws-status-text').textContent = 'WS 3D Room: Connected';
+        const ind = document.getElementById('ws-indicator');
+        if (ind) ind.classList.add('connected');
+        const txt = document.getElementById('ws-status-text');
+        if (txt) txt.textContent = 'WS 3D Room: Connected';
         log(`Đã kết nối thành công tới 3D Room (${wsUrl})`, 'sent');
 
-        // Tự động đồng bộ mục tiêu Hype Meter đã lưu từ trước
         const savedHype = parseInt(localStorage.getItem('bar_room_max_hype') || '1000', 10);
         if (Number.isFinite(savedHype) && savedHype > 0) {
           sendWs({ type: 'admin_command', command: 'set_max_hype', value: savedHype });
@@ -763,12 +830,12 @@
         const dotEl = document.getElementById('tiktok-status-dot');
         if (isConn) {
           statusEl.textContent = `TikTok: Connected (@${status.username || ''}${status.viewerCount !== undefined ? ' - ' + status.viewerCount + ' 👁' : ''})`;
-          statusEl.style.color = '#00ff88';
-          if (dotEl) dotEl.style.color = '#00ff88';
+          statusEl.style.color = '#10b981';
+          if (dotEl) dotEl.classList.add('connected');
         } else {
           statusEl.textContent = 'TikTok: Disconnected';
-          statusEl.style.color = '#ff4757';
-          if (dotEl) dotEl.style.color = '#ff4757';
+          statusEl.style.color = 'var(--text-secondary)';
+          if (dotEl) dotEl.classList.remove('connected');
         }
       }
 
@@ -780,17 +847,18 @@
           } else if (msg.type === 'initial_session_state') {
             if (msg.status) updateTikTokStatusUI(msg.status);
             if (msg.commandCooldownSec) updateCooldownUI(msg.commandCooldownSec);
+            if (msg.minigameState) updateMinigameStateUI(msg.minigameState);
             if (msg.topDonors && msg.topDonors.length > 0) {
               const top1 = msg.topDonors[0]?.user?.nickname || msg.topDonors[0]?.user?.displayId || 'Top 1';
               const top1Score = msg.topDonors[0]?.score || 0;
-              log(`VIP TOP 1: ${top1} (${top1Score} coins) tren ngai vang`, 'sent');
+              log(`VIP TOP 1: ${top1} (${top1Score} coins) trên ngai vàng`, 'sent');
             }
           } else if (msg.type === 'tiktok_status') {
             updateTikTokStatusUI(msg.data);
             if (msg.data?.isConnected) {
               log(`CONNECTED: @${msg.data.username || ''} (Room ID: ${msg.data.roomId || 'N/A'} - ${msg.data.viewerCount || 0} viewers)`, 'sent');
             } else {
-              log('DISCONNECTED: Da ngat ket noi phien live', 'info');
+              log('DISCONNECTED: Đã ngắt kết nối phiên live', 'info');
             }
           } else if (msg.type === 'tiktok_error') {
             log(`ERROR: ${msg.error}`, 'err');
@@ -803,7 +871,7 @@
               log(`VIP RANKS: Top 1: ${top1} (${top1Score} coins) | Top 2: ${top2}`, 'sent');
             }
           } else if (msg.type === 'session_reset') {
-            log('RESET: Da don dep san va reset dashboard phien live', 'info');
+            log('RESET: Đã dọn dẹp sàn và reset dashboard phiên live', 'info');
           } else if (msg.type === 'chat') {
             const name = msg.user?.nickname || msg.user?.username || 'Viewer';
             log(`CHAT: ${name}: "${msg.data?.comment || ''}"`, 'recv');
@@ -815,7 +883,7 @@
           } else if (msg.type === 'gift') {
             const name = msg.user?.nickname || msg.user?.username || 'Viewer';
             const coins = msg.data?.totalCoins || msg.data?.diamondCount || 1;
-            log(`GIFT: ${name} tang ${msg.data?.giftName || 'Gift'} (${coins} coins) -> Tier ${msg.data?.tier || 1}`, 'recv');
+            log(`GIFT: ${name} tặng ${msg.data?.giftName || 'Gift'} (${coins} coins) -> Tier ${msg.data?.tier || 1}`, 'recv');
           } else if (msg.type === 'like' || msg.type === 'like_batch') {
             const name = msg.user?.nickname || msg.user?.username || 'Viewer';
             const count = msg.data?.likeCount || msg.data?.count || 1;
@@ -826,20 +894,31 @@
             log(`JOIN: ${name} (${lvl})`, 'recv');
           } else if (msg.type === 'follow') {
             const name = msg.user?.nickname || msg.user?.username || 'Viewer';
-            log(`FOLLOW: ${name} da follow kenh`, 'recv');
+            log(`FOLLOW: ${name} đã follow kênh`, 'recv');
           } else if (msg.type === 'superFan' || msg.type === 'superFanJoin') {
             const name = msg.user?.nickname || msg.user?.username || 'Viewer';
             log(`SUPER FAN: ${name} (Fan Level: ${msg.user?.fanLevel || 1})`, 'recv');
           } else if (msg.type === 'active_avatars_list') {
             updateActiveAvatarsDropdown(msg.data || []);
+          } else if (msg.type === 'minigame_state_sync') {
+            updateMinigameStateUI(msg);
+          } else if (msg.type === 'minigame_round_start') {
+            log(`🎮 [MINIGAME]: Bắt đầu vòng đấu mới #${msg.roundNumber || 1}!`, 'sent');
+          } else if (msg.type === 'minigame_judgment_start') {
+            log(`⚡ [MINIGAME]: Bắt đầu phán xét Laser trừng phạt!`, 'sent');
+          } else if (msg.type === 'minigame_game_over') {
+            const winnerName = msg.winner?.nickname || msg.winner?.username || 'Không có ai';
+            log(`🏆 [MINIGAME KẾT THÚC]: Quán quân là ${winnerName}!`, 'sent');
           }
         } catch (e) { }
       };
 
       ws.onclose = () => {
         isConnected = false;
-        document.getElementById('ws-indicator').classList.remove('connected');
-        document.getElementById('ws-status-text').textContent = 'WS 3D Room: Disconnected';
+        const ind = document.getElementById('ws-indicator');
+        if (ind) ind.classList.remove('connected');
+        const txt = document.getElementById('ws-status-text');
+        if (txt) txt.textContent = 'WS 3D Room: Disconnected';
         log('Mất kết nối với 3D Room, đang thử kết nối lại sau 2s...', 'err');
         setTimeout(connectWs, 2000);
       };
@@ -904,24 +983,39 @@
       if (!statusEl) return;
       if (userId) {
         statusEl.textContent = `Đang focus: ${username || userId}`;
-        statusEl.style.color = '#00f2fe';
+        statusEl.style.color = 'var(--accent-cyan)';
       } else {
         statusEl.textContent = 'Chưa focus';
-        statusEl.style.color = '#aaa';
+        statusEl.style.color = 'var(--text-muted)';
       }
     }
 
+    let currentFocusedUserId = null;
     function triggerCameraFocus(userId) {
       if (!userId) {
+        currentFocusedUserId = null;
         sendWs({ type: 'admin_command', command: 'clear_avatar_focus' });
         updateFocusStatusUI(null);
+        const btnFocus = document.getElementById('btn-mock-focus-avatar');
+        if (btnFocus) {
+          btnFocus.textContent = '🎥 Focus Slime';
+          btnFocus.classList.remove('btn-primary');
+          btnFocus.classList.add('btn-secondary');
+        }
         log('Hủy focus camera (Về Orbit)', 'sent');
         return;
       }
+      currentFocusedUserId = userId;
       const found = activeAvatars.find(a => String(a.userId) === String(userId));
       const name = found ? (found.nickname || found.username) : userId;
       sendWs({ type: 'admin_command', command: 'focus_avatar', userId });
       updateFocusStatusUI(userId, name);
+      const btnFocus = document.getElementById('btn-mock-focus-avatar');
+      if (btnFocus) {
+        btnFocus.textContent = '↩️ Bỏ Focus';
+        btnFocus.classList.remove('btn-secondary');
+        btnFocus.classList.add('btn-primary');
+      }
       log(`Camera focus vào slime: ${name} (${userId})`, 'sent');
     }
 
@@ -1008,12 +1102,16 @@
       btnClearLogs.addEventListener('click', () => {
         const box = document.getElementById('log-box');
         if (box) box.innerHTML = '';
+        totalLogs = 0;
+        if (logCountEl) logCountEl.textContent = '0 sự kiện';
       });
     }
 
-    // 2. Camera Controls
+    // 2. Camera Controls & Presets Active State
     document.querySelectorAll('.btn-cam').forEach((btn) => {
       btn.addEventListener('click', () => {
+        document.querySelectorAll('.btn-cam').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
         const preset = btn.getAttribute('data-cam');
         sendWs({ type: 'admin_command', command: 'set_camera', preset });
         const focusSelect = document.getElementById('camera-focus-avatar-select');
@@ -1047,41 +1145,18 @@
       sendWs({ type: 'admin_command', command: 'set_distance', value: 16 });
     });
 
-    // 2b. Camera Focus on Selected Slime Controls
-    document.getElementById('btn-camera-focus-start')?.addEventListener('click', () => {
-      const select = document.getElementById('camera-focus-avatar-select');
-      const uid = select.value;
-      if (!uid) {
-        alert('Vui lòng chọn một slime từ danh sách để camera focus!');
+    // 2b. Camera Focus on Target Slime
+    document.getElementById('btn-mock-focus-avatar')?.addEventListener('click', () => {
+      if (currentFocusedUserId) {
+        triggerCameraFocus(null);
         return;
       }
-      triggerCameraFocus(uid);
-    });
-
-    document.getElementById('camera-focus-avatar-select')?.addEventListener('change', (e) => {
-      const uid = e.target.value;
-      if (uid) {
-        triggerCameraFocus(uid);
-      } else {
-        triggerCameraFocus(null);
-      }
-    });
-
-    document.getElementById('btn-camera-focus-clear')?.addEventListener('click', () => {
-      const select = document.getElementById('camera-focus-avatar-select');
-      if (select) select.value = '';
-      triggerCameraFocus(null);
-    });
-
-    document.getElementById('btn-mock-focus-avatar')?.addEventListener('click', () => {
       const select = document.getElementById('mock-target-avatar');
       const uid = select.value;
       if (!uid) {
-        alert('Vui lòng chọn một avatar đang nhảy trên sàn!');
+        alert('Vui lòng chọn một avatar đang nhảy trên sàn từ danh sách mục tiêu!');
         return;
       }
-      const focusSelect = document.getElementById('camera-focus-avatar-select');
-      if (focusSelect) focusSelect.value = uid;
       triggerCameraFocus(uid);
     });
 
@@ -1132,7 +1207,7 @@
       }
       try {
         localStorage.setItem('bar_room_max_hype', String(val));
-      } catch (_) {}
+      } catch (_) { }
       if (hypeGoalDisplay) hypeGoalDisplay.textContent = `${val} pts`;
       sendWs({ type: 'admin_command', command: 'set_max_hype', value: val });
       log(`🎯 Cập nhật mục tiêu Hype Meter: ${val} pts`, 'sent');
@@ -1144,6 +1219,122 @@
     if (inputMaxHype) {
       inputMaxHype.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') applyMaxHype();
+      });
+    }
+
+    // 4c. Graphics & Performance Settings
+    const selectPixelRatio = document.getElementById('select-pixel-ratio');
+    const checkMovingLights = document.getElementById('check-moving-lights');
+    const checkMovingCones = document.getElementById('check-moving-cones');
+    const checkLaserBeams = document.getElementById('check-laser-beams');
+    const checkGpuShaders = document.getElementById('check-gpu-shaders');
+    const checkStaticFloor = document.getElementById('check-static-floor');
+    const selectFpsCap = document.getElementById('select-fps-cap');
+    const selectSlimeShading = document.getElementById('select-slime-shading');
+    const checkBillboardLookat = document.getElementById('check-billboard-lookat');
+    const btnResetGraphics = document.getElementById('btn-reset-graphics');
+
+    try {
+      const rawGfx = localStorage.getItem('tiktok_bar_graphics_settings_v1');
+      if (rawGfx) {
+        const parsed = JSON.parse(rawGfx);
+        if (parsed.pixelRatioKey && selectPixelRatio) selectPixelRatio.value = parsed.pixelRatioKey;
+        if (typeof parsed.enableMovingHeadLights === 'boolean' && checkMovingLights) checkMovingLights.checked = parsed.enableMovingHeadLights;
+        if (typeof parsed.enableMovingHeadCones === 'boolean' && checkMovingCones) checkMovingCones.checked = parsed.enableMovingHeadCones;
+        if (typeof parsed.enableLaserBeams === 'boolean' && checkLaserBeams) checkLaserBeams.checked = parsed.enableLaserBeams;
+        if (typeof parsed.enableBillboardCpuLookAt === 'boolean' && checkBillboardLookat) checkBillboardLookat.checked = parsed.enableBillboardCpuLookAt;
+        if (typeof parsed.useGpuShaders === 'boolean' && checkGpuShaders) checkGpuShaders.checked = parsed.useGpuShaders;
+        if (typeof parsed.enableStaticFloor === 'boolean' && checkStaticFloor) checkStaticFloor.checked = parsed.enableStaticFloor;
+        if (parsed.fpsCapKey && selectFpsCap) selectFpsCap.value = parsed.fpsCapKey;
+        if (parsed.slimeShadingKey && selectSlimeShading) selectSlimeShading.value = parsed.slimeShadingKey;
+      }
+    } catch (_) { }
+
+    const sendGfxSetting = (setting, value) => {
+      sendWs({
+        type: 'admin_command',
+        command: 'set_graphics_setting',
+        setting,
+        value
+      });
+      try {
+        const cur = JSON.parse(localStorage.getItem('tiktok_bar_graphics_settings_v1') || '{}');
+        cur[setting] = value;
+        localStorage.setItem('tiktok_bar_graphics_settings_v1', JSON.stringify(cur));
+      } catch (_) { }
+      log(`🎮 Cập nhật đồ họa [${setting}]: ${value}`, 'sent');
+    };
+
+    if (selectPixelRatio) {
+      selectPixelRatio.addEventListener('change', (e) => {
+        sendGfxSetting('pixelRatioKey', e.target.value);
+      });
+    }
+
+    if (checkMovingLights) {
+      checkMovingLights.addEventListener('change', (e) => {
+        sendGfxSetting('enableMovingHeadLights', e.target.checked);
+      });
+    }
+
+    if (checkMovingCones) {
+      checkMovingCones.addEventListener('change', (e) => {
+        sendGfxSetting('enableMovingHeadCones', e.target.checked);
+      });
+    }
+
+    if (checkLaserBeams) {
+      checkLaserBeams.addEventListener('change', (e) => {
+        sendGfxSetting('enableLaserBeams', e.target.checked);
+      });
+    }
+
+    if (checkBillboardLookat) {
+      checkBillboardLookat.addEventListener('change', (e) => {
+        sendGfxSetting('enableBillboardCpuLookAt', e.target.checked);
+      });
+    }
+
+    if (checkGpuShaders) {
+      checkGpuShaders.addEventListener('change', (e) => {
+        sendGfxSetting('useGpuShaders', e.target.checked);
+      });
+    }
+
+    if (checkStaticFloor) {
+      checkStaticFloor.addEventListener('change', (e) => {
+        sendGfxSetting('enableStaticFloor', e.target.checked);
+      });
+    }
+
+    if (selectFpsCap) {
+      selectFpsCap.addEventListener('change', (e) => {
+        sendGfxSetting('fpsCapKey', e.target.value);
+      });
+    }
+
+    if (selectSlimeShading) {
+      selectSlimeShading.addEventListener('change', (e) => {
+        sendGfxSetting('slimeShadingKey', e.target.value);
+      });
+    }
+
+    if (btnResetGraphics) {
+      btnResetGraphics.addEventListener('click', () => {
+        if (selectPixelRatio) selectPixelRatio.value = 'BALANCED';
+        if (checkMovingLights) checkMovingLights.checked = false;
+        if (checkMovingCones) checkMovingCones.checked = true;
+        if (checkLaserBeams) checkLaserBeams.checked = true;
+        if (checkBillboardLookat) checkBillboardLookat.checked = false;
+        if (checkGpuShaders) checkGpuShaders.checked = true;
+        if (checkStaticFloor) checkStaticFloor.checked = false;
+        if (selectFpsCap) selectFpsCap.value = 'FPS_60';
+        if (selectSlimeShading) selectSlimeShading.value = 'PBR_TRANSLUCENT';
+        sendWs({ type: 'admin_command', command: 'reset_graphics_defaults' });
+        try {
+          localStorage.removeItem('tiktok_bar_graphics_settings_v1');
+        } catch (_) { }
+        log('🎮 Đã khôi phục cài đặt đồ họa về mặc định', 'sent');
       });
     }
 
@@ -1197,6 +1388,9 @@
       heroLvlSlider.addEventListener('input', (e) => {
         const lvl = parseInt(e.target.value, 10);
         if (heroLvlVal) heroLvlVal.textContent = `Lv.${lvl}`;
+        document.querySelectorAll('.quick-lvl-btn').forEach((b) => {
+          b.classList.toggle('active', parseInt(b.getAttribute('data-lvl'), 10) === lvl);
+        });
         const user = getTargetUser();
         sendWs({ type: 'admin_command', command: 'set_avatar_level', userId: user.userId, level: lvl });
         log(`Set level avatar ${user.username} -> Lv.${lvl}`, 'sent');
@@ -1205,6 +1399,8 @@
 
     document.querySelectorAll('.quick-lvl-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
+        document.querySelectorAll('.quick-lvl-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
         const lvl = parseInt(btn.getAttribute('data-lvl'), 10);
         if (heroLvlSlider) heroLvlSlider.value = lvl;
         if (heroLvlVal) heroLvlVal.textContent = `Lv.${lvl}`;
@@ -1268,24 +1464,24 @@
       const comment = input.value.trim() || (isRandom ? CHAT_POOL[Math.floor(Math.random() * CHAT_POOL.length)] : 'Hello phòng nhảy!');
       const user = getTargetUser();
       sendWs({ type: 'mock_trigger', action: 'chat', comment, user });
-      log(`Chat: "${comment}" by ${user.username}`, 'sent');
+      log(`CHAT: ${user.username}: "${comment}"`, 'recv');
       input.value = '';
     });
 
     document.getElementById('btn-mock-likes-1')?.addEventListener('click', () => {
       const user = getTargetUser();
       sendWs({ type: 'mock_trigger', action: 'likes', count: 1, user });
-      log(`Thả tim: +1 like từ ${user.username}`, 'sent');
+      log(`LIKE: ${user.username} (+1 like)`, 'recv');
     });
     document.getElementById('btn-mock-likes-10').addEventListener('click', () => {
       const user = getTargetUser();
       sendWs({ type: 'mock_trigger', action: 'likes', count: 10, user });
-      log(`Thả tim: +10 likes từ ${user.username}`, 'sent');
+      log(`LIKE: ${user.username} (+10 likes)`, 'recv');
     });
     document.getElementById('btn-mock-likes-50').addEventListener('click', () => {
       const user = getTargetUser();
       sendWs({ type: 'mock_trigger', action: 'likes', count: 50, user });
-      log(`Thả tim: +50 likes từ ${user.username}`, 'sent');
+      log(`LIKE: ${user.username} (+50 likes)`, 'recv');
     });
 
     // 6.1 Command Cooldown Anti-Spam Control
@@ -1326,13 +1522,12 @@
       }
     }
 
-    // Load initial cooldown from API on start
     fetch('/api/config/cooldown')
       .then(r => r.json())
       .then(data => {
         if (data && data.cooldownSec) updateCooldownUI(data.cooldownSec);
       })
-      .catch(() => {});
+      .catch(() => { });
 
     cooldownSlider?.addEventListener('input', (e) => {
       const val = parseInt(e.target.value, 10);
@@ -1396,7 +1591,7 @@
         const forceTierUp = toggleTierUp && toggleTierUp.checked ? true : undefined;
         const user = getTargetUser();
         sendWs({ type: 'mock_trigger', action: 'gift', giftName, giftKey, tier, coins, user, ...(forceTierUp ? { forceTierUp } : {}) });
-        log(`Tặng quà: ${giftName} (${coins}🪙) cho ${user.username}${forceTierUp ? ' [Tier-Up]' : ''}`, 'sent');
+        log(`GIFT: ${user.username} tặng ${giftName} (${coins}🪙)${forceTierUp ? ' [Tier-Up]' : ''}`, 'recv');
       });
     });
 
@@ -1404,7 +1599,7 @@
       const user = getTargetUser();
       const forceTierUp = toggleTierUp && toggleTierUp.checked ? true : undefined;
       sendWs({ type: 'mock_trigger', action: 'gift', giftName: 'Sư tử', giftKey: 'lion', tier: 5, coins: 29999, user, ...(forceTierUp ? { forceTierUp } : {}) });
-      log(`👑 ĐẠI TIỆC LION CORONATION (29.999🪙) cho ${user.username}!`, 'sent');
+      log(`GIFT: 👑 ĐẠI TIỆC LION CORONATION (29.999🪙) cho ${user.username}!`, 'recv');
     });
 
     // 8. Continuous Donate Storm
@@ -1413,8 +1608,8 @@
       isDonateStormActive = !isDonateStormActive;
       if (isDonateStormActive) {
         stormBtn.textContent = '🌧️ Bão Donate Liên Tục: ON (Đang bắn...)';
-        stormBtn.style.color = '#00ff88';
-        stormBtn.style.borderColor = '#00ff88';
+        stormBtn.classList.remove('btn-secondary');
+        stormBtn.classList.add('btn-primary');
         const buttons = Array.from(document.querySelectorAll('.donate-btn'));
         donateStormInterval = setInterval(() => {
           const randBtn = buttons[Math.floor(Math.random() * buttons.length)];
@@ -1422,8 +1617,8 @@
         }, 650);
       } else {
         stormBtn.textContent = '🌧️ Bão Donate Liên Tục: OFF';
-        stormBtn.style.color = '';
-        stormBtn.style.borderColor = '';
+        stormBtn.classList.remove('btn-primary');
+        stormBtn.classList.add('btn-secondary');
         clearInterval(donateStormInterval);
       }
     });
@@ -1492,6 +1687,41 @@
         thresholds: def
       });
       log('Đã khôi phục ngưỡng Coin về mặc định!', 'sent');
+    });
+
+    // 10. Minigame Slime Sinh Tồn Controls
+    document.getElementById('btn-minigame-start-now')?.addEventListener('click', () => {
+      const duration = Number(document.getElementById('cfg-minigame-duration')?.value || 20);
+      sendWs({ type: 'minigame_action', action: 'start', payload: { countdown: 0, duration } });
+      log('🎮 Bắt đầu Minigame Slime Sinh Tồn ngay lập tức!', 'sent');
+    });
+
+    document.getElementById('btn-minigame-start-30')?.addEventListener('click', () => {
+      const duration = Number(document.getElementById('cfg-minigame-duration')?.value || 20);
+      sendWs({ type: 'minigame_action', action: 'start', payload: { countdown: 30, duration } });
+      log('🎮 Đặt lịch bắt đầu Minigame sau 30s đếm ngược!', 'sent');
+    });
+
+    document.getElementById('btn-minigame-force-judgment')?.addEventListener('click', () => {
+      sendWs({ type: 'minigame_action', action: 'force_judgment' });
+      log('⚡ Ép kết thúc bỏ phiếu -> Bắn Laser phán xét ngay!', 'sent');
+    });
+
+    document.getElementById('btn-minigame-stop')?.addEventListener('click', () => {
+      sendWs({ type: 'minigame_action', action: 'stop' });
+      log('⏹️ Đã dừng Minigame Slime Sinh Tồn', 'sent');
+    });
+
+    document.getElementById('btn-minigame-revive')?.addEventListener('click', () => {
+      sendWs({ type: 'minigame_action', action: 'revive_ghosts' });
+      log('👻 Đã hồi sinh toàn bộ ma thành Slime nhảy bình thường', 'sent');
+    });
+
+    document.getElementById('btn-save-minigame-cfg')?.addEventListener('click', () => {
+      const roundDurationSec = Number(document.getElementById('cfg-minigame-duration')?.value || 20);
+      const startCountdownSec = Number(document.getElementById('cfg-minigame-countdown')?.value || 60);
+      sendWs({ type: 'minigame_action', action: 'set_config', payload: { roundDurationSec, startCountdownSec } });
+      log(`⚙️ Đã lưu cấu hình Minigame: Mỗi vòng ${roundDurationSec}s, Chuẩn bị ${startCountdownSec}s`, 'sent');
     });
   </script>
 </body>

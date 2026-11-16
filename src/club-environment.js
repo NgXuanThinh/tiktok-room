@@ -1,5 +1,8 @@
 // src/club-environment.js - InstancedMesh LED floor (1 draw call), VIP stage, DJ booth, moving heads, lasers, fireworks, hearts
 import * as THREE from 'three';
+import { graphicsSettings } from './graphics-settings.js';
+import { createGpuFloorMaterial } from './shaders/floor-shader.js';
+import { createGpuStarfieldMaterial } from './shaders/starfield-shader.js';
 import { GiftPropsManager } from './gift-props.js';
 import { CINEMATIC_CONFIG } from './cinematic-config.js';
 import {
@@ -48,6 +51,24 @@ export {
   BACK_WALL_CONFIG,
   clampSpotlightToFloor
 };
+
+// Module-level cached vectors to avoid runtime heap allocation and GC pauses in animate()
+const _tempMhTargetVec = new THREE.Vector3();
+
+function freezeStaticTree(obj) {
+  if (!obj) return;
+  obj.traverse((child) => {
+    if (child && child.isMesh) {
+      child.matrixAutoUpdate = false;
+      child.updateMatrix();
+    }
+  });
+  obj.matrixAutoUpdate = false;
+  obj.updateMatrix();
+  if (typeof obj.updateMatrixWorld === 'function') {
+    obj.updateMatrixWorld(true);
+  }
+}
 
 /**
  * Procedurally generates a shiny red heart bubble texture with glossy reflection and neon outer glow.
@@ -171,6 +192,102 @@ export class ClubEnvironment {
     this.createDroppingCoinsSystem();
     this.createShockwaveSystem();
     this.createMythicCrownSystem();
+
+    // Apply performance settings
+    this.setMovingHeadLightsEnabled(graphicsSettings.settings.enableMovingHeadLights);
+    this.setMovingHeadConesEnabled(graphicsSettings.settings.enableMovingHeadCones);
+    this.setLaserBeamsEnabled(graphicsSettings.settings.enableLaserBeams);
+    this.setUseGpuShaders(graphicsSettings.settings.useGpuShaders);
+    this.setStaticFloorEnabled(graphicsSettings.settings.enableStaticFloor);
+
+    // Subscribe to runtime setting changes from Admin Panel
+    graphicsSettings.addListener((key, val) => {
+      if (key === 'enableMovingHeadLights' || key === 'all') {
+        this.setMovingHeadLightsEnabled(graphicsSettings.settings.enableMovingHeadLights);
+      }
+      if (key === 'enableMovingHeadCones' || key === 'all') {
+        this.setMovingHeadConesEnabled(graphicsSettings.settings.enableMovingHeadCones);
+      }
+      if (key === 'enableLaserBeams' || key === 'all') {
+        this.setLaserBeamsEnabled(graphicsSettings.settings.enableLaserBeams);
+      }
+      if (key === 'useGpuShaders' || key === 'all') {
+        this.setUseGpuShaders(graphicsSettings.settings.useGpuShaders);
+      }
+      if (key === 'enableStaticFloor' || key === 'all') {
+        this.setStaticFloorEnabled(graphicsSettings.settings.enableStaticFloor);
+      }
+    });
+  }
+
+  setMovingHeadLightsEnabled(enabled) {
+    const isEn = Boolean(enabled);
+    if (!this.movingHeads) return;
+    for (const mh of this.movingHeads) {
+      if (mh.spot) {
+        mh.spot.visible = isEn;
+        mh.spot.intensity = isEn ? (mh.isFocused ? 8.0 : 4.5) : 0;
+      }
+    }
+  }
+
+  setMovingHeadConesEnabled(enabled) {
+    const isEn = Boolean(enabled);
+    if (!this.movingHeads) return;
+    for (const mh of this.movingHeads) {
+      if (mh.cone) {
+        mh.cone.visible = isEn;
+      }
+    }
+  }
+
+  setLaserBeamsEnabled(enabled) {
+    const isEn = Boolean(enabled);
+    if (!this.laserBeams) return;
+    for (const lb of this.laserBeams) {
+      if (lb.mesh) {
+        lb.mesh.visible = isEn;
+      }
+    }
+  }
+
+  setUseGpuShaders(enabled) {
+    const isEn = Boolean(enabled);
+    if (this.floorMesh && this.gpuFloorMat && this.cpuFloorMat) {
+      this.floorMesh.material = isEn ? this.gpuFloorMat : this.cpuFloorMat;
+      this.floorMesh.material.needsUpdate = true;
+      if (this.floorMesh.instanceColor) this.floorMesh.instanceColor.needsUpdate = true;
+    }
+    if (this.starfieldPoints && this.gpuStarMat && this.cpuStarMat) {
+      this.starfieldPoints.material = isEn ? this.gpuStarMat : this.cpuStarMat;
+      this.starfieldPoints.material.needsUpdate = true;
+      if (this.starfieldPoints.geometry?.attributes?.color) {
+        this.starfieldPoints.geometry.attributes.color.needsUpdate = true;
+      }
+    }
+  }
+
+  setStaticFloorEnabled(enabled) {
+    const isStatic = Boolean(enabled);
+    if (this.gpuFloorMat?.uniforms?.u_isStatic) {
+      this.gpuFloorMat.uniforms.u_isStatic.value = isStatic ? 1.0 : 0.0;
+    }
+    if (isStatic && this.floorMesh) {
+      // Bake solid vibrant purple palette once for CPU mode so floor is clean and non-flickering
+      const halfCols = (FLOOR_GRID_CONFIG.cols - 1) / 2;
+      const halfRows = (FLOOR_GRID_CONFIG.rows - 1) / 2;
+      const colorHolder = new THREE.Color();
+      let idx = 0;
+      for (let r = 0; r < FLOOR_GRID_CONFIG.rows; r++) {
+        for (let c = 0; c < FLOOR_GRID_CONFIG.cols; c++) {
+          const baseCol = PURPLE_FLOOR_PALETTE[(r + c) % PURPLE_FLOOR_PALETTE.length];
+          colorHolder.copy(baseCol).multiplyScalar(0.85);
+          this.floorMesh.setColorAt(idx, colorHolder);
+          idx++;
+        }
+      }
+      if (this.floorMesh.instanceColor) this.floorMesh.instanceColor.needsUpdate = true;
+    }
   }
 
   /**
@@ -251,6 +368,9 @@ export class ClubEnvironment {
       new THREE.Color(0xdda0dd)  // Lavender Star
     ];
 
+    const starParams = new Float32Array(starCount * 2);
+    const baseColors = new Float32Array(starCount * 3);
+
     for (let i = 0; i < starCount; i++) {
       const x = (Math.random() - 0.5) * 70;
       const y = 3.5 + Math.random() * 28;
@@ -265,19 +385,30 @@ export class ClubEnvironment {
       colors[i * 3 + 1] = col.g;
       colors[i * 3 + 2] = col.b;
 
+      baseColors[i * 3] = col.r;
+      baseColors[i * 3 + 1] = col.g;
+      baseColors[i * 3 + 2] = col.b;
+
+      const speed = 1.0 + Math.random() * 3.0;
+      const phase = Math.random() * Math.PI * 2;
+      starParams[i * 2] = speed;
+      starParams[i * 2 + 1] = phase;
+
       this.starData.push({
         baseR: col.r,
         baseG: col.g,
         baseB: col.b,
-        speed: 1.0 + Math.random() * 3.0,
-        phase: Math.random() * Math.PI * 2
+        speed,
+        phase
       });
     }
 
     geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     geom.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    geom.setAttribute('aStarParams', new THREE.BufferAttribute(starParams, 2));
+    geom.setAttribute('aBaseColor', new THREE.BufferAttribute(baseColors, 3));
 
-    const mat = new THREE.PointsMaterial({
+    this.cpuStarMat = new THREE.PointsMaterial({
       size: 0.18,
       vertexColors: true,
       transparent: true,
@@ -285,6 +416,9 @@ export class ClubEnvironment {
       blending: THREE.AdditiveBlending,
       depthWrite: false
     });
+    this.gpuStarMat = createGpuStarfieldMaterial(0.18);
+
+    const mat = graphicsSettings.settings.useGpuShaders ? this.gpuStarMat : this.cpuStarMat;
 
     this.starfieldPoints = new THREE.Points(geom, mat);
     this.scene.add(this.starfieldPoints);
@@ -349,11 +483,17 @@ export class ClubEnvironment {
 
     // 2. 12x12 LED Dance Floor Matrix (144 tiles) with purple palette & white border frame
     const tileGeom = new THREE.BoxGeometry(FLOOR_GRID_CONFIG.tileSize, 0.2, FLOOR_GRID_CONFIG.tileSize);
-    const tileMat = new THREE.MeshStandardMaterial({
-      color: 0xffffff, // Pure white base color so InstancedMesh setColorAt renders accurate RGB hues!
-      roughness: 0.2,
-      metalness: 0.3
+    // CPU Fallback material uses MeshBasicMaterial so LED floor is self-luminous and never black even with spot lights off
+    this.cpuFloorMat = new THREE.MeshBasicMaterial({
+      color: 0xffffff
     });
+    this.gpuFloorMat = createGpuFloorMaterial({
+      wavePhase: 0,
+      bassFlux: 0,
+      minBrightness: FLOOR_EMISSIVE_CONFIG.minPulseBrightness || 0.28
+    });
+
+    const tileMat = graphicsSettings.settings.useGpuShaders ? this.gpuFloorMat : this.cpuFloorMat;
 
     const count = FLOOR_GRID_CONFIG.count;
     this.floorMesh = new THREE.InstancedMesh(tileGeom, tileMat, count);
@@ -380,12 +520,8 @@ export class ClubEnvironment {
     const borderGeom = new THREE.ShapeGeometry(borderShape);
     borderGeom.rotateX(-Math.PI / 2); // Lay flat on XZ plane
 
-    const borderMat = new THREE.MeshStandardMaterial({
+    const borderMat = new THREE.MeshBasicMaterial({
       color: 0xffffff,
-      emissive: 0xffffff,
-      emissiveIntensity: 0.9,
-      roughness: 0.2,
-      metalness: 0.1,
       side: THREE.DoubleSide
     });
 
@@ -665,6 +801,7 @@ export class ClubEnvironment {
 
     stageGroup.add(rightVipGroup);
 
+    freezeStaticTree(stageGroup);
     this.scene.add(stageGroup);
     this.vipPodiumGroup = stageGroup;
   }
@@ -887,6 +1024,7 @@ export class ClubEnvironment {
     // Back Wall (Deepened to Z = -18.5m and widened for full-venue orbit camera clearance)
     this.backWall = new THREE.Mesh(new THREE.BoxGeometry(40, 18, 0.5), wallMat);
     this.backWall.position.set(0, 8, BACK_WALL_CONFIG.z);
+    freezeStaticTree(this.backWall);
     this.scene.add(this.backWall);
 
     // Neon Logo Bar
@@ -897,6 +1035,7 @@ export class ClubEnvironment {
     });
     this.neonBar = new THREE.Mesh(new THREE.BoxGeometry(10, 0.5, 0.2), neonBarMat);
     this.neonBar.position.set(0, 9.5, BACK_WALL_CONFIG.z + 0.3);
+    freezeStaticTree(this.neonBar);
     this.scene.add(this.neonBar);
   }
 
@@ -1032,6 +1171,11 @@ export class ClubEnvironment {
    * - 'ultra' / Tier 4+: ALL 8 spotlights converge + Golden Beam + Fireworks (7.6s, Gold #ffd700)
    */
   focusSpotlights(categoryOrTier = 1, targetPosition = null, duration = null, avatarManager = null, userId = null) {
+    // If moving heads lights & cones are both disabled, respect user's choice and completely skip spotlight focusing
+    if (!graphicsSettings.settings.enableMovingHeadLights && !graphicsSettings.settings.enableMovingHeadCones) {
+      return;
+    }
+
     let numSpots = 1;
     let spotColor = 0x00f2fe;
     let autoDuration = duration;
@@ -1696,33 +1840,44 @@ export class ClubEnvironment {
     if (this.neonBar) this.neonBar.visible = !isBehindWall;
 
     // 1. LED Floor wave pulse based on Bass with vibrant bright purple palette & minimum emissive glow
-    this.wavePhase += delta * (2.0 + bass * 0.05);
-    const colorHolder = new THREE.Color();
-    const halfCols = (FLOOR_GRID_CONFIG.cols - 1) / 2;
-    const halfRows = (FLOOR_GRID_CONFIG.rows - 1) / 2;
-    let idx = 0;
-    for (let r = 0; r < FLOOR_GRID_CONFIG.rows; r++) {
-      for (let c = 0; c < FLOOR_GRID_CONFIG.cols; c++) {
-        const x = (c - halfCols) * FLOOR_GRID_CONFIG.tileSpacing;
-        const z = (r - halfRows) * FLOOR_GRID_CONFIG.tileSpacing;
-        const distFromCenter = Math.hypot(x, z);
-        const wave = Math.sin(this.wavePhase - distFromCenter * 0.4);
-        const intensity = Math.max(
-          FLOOR_EMISSIVE_CONFIG.minPulseBrightness,
-          (wave + 1) * 0.5 * (1.0 + (bands.bassFlux || 0) * 0.03)
-        );
+    if (!graphicsSettings.settings.enableStaticFloor) {
+      this.wavePhase += delta * (2.0 + bass * 0.05);
 
-        const baseCol = PURPLE_FLOOR_PALETTE[(r + c) % PURPLE_FLOOR_PALETTE.length];
-        colorHolder.copy(baseCol).multiplyScalar(intensity);
+      if (graphicsSettings.settings.useGpuShaders && this.gpuFloorMat && this.floorMesh?.material === this.gpuFloorMat) {
+        this.gpuFloorMat.uniforms.u_wavePhase.value = this.wavePhase;
+        this.gpuFloorMat.uniforms.u_bassFlux.value = bands.bassFlux || 0;
+      } else if (this.floorMesh) {
+        const colorHolder = new THREE.Color();
+        const halfCols = (FLOOR_GRID_CONFIG.cols - 1) / 2;
+        const halfRows = (FLOOR_GRID_CONFIG.rows - 1) / 2;
+        let idx = 0;
+        for (let r = 0; r < FLOOR_GRID_CONFIG.rows; r++) {
+          for (let c = 0; c < FLOOR_GRID_CONFIG.cols; c++) {
+            const x = (c - halfCols) * FLOOR_GRID_CONFIG.tileSpacing;
+            const z = (r - halfRows) * FLOOR_GRID_CONFIG.tileSpacing;
+            const distFromCenter = Math.hypot(x, z);
+            const wave = Math.sin(this.wavePhase - distFromCenter * 0.4);
+            const intensity = Math.max(
+              FLOOR_EMISSIVE_CONFIG.minPulseBrightness,
+              (wave + 1) * 0.5 * (1.0 + (bands.bassFlux || 0) * 0.03)
+            );
 
-        this.floorMesh.setColorAt(idx, colorHolder);
-        idx++;
+            const baseCol = PURPLE_FLOOR_PALETTE[(r + c) % PURPLE_FLOOR_PALETTE.length];
+            colorHolder.copy(baseCol).multiplyScalar(intensity);
+
+            this.floorMesh.setColorAt(idx, colorHolder);
+            idx++;
+          }
+        }
+        if (this.floorMesh.instanceColor) this.floorMesh.instanceColor.needsUpdate = true;
       }
     }
-    if (this.floorMesh.instanceColor) this.floorMesh.instanceColor.needsUpdate = true;
 
     // Twinkling Starfield across the midnight sky ("Không gian tối như đêm. Nhưng có sao.")
-    if (this.starfieldPoints && this.starData) {
+    if (graphicsSettings.settings.useGpuShaders && this.gpuStarMat && this.starfieldPoints?.material === this.gpuStarMat) {
+      this.gpuStarMat.uniforms.u_time.value = this.time;
+      this.gpuStarMat.uniforms.u_trebleFlux.value = (bands.trebleFlux || 0) * 0.01;
+    } else if (this.starfieldPoints && this.starData) {
       const colAttr = this.starfieldPoints.geometry.attributes.color;
       const trebleFlux = (bands.trebleFlux || 0) * 0.01;
       for (let i = 0; i < this.starData.length; i += 3) {
@@ -1761,138 +1916,157 @@ export class ClubEnvironment {
     }
 
     // 3. 8 Moving Heads locked 100% to floor surface targets via lookAt and spot.target (Never penetrate floor)
-    for (let i = 0; i < this.movingHeads.length; i++) {
-      const mh = this.movingHeads[i];
-      if (mh.isFocused) {
-        mh.focusTimer -= delta;
-        if (mh.focusTimer <= 0) {
-          mh.isFocused = false;
-          if (mh.spot && mh.spot.color?.setHex) mh.spot.color.copy(mh.baseCol);
-          if (mh.cone && mh.cone.material) mh.cone.material.opacity = 0.28;
+    const lightsEnabled = graphicsSettings.settings.enableMovingHeadLights;
+    const conesEnabled = graphicsSettings.settings.enableMovingHeadCones;
+    if (lightsEnabled || conesEnabled) {
+      for (let i = 0; i < this.movingHeads.length; i++) {
+        const mh = this.movingHeads[i];
+        if (mh.isFocused) {
+          mh.focusTimer -= delta;
+          if (mh.focusTimer <= 0) {
+            mh.isFocused = false;
+            if (mh.spot && mh.spot.color?.setHex) mh.spot.color.copy(mh.baseCol);
+            if (mh.cone && mh.cone.material) mh.cone.material.opacity = 0.28;
+          }
         }
-      }
 
-      let rawTarget;
-      if (mh.isFocused && mh.focusTarget) {
-        rawTarget = mh.focusTarget;
-      } else {
-        // Smooth floor trajectories covering dance floor, entrance, bar, and DJ booth
-        // (VIP platforms at x=±5.4, z=-10.9 are preserved with steady architectural lighting to prevent flickering)
-        if (i === 0) {
-          // Mid-Left: Sweeps left dance floor & side bar (z >= -7.5m, never cuts across VIP)
-          rawTarget = { x: -4.8 + 2.0 * Math.sin(this.time * 0.85), y: 0, z: -3.5 + 3.8 * Math.cos(this.time * 0.95) };
-        } else if (i === 1) {
-          // Mid-Right: Sweeps right dance floor & side bar (z >= -7.5m, never cuts across VIP)
-          rawTarget = { x: 4.8 + 2.0 * Math.cos(this.time * 0.90 + 1.0), y: 0, z: -3.5 + 3.8 * Math.sin(this.time * 0.80 + 0.5) };
-        } else if (i === 2) {
-          // Front-Left: Sweeps front-left entrance & corner bar
-          rawTarget = { x: -5.5 + 2.8 * Math.sin(this.time * 0.75 + 2.0), y: 0, z: 4.5 + 3.5 * Math.cos(this.time * 1.0) };
-        } else if (i === 3) {
-          // Front-Right: Sweeps front-right corner & floor edge
-          rawTarget = { x: 5.5 + 2.8 * Math.cos(this.time * 0.80 + 3.0), y: 0, z: 4.5 + 3.5 * Math.sin(this.time * 0.90 + 1.5) };
-        } else if (i === 4) {
-          // Overhead Back: Sweeps directly over DJ booth, vinyl decks, mixer, and DJ mascot (centered on x=0)
-          rawTarget = { x: 1.8 * Math.sin(this.time * 0.9), y: 0, z: -8.8 + 1.4 * Math.cos(this.time * 0.7) };
-        } else if (i === 5) {
-          // Overhead Front: Sweeps front-center dance floor
-          rawTarget = { x: 4.0 * Math.cos(this.time * 0.8), y: 0, z: 4.0 + 3.5 * Math.sin(this.time * 0.75) };
-        } else if (i === 6) {
-          // Left Flank Center: Wide figure-8 sweeping left dance floor
-          rawTarget = { x: -4.5 + 2.5 * Math.cos(this.time * 0.7 + 1.5), y: 0, z: 0.5 + 5.5 * Math.sin(this.time * 1.05) };
+        let rawTarget;
+        if (mh.isFocused && mh.focusTarget) {
+          rawTarget = mh.focusTarget;
         } else {
-          // Right Flank Center: Wide figure-8 sweeping right dance floor
-          rawTarget = { x: 4.5 + 2.5 * Math.sin(this.time * 0.85 + 2.5), y: 0, z: 0.5 + 5.5 * Math.cos(this.time * 0.95) };
+          // Smooth floor trajectories covering dance floor, entrance, bar, and DJ booth
+          // (VIP platforms at x=±5.4, z=-10.9 are preserved with steady architectural lighting to prevent flickering)
+          if (i === 0) {
+            // Mid-Left: Sweeps left dance floor & side bar (z >= -7.5m, never cuts across VIP)
+            rawTarget = { x: -4.8 + 2.0 * Math.sin(this.time * 0.85), y: 0, z: -3.5 + 3.8 * Math.cos(this.time * 0.95) };
+          } else if (i === 1) {
+            // Mid-Right: Sweeps right dance floor & side bar (z >= -7.5m, never cuts across VIP)
+            rawTarget = { x: 4.8 + 2.0 * Math.cos(this.time * 0.90 + 1.0), y: 0, z: -3.5 + 3.8 * Math.sin(this.time * 0.80 + 0.5) };
+          } else if (i === 2) {
+            // Front-Left: Sweeps front-left entrance & corner bar
+            rawTarget = { x: -5.5 + 2.8 * Math.sin(this.time * 0.75 + 2.0), y: 0, z: 4.5 + 3.5 * Math.cos(this.time * 1.0) };
+          } else if (i === 3) {
+            // Front-Right: Sweeps front-right corner & floor edge
+            rawTarget = { x: 5.5 + 2.8 * Math.cos(this.time * 0.80 + 3.0), y: 0, z: 4.5 + 3.5 * Math.sin(this.time * 0.90 + 1.5) };
+          } else if (i === 4) {
+            // Overhead Back: Sweeps directly over DJ booth, vinyl decks, mixer, and DJ mascot (centered on x=0)
+            rawTarget = { x: 1.8 * Math.sin(this.time * 0.9), y: 0, z: -8.8 + 1.4 * Math.cos(this.time * 0.7) };
+          } else if (i === 5) {
+            // Overhead Front: Sweeps front-center dance floor
+            rawTarget = { x: 4.0 * Math.cos(this.time * 0.8), y: 0, z: 4.0 + 3.5 * Math.sin(this.time * 0.75) };
+          } else if (i === 6) {
+            // Left Flank Center: Wide figure-8 sweeping left dance floor
+            rawTarget = { x: -4.5 + 2.5 * Math.cos(this.time * 0.7 + 1.5), y: 0, z: 0.5 + 5.5 * Math.sin(this.time * 1.05) };
+          } else {
+            // Right Flank Center: Wide figure-8 sweeping right dance floor
+            rawTarget = { x: 4.5 + 2.5 * Math.sin(this.time * 0.85 + 2.5), y: 0, z: 0.5 + 5.5 * Math.cos(this.time * 0.95) };
+          }
         }
-      }
 
-      const clamped = clampSpotlightToFloor(rawTarget);
-      const targetVec = new THREE.Vector3(clamped.x, Math.max(0, clamped.y || 0), clamped.z);
+        const clamped = clampSpotlightToFloor(rawTarget);
+        _tempMhTargetVec.set(clamped.x, Math.max(0, clamped.y || 0), clamped.z);
 
-      if (!mh.currentAim) mh.currentAim = targetVec.clone();
-      const aimSpeed = mh.isFocused ? 6.0 : 2.5;
-      mh.currentAim.lerp(targetVec, Math.min(1.0, delta * aimSpeed));
-      mh.currentAim.y = Math.max(0, mh.currentAim.y);
+        if (!mh.currentAim) mh.currentAim = _tempMhTargetVec.clone();
+        const aimSpeed = mh.isFocused ? 6.0 : 2.5;
+        mh.currentAim.lerp(_tempMhTargetVec, Math.min(1.0, delta * aimSpeed));
+        mh.currentAim.y = Math.max(0, mh.currentAim.y);
 
-      // Point the 3D visual cone mesh directly at floor target
-      mh.group.lookAt(mh.currentAim.x, mh.currentAim.y, mh.currentAim.z);
+        // Point the 3D visual cone mesh directly at floor target
+        mh.group.lookAt(mh.currentAim.x, mh.currentAim.y, mh.currentAim.z);
 
-      // Distance from fixture to floor surface target
-      const dist = mh.group.position.distanceTo(mh.currentAim);
+        // Distance from fixture to floor surface target
+        const dist = mh.group.position.distanceTo(mh.currentAim);
 
-      // FIX: Scale cone Z axis so its base lands PRECISELY at floor surface (never penetrates floor)
-      if (mh.cone) {
-        mh.cone.scale.set(1.0, 1.0, Math.max(0.1, dist / 16.0));
-      }
+        // FIX: Scale cone Z axis so its base lands PRECISELY at floor surface (only if cones enabled)
+        if (mh.cone && mh.cone.visible) {
+          mh.cone.scale.set(1.0, 1.0, Math.max(0.1, dist / 16.0));
+        }
 
-      // Point Three.js SpotLight directly at floor target
-      if (mh.spot && mh.spot.target) {
-        mh.spot.target.position.copy(mh.currentAim);
-      }
-
-      if (mh.spot) {
-        mh.spot.distance = dist + 0.5;
-        mh.spot.intensity = (mh.isFocused ? 8.0 : 4.5) + (bands.midsFlux || 0) * 0.05;
-      }
-    }
-
-    // 4. Laser Beams Strobe & Angle driven by Treble (Aimed forward at dance floor, never into VIP)
-    for (let i = 0; i < this.laserBeams.length; i++) {
-      const lb = this.laserBeams[i];
-      lb.mesh.rotation.z = Math.sin(this.time * 2.5 + lb.offset) * 0.22;
-      lb.mesh.rotation.x = 0.35 + Math.cos(this.time * 2.0 + lb.offset) * 0.15; // Angled forward away from VIP lounges
-
-      const flash = treble > 80 ? Math.random() * 0.7 + 0.2 : 0.3;
-      lb.mesh.material.opacity = flash;
-
-      // Laser mount is at y = 8.5. Calculate distance along downward beam until floor (y = 0)
-      const cosX = Math.cos(lb.mesh.rotation.x);
-      const cosZ = Math.cos(lb.mesh.rotation.z);
-      const downwardY = Math.abs(cosX * cosZ);
-      const distToFloor = downwardY > 0.01 ? (8.5 / downwardY) : 16.0;
-      const scaleY = Math.min(1.0, distToFloor / 16.0);
-      lb.mesh.scale.set(1, scaleY, 1);
-    }
-
-    // 5. Update Fireworks Particles
-    const posAttr = this.fireworksPoints.geometry.attributes.position;
-    for (let i = 0; i < this.fireworksData.length; i++) {
-      const p = this.fireworksData[i];
-      if (p.active) {
-        p.life += delta;
-        if (p.life >= p.maxLife) {
-          p.active = false;
-          posAttr.array[i * 3 + 1] = -100;
-        } else {
-          posAttr.array[i * 3] += p.vx * delta;
-          posAttr.array[i * 3 + 1] += p.vy * delta;
-          posAttr.array[i * 3 + 2] += p.vz * delta;
-          p.vy -= 4.0 * delta; // Gravity
+        // Point Three.js SpotLight directly at floor target (only if enabled)
+        if (mh.spot && mh.spot.visible) {
+          if (mh.spot.target) {
+            mh.spot.target.position.copy(mh.currentAim);
+          }
+          mh.spot.distance = dist + 0.5;
+          mh.spot.intensity = (mh.isFocused ? 8.0 : 4.5) + (bands.midsFlux || 0) * 0.05;
         }
       }
     }
-    posAttr.needsUpdate = true;
 
-    // 6. Update Flying Hearts
-    const hPos = this.heartParticles.geometry.attributes.position;
-    for (let i = 0; i < this.heartData.length; i++) {
-      const h = this.heartData[i];
-      if (h.active) {
-        h.life += delta;
-        h.y += h.vy * delta;
-        h.theta += 4.0 * delta;
-        h.x += Math.sin(h.theta) * delta * 0.5;
+    // 4. Laser Beams Strobe & Angle driven by Treble (Aimed forward at dance floor, only if lasers enabled)
+    if (this.laserBeams && this.laserBeams.length > 0 && this.laserBeams[0].mesh?.visible) {
+      for (let i = 0; i < this.laserBeams.length; i++) {
+        const lb = this.laserBeams[i];
+        lb.mesh.rotation.z = Math.sin(this.time * 2.5 + lb.offset) * 0.22;
+        lb.mesh.rotation.x = 0.35 + Math.cos(this.time * 2.0 + lb.offset) * 0.15; // Angled forward away from VIP lounges
 
-        if (h.y > 10.0 || h.life > 4.0) {
-          h.active = false;
-          hPos.array[i * 3 + 1] = -100;
-        } else {
-          hPos.array[i * 3] = h.x;
-          hPos.array[i * 3 + 1] = h.y;
-          hPos.array[i * 3 + 2] = h.z;
-        }
+        const flash = treble > 80 ? Math.random() * 0.7 + 0.2 : 0.3;
+        lb.mesh.material.opacity = flash;
+
+        // Laser mount is at y = 8.5. Calculate distance along downward beam until floor (y = 0)
+        const cosX = Math.cos(lb.mesh.rotation.x);
+        const cosZ = Math.cos(lb.mesh.rotation.z);
+        const downwardY = Math.abs(cosX * cosZ);
+        const distToFloor = downwardY > 0.01 ? (8.5 / downwardY) : 16.0;
+        const scaleY = Math.min(1.0, distToFloor / 16.0);
+        lb.mesh.scale.set(1, scaleY, 1);
       }
     }
-    hPos.needsUpdate = true;
+
+    // 5. Update Fireworks Particles (Optimized: Avoid wasteful PCIe buffer uploads when idle)
+    const posAttr = this.fireworksPoints?.geometry?.attributes?.position;
+    if (posAttr && this.fireworksData) {
+      let anyFireworksActive = false;
+      for (let i = 0; i < this.fireworksData.length; i++) {
+        const p = this.fireworksData[i];
+        if (p.active) {
+          anyFireworksActive = true;
+          p.life += delta;
+          if (p.life >= p.maxLife) {
+            p.active = false;
+            posAttr.array[i * 3 + 1] = -100;
+          } else {
+            posAttr.array[i * 3] += p.vx * delta;
+            posAttr.array[i * 3 + 1] += p.vy * delta;
+            posAttr.array[i * 3 + 2] += p.vz * delta;
+            p.vy -= 4.0 * delta; // Gravity
+          }
+        }
+      }
+      if (anyFireworksActive || this._hadActiveFireworks) {
+        posAttr.needsUpdate = true;
+      }
+      this._hadActiveFireworks = anyFireworksActive;
+    }
+
+    // 6. Update Flying Hearts (Optimized: Avoid wasteful PCIe buffer uploads when idle)
+    const hPos = this.heartParticles?.geometry?.attributes?.position;
+    if (hPos && this.heartData) {
+      let anyHeartsActive = false;
+      for (let i = 0; i < this.heartData.length; i++) {
+        const h = this.heartData[i];
+        if (h.active) {
+          anyHeartsActive = true;
+          h.life += delta;
+          h.y += h.vy * delta;
+          h.theta += 4.0 * delta;
+          h.x += Math.sin(h.theta) * delta * 0.5;
+
+          if (h.y > 10.0 || h.life > 4.0) {
+            h.active = false;
+            hPos.array[i * 3 + 1] = -100;
+          } else {
+            hPos.array[i * 3] = h.x;
+            hPos.array[i * 3 + 1] = h.y;
+            hPos.array[i * 3 + 2] = h.z;
+          }
+        }
+      }
+      if (anyHeartsActive || this._hadActiveHearts) {
+        hPos.needsUpdate = true;
+      }
+      this._hadActiveHearts = anyHeartsActive;
+    }
 
     // 6b. Update Floating Red Heart Bubbles (Bay lên, lắc lư, mờ dần và biến mất)
     if (this.activeHeartBubbles && this.activeHeartBubbles.length > 0) {

@@ -1,5 +1,6 @@
 // src/scene-manager.js - Three.js WebGL scene lifecycle, 4 lerped camera presets, alpha/chroma modes
 import * as THREE from 'three';
+import { graphicsSettings } from './graphics-settings.js';
 import { CINEMATIC_CONFIG } from './cinematic-config.js';
 import {
   CAMERA_PRESETS,
@@ -81,7 +82,7 @@ export class SceneManager {
     const search = hasWindow && window.location ? window.location.search : '';
     const urlParams = new URLSearchParams(search);
     this.isChromaGreen = urlParams.get('chroma') === 'green';
-    this.isAlpha = urlParams.get('alpha') !== 'false'; // Default to transparent background (no pitch-black)
+    this.isAlpha = urlParams.get('alpha') === 'true'; // Default to false (opaque) to enable Windows DWM Direct Flip hardware overlay
 
     // Scene: Dark as night ("tối như đêm") with twinkling starfield
     this.scene = new THREE.Scene();
@@ -111,11 +112,18 @@ export class SceneManager {
     if (typeof document !== 'undefined') {
       this.renderer = new THREE.WebGLRenderer({
         antialias: true,
-        alpha: true,
+        alpha: this.isAlpha,
         powerPreference: 'high-performance'
       });
       this.renderer.setSize(width, height);
-      this.renderer.setPixelRatio(hasWindow ? Math.min(window.devicePixelRatio, 2.0) : 1.0);
+      this.renderer.setPixelRatio(hasWindow ? graphicsSettings.getEffectivePixelRatio() : 1.0);
+      graphicsSettings.addListener((key) => {
+        if (key === 'pixelRatioKey' || key === 'all') {
+          if (this.renderer && this.renderer.setPixelRatio) {
+            this.renderer.setPixelRatio(graphicsSettings.getEffectivePixelRatio());
+          }
+        }
+      });
       this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
       this.renderer.toneMappingExposure = 1.18;
       if (this.container && typeof this.container.appendChild === 'function') {
